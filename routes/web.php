@@ -44,6 +44,7 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware(EnsureTeamLead::class)->group(function () {
         Route::get('/team/updates', [TeamUpdateController::class, 'index'])->name('team.updates');
+        Route::get('/briefs/{brief}/preview', [BriefController::class, 'preview'])->name('briefs.preview');
         Route::put('/briefs/{brief}', [BriefController::class, 'update'])->name('briefs.update');
         Route::post('/briefs/{brief}/publish', [BriefController::class, 'publish'])->name('briefs.publish');
     });
