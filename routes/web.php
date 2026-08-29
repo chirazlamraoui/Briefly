@@ -8,6 +8,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TeamMemberController;
 use App\Http\Controllers\TeamUpdateController;
 use App\Http\Middleware\EnsureTeamLead;
 use Illuminate\Support\Facades\Route;
@@ -44,6 +45,7 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware(EnsureTeamLead::class)->group(function () {
         Route::get('/team/updates', [TeamUpdateController::class, 'index'])->name('team.updates');
+        Route::get('/team/members/{user}', [TeamMemberController::class, 'show'])->name('team.members.show');
         Route::get('/briefs/{brief}/preview', [BriefController::class, 'preview'])->name('briefs.preview');
         Route::put('/briefs/{brief}', [BriefController::class, 'update'])->name('briefs.update');
         Route::post('/briefs/{brief}/publish', [BriefController::class, 'publish'])->name('briefs.publish');
