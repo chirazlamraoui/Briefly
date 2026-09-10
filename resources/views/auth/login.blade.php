@@ -38,17 +38,6 @@
             </div>
             <button type="submit" class="btn btn-primary w-100">{{ __('Sign in') }}</button>
         </form>
-
-        @if (app()->environment('local'))
-            <div class="mt-4 pt-3 border-top">
-                <p class="small fw-semibold text-muted mb-2">{{ __('Demo accounts') }}</p>
-                <p class="small text-muted mb-1">{{ __('Password for all accounts') }}: <code>password</code></p>
-                <ul class="small text-muted mb-0 ps-3">
-                    <li>{{ __('Team Lead') }}: <code>lead@web.test</code></li>
-                    <li>{{ __('Member') }}: <code>alice@web.test</code></li>
-                </ul>
-            </div>
-        @endif
     </div>
 </div>
 @endsection

@@ -71,9 +71,11 @@ DB_PASSWORD=
 
 If your XAMPP `root` user has a password, set `DB_PASSWORD` accordingly.
 
-## Demo accounts
+## Local development accounts
 
-All demo users share the same password: **`password`**
+> **Development only.** These accounts are created by `php artisan migrate:fresh --seed` on your local machine. They are not shown on the login page and must not be used on a public or production deployment — run `php artisan migrate --force` without `--seed` in production and create real user accounts instead.
+
+Password for all seeded users: **`password`**
 
 | Team | Role | Email |
 |------|------|-------|

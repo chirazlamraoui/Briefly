@@ -20,6 +20,10 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
+        if (! app()->environment('local')) {
+            return;
+        }
+
         $password = Hash::make(self::DEMO_PASSWORD);
 
         $teams = [
