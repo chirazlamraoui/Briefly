@@ -92,7 +92,7 @@ class BriefService
     {
         $members = $team->users()->where('role', UserRole::Member)->orderBy('name')->get();
         $updates = DailyUpdate::query()
-            ->with(['user', 'blocker'])
+            ->with(['user', 'blocker', 'task.project'])
             ->whereIn('user_id', $members->pluck('id'))
             ->whereDate('date', $date)
             ->get()
@@ -105,5 +105,20 @@ class BriefService
             'missing' => $missing,
             'members' => $members,
         ];
+    }
+
+    /**
+     * @return Collection<int, DailyUpdate>
+     */
+    public function teamUpdatesForBrief(Team $team, Carbon $date): Collection
+    {
+        return DailyUpdate::query()
+            ->with(['user', 'blocker', 'task.project'])
+            ->whereHas('user', fn ($query) => $query
+                ->where('team_id', $team->id)
+                ->where('role', UserRole::Member))
+            ->whereDate('date', $date)
+            ->orderBy('user_id')
+            ->get();
     }
 }

@@ -15,6 +15,7 @@ class DailyUpdate extends Model
 
     protected $fillable = [
         'user_id',
+        'task_id',
         'date',
         'content',
         'status',
@@ -38,6 +39,11 @@ class DailyUpdate extends Model
     public function blocker(): BelongsTo
     {
         return $this->belongsTo(Blocker::class);
+    }
+
+    public function task(): BelongsTo
+    {
+        return $this->belongsTo(Task::class);
     }
 
     public function done(): string

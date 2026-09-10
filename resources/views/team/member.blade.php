@@ -24,6 +24,12 @@
                     </span>
                 </div>
                 <div class="small">
+                    @if($update->task)
+                        <div class="mb-2">
+                            <span class="text-muted fw-semibold">{{ __('Project') }}:</span> {{ $update->task->project->name }}
+                            · <span class="text-muted fw-semibold">{{ __('Task') }}:</span> {{ $update->task->title }}
+                        </div>
+                    @endif
                     <div class="mb-1"><span class="text-success fw-semibold">{{ __('Done') }}:</span> {{ $update->done() ?: '—' }}</div>
                     <div class="mb-1"><span class="text-muted fw-semibold">{{ __('In Progress') }}:</span> {{ $update->inProgress() ?: '—' }}</div>
                     <div><span class="text-danger fw-semibold">{{ __('Blocker') }}:</span> {{ $update->blockerLabel() ?: '—' }}</div>

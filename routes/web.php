@@ -8,7 +8,10 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\MemberTaskController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamMemberController;
 use App\Http\Controllers\TeamUpdateController;
 use App\Http\Middleware\EnsureTeamLead;
@@ -42,6 +45,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/daily-update', [DailyUpdateController::class, 'store'])->name('daily-update.store');
     Route::put('/daily-update', [DailyUpdateController::class, 'update'])->name('daily-update.update');
 
+    Route::get('/my-tasks', [MemberTaskController::class, 'index'])->name('tasks.my');
+
     Route::get('/briefs/today', [BriefController::class, 'today'])->name('briefs.today');
     Route::get('/briefs/{brief}', [BriefController::class, 'show'])->name('briefs.show');
     Route::get('/briefs/{brief}/export/pdf', [BriefController::class, 'exportPdf'])->name('briefs.export.pdf');
@@ -49,6 +54,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/history/{brief}', [HistoryController::class, 'show'])->name('history.show');
 
     Route::middleware(EnsureTeamLead::class)->group(function () {
+        Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
+        Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
+        Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
+        Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
+        Route::get('/projects/{project}/tasks/create', [TaskController::class, 'create'])->name('tasks.create');
+        Route::post('/projects/{project}/tasks', [TaskController::class, 'store'])->name('tasks.store');
+        Route::get('/tasks/{task}/edit', [TaskController::class, 'edit'])->name('tasks.edit');
+        Route::put('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
+
         Route::get('/team/updates', [TeamUpdateController::class, 'index'])->name('team.updates');
         Route::get('/team/members/{user}', [TeamMemberController::class, 'show'])->name('team.members.show');
         Route::get('/briefs/{brief}/preview', [BriefController::class, 'preview'])->name('briefs.preview');

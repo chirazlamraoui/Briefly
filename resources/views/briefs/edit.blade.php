@@ -9,6 +9,8 @@
     · <span class="badge bg-secondary status-badge">{{ $brief->status->label() }}</span>
 </p>
 
+@include('partials.team-updates-reference', ['teamUpdates' => $teamUpdates])
+
 <div class="card">
     <div class="card-body p-4">
         <form method="POST" action="{{ route('briefs.update', $brief) }}">

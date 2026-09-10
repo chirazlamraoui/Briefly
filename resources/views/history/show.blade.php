@@ -25,5 +25,7 @@
     </div>
 </div>
 
+@include('partials.team-updates-reference', ['teamUpdates' => $teamUpdates ?? collect()])
+
 <a href="{{ route('history.index') }}" class="btn btn-outline-secondary mt-3">{{ __('Back to history') }}</a>
 @endsection

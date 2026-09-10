@@ -3,12 +3,11 @@
 namespace Tests\Feature;
 
 use App\Enums\BriefStatus;
-use App\Enums\UserRole;
+use App\Enums\UpdateStatus;
 use App\Models\Brief;
 use App\Models\DailyUpdate;
 use App\Models\Team;
 use App\Models\User;
-use App\Enums\UpdateStatus;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -96,9 +95,11 @@ class ExtendedFeaturesTest extends TestCase
         $team = Team::factory()->create();
         $lead = User::factory()->teamLead()->create(['team_id' => $team->id]);
         $member = User::factory()->create(['team_id' => $team->id]);
+        $task = $this->createTaskForMember($member);
 
         DailyUpdate::create([
             'user_id' => $member->id,
+            'task_id' => $task->id,
             'date' => today(),
             'content' => ['done' => 'Member work', 'in_progress' => '', 'blocker' => ''],
             'status' => UpdateStatus::Green,

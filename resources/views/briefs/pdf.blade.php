@@ -34,5 +34,25 @@
 
     <h2 class="blocker">{{ __('Blocker') }}</h2>
     <p>{{ $brief->blocker() ?: '—' }}</p>
+
+    @if(($teamUpdates ?? collect())->isNotEmpty())
+        <h2>{{ __('Team updates reference') }}</h2>
+        <table width="100%" cellpadding="6" cellspacing="0" style="border-collapse: collapse; font-size: 11px;">
+            <tr style="background: #f4f4f5;">
+                <th align="left">{{ __('Member') }}</th>
+                <th align="left">{{ __('Project') }}</th>
+                <th align="left">{{ __('Task') }}</th>
+                <th align="left">{{ __('Status') }}</th>
+            </tr>
+            @foreach($teamUpdates as $update)
+                <tr>
+                    <td>{{ $update->user->name }}</td>
+                    <td>{{ $update->task?->project?->name ?? '—' }}</td>
+                    <td>{{ $update->task?->title ?? '—' }}</td>
+                    <td>{{ $update->status->emoji() }} {{ $update->status->label() }}</td>
+                </tr>
+            @endforeach
+        </table>
+    @endif
 </body>
 </html>

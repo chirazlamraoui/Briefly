@@ -7,6 +7,7 @@ use App\Models\DailyUpdate;
 use App\Services\BlockerService;
 use App\Services\BriefService;
 use App\Services\DailyUpdateDeadlineService;
+use App\Services\TaskService;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -15,8 +16,8 @@ class DashboardController extends Controller
         private BriefService $briefService,
         private BlockerService $blockerService,
         private DailyUpdateDeadlineService $deadlineService,
-    ) {
-    }
+        private TaskService $taskService,
+    ) {}
 
     public function index(): View
     {
@@ -24,7 +25,7 @@ class DashboardController extends Controller
         $today = today();
 
         $todayUpdate = DailyUpdate::query()
-            ->with('blocker')
+            ->with(['blocker', 'task.project'])
             ->where('user_id', $user->id)
             ->whereDate('date', $today)
             ->first();
@@ -43,6 +44,8 @@ class DashboardController extends Controller
             return view('dashboard.lead', compact('user', 'todayUpdate', 'publishedBrief', 'stats', 'todayDraft', 'today', 'blockerChart', 'updateReminder'));
         }
 
-        return view('dashboard.member', compact('user', 'todayUpdate', 'publishedBrief', 'today', 'updateReminder'));
+        $assignedTasks = $this->taskService->assignedTasksFor($user);
+
+        return view('dashboard.member', compact('user', 'todayUpdate', 'publishedBrief', 'today', 'updateReminder', 'assignedTasks'));
     }
 }

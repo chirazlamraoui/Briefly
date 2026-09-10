@@ -13,6 +13,7 @@
     </div>
     <div class="d-flex gap-2 flex-wrap">
         <a href="{{ route('team.updates') }}" class="btn btn-outline-primary">{{ __('Team Updates') }}</a>
+        <a href="{{ route('projects.index') }}" class="btn btn-outline-primary">{{ __('Projects') }}</a>
         <a href="{{ route('briefs.today') }}" class="btn btn-primary">{{ __('Brief du jour') }}</a>
     </div>
 </div>

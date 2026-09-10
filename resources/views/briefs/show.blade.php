@@ -27,6 +27,8 @@
     </div>
 </div>
 
+@include('partials.team-updates-reference', ['teamUpdates' => $teamUpdates ?? collect()])
+
 <div class="d-flex flex-wrap gap-2 mt-3">
     <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary">{{ __('Back to dashboard') }}</a>
     <button type="button" class="btn btn-outline-primary" id="copyBriefBtn">

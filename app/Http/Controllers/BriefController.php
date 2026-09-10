@@ -7,14 +7,12 @@ use App\Models\Brief;
 use App\Services\BriefService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
-use Symfony\Component\HttpFoundation\Response;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\Response;
 
 class BriefController extends Controller
 {
-    public function __construct(private BriefService $briefService)
-    {
-    }
+    public function __construct(private BriefService $briefService) {}
 
     public function today(): View
     {
@@ -23,8 +21,9 @@ class BriefController extends Controller
         if ($user->isTeamLead()) {
             $brief = $this->briefService->getOrCreateTodayDraft($user->team, $user);
             $this->authorize('view', $brief);
+            $teamUpdates = $this->briefService->teamUpdatesForBrief($user->team, $brief->date);
 
-            return view('briefs.edit', compact('brief'));
+            return view('briefs.edit', compact('brief', 'teamUpdates'));
         }
 
         $brief = $this->briefService->getPublishedForTeamOnDate($user->team_id, today());
@@ -42,8 +41,9 @@ class BriefController extends Controller
     {
         $this->authorize('update', $brief);
         $brief->load(['team', 'author']);
+        $teamUpdates = $this->briefService->teamUpdatesForBrief($brief->team, $brief->date);
 
-        return view('briefs.preview', compact('brief'));
+        return view('briefs.preview', compact('brief', 'teamUpdates'));
     }
 
     public function update(StoreBriefRequest $request, Brief $brief): RedirectResponse
@@ -74,17 +74,19 @@ class BriefController extends Controller
     {
         $this->authorize('view', $brief);
         $brief->load(['team', 'author']);
+        $teamUpdates = $this->briefService->teamUpdatesForBrief($brief->team, $brief->date);
 
-        return view('briefs.show', compact('brief'));
+        return view('briefs.show', compact('brief', 'teamUpdates'));
     }
 
     public function exportPdf(Brief $brief): Response
     {
         $this->authorize('view', $brief);
         $brief->load(['team', 'author']);
+        $teamUpdates = $this->briefService->teamUpdatesForBrief($brief->team, $brief->date);
 
         $filename = 'brief-'.$brief->date->format('Y-m-d').'.pdf';
 
-        return Pdf::loadView('briefs.pdf', compact('brief'))->download($filename);
+        return Pdf::loadView('briefs.pdf', compact('brief', 'teamUpdates'))->download($filename);
     }
 }

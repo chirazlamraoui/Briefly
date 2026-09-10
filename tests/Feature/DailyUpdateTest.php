@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\UpdateStatus;
-use App\Enums\UserRole;
 use App\Models\DailyUpdate;
 use App\Models\Team;
 use App\Models\User;
@@ -18,9 +17,11 @@ class DailyUpdateTest extends TestCase
     {
         $team = Team::factory()->create();
         $member = User::factory()->create(['team_id' => $team->id]);
+        $task = $this->createTaskForMember($member);
 
         $this->actingAs($member)
             ->post(route('daily-update.store'), [
+                'task_id' => $task->id,
                 'done' => 'Finished task A',
                 'in_progress' => 'Working on task B',
                 'blocker_type' => 'none',
@@ -30,6 +31,7 @@ class DailyUpdateTest extends TestCase
 
         $this->assertDatabaseHas('updates', [
             'user_id' => $member->id,
+            'task_id' => $task->id,
         ]);
     }
 
@@ -37,9 +39,11 @@ class DailyUpdateTest extends TestCase
     {
         $team = Team::factory()->create();
         $member = User::factory()->create(['team_id' => $team->id]);
+        $task = $this->createTaskForMember($member);
 
         DailyUpdate::create([
             'user_id' => $member->id,
+            'task_id' => $task->id,
             'date' => today(),
             'content' => ['done' => 'x', 'in_progress' => 'y', 'blocker' => ''],
             'status' => UpdateStatus::Green,
@@ -47,6 +51,7 @@ class DailyUpdateTest extends TestCase
 
         $this->actingAs($member)
             ->post(route('daily-update.store'), [
+                'task_id' => $task->id,
                 'done' => 'Another',
                 'in_progress' => 'Another',
                 'blocker_type' => 'none',
@@ -60,9 +65,11 @@ class DailyUpdateTest extends TestCase
         $team = Team::factory()->create();
         $lead = User::factory()->teamLead()->create(['team_id' => $team->id]);
         $member = User::factory()->create(['team_id' => $team->id]);
+        $task = $this->createTaskForMember($member);
 
         DailyUpdate::create([
             'user_id' => $member->id,
+            'task_id' => $task->id,
             'date' => today(),
             'content' => ['done' => 'Done', 'in_progress' => 'IP', 'blocker' => ''],
             'status' => UpdateStatus::Orange,
@@ -71,7 +78,8 @@ class DailyUpdateTest extends TestCase
         $this->actingAs($lead)
             ->get(route('team.updates'))
             ->assertOk()
-            ->assertSee('Done');
+            ->assertSee('Done')
+            ->assertSee($task->title);
     }
 
     public function test_member_cannot_view_team_updates_page(): void

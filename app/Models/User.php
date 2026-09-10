@@ -43,6 +43,11 @@ class User extends Authenticatable
         return $this->hasMany(Brief::class, 'created_by');
     }
 
+    public function assignedTasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'assigned_to');
+    }
+
     public function isTeamLead(): bool
     {
         return $this->role === UserRole::TeamLead;

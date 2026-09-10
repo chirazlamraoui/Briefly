@@ -6,11 +6,14 @@ use App\Enums\BriefStatus;
 use App\Enums\UserRole;
 use App\Models\Brief;
 use App\Models\User;
+use App\Services\BriefService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class HistoryController extends Controller
 {
+    public function __construct(private BriefService $briefService) {}
+
     public function index(Request $request): View
     {
         $teamId = auth()->user()->team_id;
@@ -72,7 +75,8 @@ class HistoryController extends Controller
     {
         $this->authorize('view', $brief);
         $brief->load(['team', 'author']);
+        $teamUpdates = $this->briefService->teamUpdatesForBrief($brief->team, $brief->date);
 
-        return view('history.show', compact('brief'));
+        return view('history.show', compact('brief', 'teamUpdates'));
     }
 }

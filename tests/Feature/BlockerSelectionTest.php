@@ -14,18 +14,26 @@ class BlockerSelectionTest extends TestCase
 {
     use RefreshDatabase;
 
+    private function dailyUpdatePayload(User $member, array $overrides = []): array
+    {
+        $task = $this->createTaskForMember($member);
+
+        return array_merge([
+            'task_id' => $task->id,
+            'done' => 'Finished task A',
+            'in_progress' => 'Working on task B',
+            'blocker_type' => 'none',
+            'status' => UpdateStatus::Green->value,
+        ], $overrides);
+    }
+
     public function test_member_can_submit_update_with_no_blocker(): void
     {
         $team = Team::factory()->create();
         $member = User::factory()->create(['team_id' => $team->id]);
 
         $this->actingAs($member)
-            ->post(route('daily-update.store'), [
-                'done' => 'Finished task A',
-                'in_progress' => 'Working on task B',
-                'blocker_type' => 'none',
-                'status' => UpdateStatus::Green->value,
-            ])
+            ->post(route('daily-update.store'), $this->dailyUpdatePayload($member))
             ->assertRedirect(route('dashboard'));
 
         $update = DailyUpdate::first();
@@ -41,13 +49,11 @@ class BlockerSelectionTest extends TestCase
         $blocker = Blocker::create(['team_id' => $team->id, 'label' => 'Waiting for API access']);
 
         $this->actingAs($member)
-            ->post(route('daily-update.store'), [
-                'done' => 'Finished task A',
-                'in_progress' => 'Working on task B',
+            ->post(route('daily-update.store'), $this->dailyUpdatePayload($member, [
                 'blocker_type' => 'existing',
                 'blocker_id' => $blocker->id,
                 'status' => UpdateStatus::Orange->value,
-            ])
+            ]))
             ->assertRedirect(route('dashboard'));
 
         $this->assertDatabaseHas('updates', [
@@ -62,13 +68,11 @@ class BlockerSelectionTest extends TestCase
         $member = User::factory()->create(['team_id' => $team->id]);
 
         $this->actingAs($member)
-            ->post(route('daily-update.store'), [
-                'done' => 'Finished task A',
-                'in_progress' => 'Working on task B',
+            ->post(route('daily-update.store'), $this->dailyUpdatePayload($member, [
                 'blocker_type' => 'new',
                 'new_blocker' => 'Design review pending',
                 'status' => UpdateStatus::Red->value,
-            ])
+            ]))
             ->assertRedirect(route('dashboard'));
 
         $this->assertDatabaseHas('blockers', [
@@ -92,13 +96,11 @@ class BlockerSelectionTest extends TestCase
         $otherBlocker = Blocker::create(['team_id' => $teamB->id, 'label' => 'Other team blocker']);
 
         $this->actingAs($member)
-            ->post(route('daily-update.store'), [
-                'done' => 'Finished task A',
-                'in_progress' => 'Working on task B',
+            ->post(route('daily-update.store'), $this->dailyUpdatePayload($member, [
                 'blocker_type' => 'existing',
                 'blocker_id' => $otherBlocker->id,
                 'status' => UpdateStatus::Red->value,
-            ])
+            ]))
             ->assertSessionHasErrors('blocker_id');
     }
 
@@ -107,11 +109,13 @@ class BlockerSelectionTest extends TestCase
         $team = Team::factory()->create();
         $lead = User::factory()->teamLead()->create(['team_id' => $team->id]);
         $member = User::factory()->create(['team_id' => $team->id]);
+        $task = $this->createTaskForMember($member);
         $blocker = Blocker::create(['team_id' => $team->id, 'label' => 'Waiting for API access']);
 
         foreach (range(0, 2) as $day) {
             DailyUpdate::create([
                 'user_id' => $member->id,
+                'task_id' => $task->id,
                 'date' => today()->subDays($day),
                 'content' => ['done' => 'x', 'in_progress' => 'y', 'blocker' => ''],
                 'status' => UpdateStatus::Orange,

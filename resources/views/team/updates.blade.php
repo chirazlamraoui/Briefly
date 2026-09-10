@@ -26,6 +26,8 @@
                 <thead>
                     <tr>
                         <th>{{ __('Member') }}</th>
+                        <th>{{ __('Project') }}</th>
+                        <th>{{ __('Task') }}</th>
                         <th>{{ __('Status') }}</th>
                         <th>{{ __('Done') }}</th>
                         <th>{{ __('In Progress') }}</th>
@@ -39,6 +41,8 @@
                             <td class="fw-semibold">
                                 <a href="{{ route('team.members.show', $member) }}" class="text-decoration-none">{{ $member->name }}</a>
                             </td>
+                            <td class="small">{{ $update?->task?->project?->name ?? '—' }}</td>
+                            <td class="small">{{ $update?->task?->title ?? '—' }}</td>
                             <td>
                                 @if($update)
                                     <span class="badge bg-{{ $update->status->badgeClass() }} status-badge">
@@ -54,7 +58,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center text-muted py-4">{{ __('No members in this team.') }}</td>
+                            <td colspan="7" class="text-center text-muted py-4">{{ __('No members in this team.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

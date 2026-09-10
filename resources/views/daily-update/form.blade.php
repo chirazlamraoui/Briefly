@@ -11,12 +11,33 @@
 
 <p class="text-muted mb-4">{{ today()->translatedFormat('l j F Y') }}</p>
 
+@if(auth()->user()->isMember() && $assignedTasks->isEmpty())
+    <div class="alert alert-warning">
+        {{ __('You have no assigned tasks yet. Ask your Team Lead to assign tasks before submitting a daily update.') }}
+    </div>
+@endif
+
 <div class="card">
     <div class="card-body p-4">
         <form method="POST" action="{{ $update ? route('daily-update.update') : route('daily-update.store') }}">
             @csrf
             @if($update)
                 @method('PUT')
+            @endif
+
+            @if(auth()->user()->isMember())
+            <div class="mb-3">
+                <label for="task_id" class="form-label fw-semibold">{{ __('Task') }}</label>
+                <select name="task_id" id="task_id" class="form-select @error('task_id') is-invalid @enderror" required>
+                    <option value="">{{ __('Choose a task') }}</option>
+                    @foreach($assignedTasks as $assignedTask)
+                        <option value="{{ $assignedTask->id }}" @selected((string) old('task_id', $update?->task_id) === (string) $assignedTask->id)>
+                            {{ $assignedTask->project->name }} — {{ $assignedTask->title }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('task_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
             @endif
 
             <div class="mb-3">

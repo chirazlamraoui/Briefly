@@ -600,7 +600,15 @@
                 <i class="bi bi-journal-bookmark"></i>
                 {{ __('My update history') }}
             </a>
+            <a href="{{ route('tasks.my') }}" class="sidebar-link {{ request()->routeIs('tasks.my') ? 'active' : '' }}">
+                <i class="bi bi-check2-square"></i>
+                {{ __('My Tasks') }}
+            </a>
             @if(auth()->user()->isTeamLead())
+            <a href="{{ route('projects.index') }}" class="sidebar-link {{ request()->routeIs('projects.*', 'tasks.*') ? 'active' : '' }}">
+                <i class="bi bi-folder2"></i>
+                {{ __('Projects') }}
+            </a>
             <a href="{{ route('team.updates') }}" class="sidebar-link {{ request()->routeIs('team.updates', 'team.members.*') ? 'active' : '' }}">
                 <i class="bi bi-people"></i>
                 {{ __('Team Updates') }}

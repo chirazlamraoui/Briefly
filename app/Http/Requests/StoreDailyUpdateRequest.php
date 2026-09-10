@@ -18,7 +18,15 @@ class StoreDailyUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
+        $user = $this->user();
+
         return [
+            'task_id' => [
+                Rule::requiredIf(fn () => $user->isMember()),
+                'nullable',
+                'integer',
+                Rule::exists('tasks', 'id')->where(fn ($query) => $query->where('assigned_to', $user->id)),
+            ],
             'done' => ['required', 'string', 'max:5000'],
             'in_progress' => ['required', 'string', 'max:5000'],
             'blocker_type' => ['required', Rule::in(['none', 'existing', 'new'])],

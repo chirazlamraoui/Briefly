@@ -16,7 +16,7 @@ class TeamMemberController extends Controller
         abort_unless($user->team_id === $lead->team_id, 403);
 
         $updates = DailyUpdate::query()
-            ->with('blocker')
+            ->with(['blocker', 'task.project'])
             ->where('user_id', $user->id)
             ->orderByDesc('date')
             ->paginate(15);

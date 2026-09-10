@@ -26,6 +26,8 @@
     </div>
 </div>
 
+@include('partials.team-updates-reference', ['teamUpdates' => $teamUpdates])
+
 <div class="d-flex gap-2 flex-wrap">
     <a href="{{ route('briefs.today') }}" class="btn btn-outline-secondary">{{ __('Back to edit') }}</a>
     <form method="POST" action="{{ route('briefs.publish', $brief) }}" onsubmit="return confirm(@json(__('Publish this brief? Members will be able to read it.')));">

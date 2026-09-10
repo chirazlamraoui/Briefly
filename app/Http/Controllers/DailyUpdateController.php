@@ -5,20 +5,24 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreDailyUpdateRequest;
 use App\Models\Blocker;
 use App\Models\DailyUpdate;
+use App\Models\Task;
+use App\Models\User;
 use App\Services\BlockerService;
+use App\Services\TaskService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class DailyUpdateController extends Controller
 {
-    public function __construct(private BlockerService $blockerService)
-    {
-    }
+    public function __construct(
+        private BlockerService $blockerService,
+        private TaskService $taskService,
+    ) {}
 
     public function history(): View
     {
         $updates = DailyUpdate::query()
-            ->with('blocker')
+            ->with(['blocker', 'task.project'])
             ->where('user_id', auth()->id())
             ->orderByDesc('date')
             ->paginate(15);
@@ -31,7 +35,7 @@ class DailyUpdateController extends Controller
         $user = auth()->user();
 
         $update = DailyUpdate::query()
-            ->with('blocker')
+            ->with(['blocker', 'task.project'])
             ->where('user_id', $user->id)
             ->whereDate('date', today())
             ->first();
@@ -41,7 +45,11 @@ class DailyUpdateController extends Controller
             ->orderBy('label')
             ->get();
 
-        return view('daily-update.form', compact('update', 'teamBlockers'));
+        $assignedTasks = $user->isMember()
+            ? $this->taskService->assignedTasksFor($user)
+            : collect();
+
+        return view('daily-update.form', compact('update', 'teamBlockers', 'assignedTasks'));
     }
 
     public function store(StoreDailyUpdateRequest $request): RedirectResponse
@@ -57,17 +65,20 @@ class DailyUpdateController extends Controller
         }
 
         $user = auth()->user();
-        $blockerId = $this->blockerService->resolveBlockerId($user, $request->validated());
+        $validated = $request->validated();
+        $blockerId = $this->blockerService->resolveBlockerId($user, $validated);
+        $taskId = $this->resolveTaskId($user, $validated['task_id'] ?? null);
 
         DailyUpdate::create([
             'user_id' => $user->id,
+            'task_id' => $taskId,
             'date' => today(),
             'content' => [
-                'done' => $request->validated('done'),
-                'in_progress' => $request->validated('in_progress'),
+                'done' => $validated['done'],
+                'in_progress' => $validated['in_progress'],
                 'blocker' => '',
             ],
-            'status' => $request->validated('status'),
+            'status' => $validated['status'],
             'blocker_id' => $blockerId,
         ]);
 
@@ -83,18 +94,34 @@ class DailyUpdateController extends Controller
 
         $this->authorize('update', $update);
 
-        $blockerId = $this->blockerService->resolveBlockerId(auth()->user(), $request->validated());
+        $user = auth()->user();
+        $validated = $request->validated();
+        $blockerId = $this->blockerService->resolveBlockerId($user, $validated);
+        $taskId = $this->resolveTaskId($user, $validated['task_id'] ?? null);
 
         $update->update([
+            'task_id' => $taskId,
             'content' => [
-                'done' => $request->validated('done'),
-                'in_progress' => $request->validated('in_progress'),
+                'done' => $validated['done'],
+                'in_progress' => $validated['in_progress'],
                 'blocker' => '',
             ],
-            'status' => $request->validated('status'),
+            'status' => $validated['status'],
             'blocker_id' => $blockerId,
         ]);
 
         return redirect()->route('dashboard')->with('success', __('Daily update updated.'));
+    }
+
+    private function resolveTaskId(User $user, ?int $taskId): ?int
+    {
+        if ($taskId === null) {
+            return null;
+        }
+
+        $task = Task::query()->findOrFail($taskId);
+        $this->taskService->ensureTaskAssignedToUser($task, $user);
+
+        return $task->id;
     }
 }
