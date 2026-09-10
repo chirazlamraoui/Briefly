@@ -15,6 +15,17 @@ class DailyUpdateController extends Controller
     {
     }
 
+    public function history(): View
+    {
+        $updates = DailyUpdate::query()
+            ->with('blocker')
+            ->where('user_id', auth()->id())
+            ->orderByDesc('date')
+            ->paginate(15);
+
+        return view('daily-update.history', compact('updates'));
+    }
+
     public function edit(): View
     {
         $user = auth()->user();

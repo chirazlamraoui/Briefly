@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', __('Dashboard')) — {{ config('app.name', 'Briefly') }}</title>
+    <script>
+        (function () {
+            const theme = localStorage.getItem('briefly-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -340,21 +346,7 @@
             font-size: 1.15rem;
         }
 
-        .locale-switcher {
-            position: fixed;
-            top: 1rem;
-            right: 1rem;
-            z-index: 1060;
-            display: inline-flex;
-            gap: 0.15rem;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 999px;
-            padding: 0.2rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-        }
-
-        .locale-switcher a {
+        .preferences-group.locale-switcher a {
             padding: 0.3rem 0.7rem;
             border-radius: 999px;
             font-size: 0.75rem;
@@ -364,18 +356,127 @@
             line-height: 1;
         }
 
-        .locale-switcher a:hover {
+        .preferences-group.locale-switcher a:hover {
             color: var(--text);
         }
 
-        .locale-switcher a.active {
+        .preferences-group.locale-switcher a.active {
             background: var(--accent-soft);
             color: var(--text);
+        }
+
+        .preferences-bar {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1060;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 0.2rem 0.25rem 0.2rem 0.2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .preferences-group {
+            display: inline-flex;
+            gap: 0.15rem;
+        }
+
+        .theme-toggle {
+            border: 0;
+            background: transparent;
+            color: var(--text-muted);
+            width: 2rem;
+            height: 2rem;
+            border-radius: 999px;
+            display: grid;
+            place-items: center;
+            line-height: 1;
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent-soft);
+            color: var(--text);
+        }
+
+        .alert-warning {
+            background: #fffbeb;
+            color: #b45309;
+        }
+
+        [data-theme="dark"] {
+            --accent: #c48993;
+            --accent-soft: #3f2d32;
+            --accent-muted: #e8b4bc;
+            --surface: #18181b;
+            --bg: #09090b;
+            --border: #27272a;
+            --text: #fafafa;
+            --text-muted: #a1a1aa;
+            --bs-primary: #fafafa;
+            --bs-primary-rgb: 250, 250, 250;
+            --bs-link-color: #fafafa;
+            --bs-link-hover-color: #fff;
+            --bs-body-bg: #09090b;
+            --bs-body-color: #fafafa;
+            --bs-border-color: #27272a;
+        }
+
+        [data-theme="dark"] .sidebar-link:hover,
+        [data-theme="dark"] .list-group-item-action:hover {
+            background: #27272a;
+        }
+
+        [data-theme="dark"] .user-avatar,
+        [data-theme="dark"] .stat-icon {
+            background: #27272a;
+        }
+
+        [data-theme="dark"] .table {
+            --bs-table-hover-bg: #27272a;
+            --bs-table-bg: transparent;
+            --bs-table-color: var(--text);
+        }
+
+        [data-theme="dark"] .alert-success {
+            background: #052e1c;
+            color: #6ee7b7;
+        }
+
+        [data-theme="dark"] .alert-danger {
+            background: #4c0519;
+            color: #fda4af;
+        }
+
+        [data-theme="dark"] .alert-warning {
+            background: #451a03;
+            color: #fcd34d;
+        }
+
+        [data-theme="dark"] .btn-outline-secondary {
+            --bs-btn-color: var(--text-muted);
+            --bs-btn-border-color: var(--border);
+            --bs-btn-hover-bg: #27272a;
+            --bs-btn-hover-color: var(--text);
+        }
+
+        [data-theme="dark"] .form-control,
+        [data-theme="dark"] .form-select {
+            background: #18181b;
+            border-color: var(--border);
+            color: var(--text);
+        }
+
+        [data-theme="dark"] .sidebar-overlay.show {
+            background: rgba(0, 0, 0, 0.55);
         }
     </style>
 </head>
 <body>
-    @include('partials.locale-switcher')
+    @include('partials.preferences-bar')
     @auth
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
@@ -390,9 +491,13 @@
                 <i class="bi bi-grid-1x2"></i>
                 {{ __('Dashboard') }}
             </a>
-            <a href="{{ route('daily-update.edit') }}" class="sidebar-link {{ request()->routeIs('daily-update.*') ? 'active' : '' }}">
+            <a href="{{ route('daily-update.edit') }}" class="sidebar-link {{ request()->routeIs('daily-update.edit') ? 'active' : '' }}">
                 <i class="bi bi-journal-text"></i>
                 {{ __('My Daily Update') }}
+            </a>
+            <a href="{{ route('daily-update.history') }}" class="sidebar-link {{ request()->routeIs('daily-update.history') ? 'active' : '' }}">
+                <i class="bi bi-journal-bookmark"></i>
+                {{ __('My update history') }}
             </a>
             @if(auth()->user()->isTeamLead())
             <a href="{{ route('team.updates') }}" class="sidebar-link {{ request()->routeIs('team.updates', 'team.members.*') ? 'active' : '' }}">
@@ -471,6 +576,32 @@
     @endauth
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function () {
+            const root = document.documentElement;
+            const toggle = document.getElementById('themeToggle');
+            const icons = document.querySelectorAll('[data-theme-icon]');
+
+            function syncThemeIcon(theme) {
+                icons.forEach((icon) => {
+                    icon.classList.toggle('d-none', icon.dataset.themeIcon !== theme);
+                });
+            }
+
+            function setTheme(theme) {
+                root.setAttribute('data-theme', theme);
+                localStorage.setItem('briefly-theme', theme);
+                syncThemeIcon(theme === 'dark' ? 'light' : 'dark');
+            }
+
+            syncThemeIcon(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+
+            toggle?.addEventListener('click', () => {
+                const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                setTheme(next);
+            });
+        })();
+    </script>
     @stack('scripts')
     @auth
     <script>

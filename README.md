@@ -10,6 +10,9 @@ Daily team progress tracking application built with **Laravel** and **Bootstrap 
 - Team Lead dashboard, team updates view, daily brief (draft/publish)
 - Published brief history with date and keyword search
 - Shared team blockers with recurrence chart on the lead dashboard
+- Member update history, daily submission reminders, and deadline (timezone-aware)
+- Brief export (PDF download + copy to clipboard)
+- Dark mode and FR/EN language switcher
 
 ## Stack
 
@@ -70,6 +73,15 @@ DB_PASSWORD=
 ```
 
 If your XAMPP `root` user has a password, set `DB_PASSWORD` accordingly.
+
+### Timezone and daily update deadline
+
+```env
+APP_TIMEZONE=Europe/Paris
+DAILY_UPDATE_DEADLINE=17:00
+```
+
+Members see a dashboard reminder until they submit their daily update. After the deadline, the reminder switches to a “missing update” alert.
 
 ## Local development accounts
 

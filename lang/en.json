@@ -1,5 +1,17 @@
 {
     "Brief du jour": "Daily brief",
     "Historique": "History",
-    "Language": "Language"
+    "Language": "Language",
+    "My update history": "My update history",
+    "No updates found.": "No updates found.",
+    "Daily update missing": "Daily update missing",
+    "The submission deadline (:time, :timezone) has passed.": "The submission deadline (:time, :timezone) has passed.",
+    "Reminder: submit your daily update": "Reminder: submit your daily update",
+    "Please submit before :time (:timezone).": "Please submit before :time (:timezone).",
+    "Submit now": "Submit now",
+    "Copy brief": "Copy brief",
+    "Download PDF": "Download PDF",
+    "Copied!": "Copied!",
+    "Toggle dark mode": "Toggle dark mode",
+    "Preferences": "Preferences"
 }

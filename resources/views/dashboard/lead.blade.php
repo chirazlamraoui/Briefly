@@ -4,6 +4,8 @@
 @section('breadcrumb', __('Team overview'))
 
 @section('content')
+@include('partials.update-reminder')
+
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
     <div>
         <p class="text-muted mb-1">{{ $user->team->name }}</p>

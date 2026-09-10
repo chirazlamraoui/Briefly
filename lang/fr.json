@@ -125,5 +125,17 @@
     "No repeated blockers in the selected period.": "Aucun blocage récurrent sur la période sélectionnée.",
     "Demo accounts": "Comptes de démonstration",
     "Password for all accounts": "Mot de passe pour tous les comptes",
-    "Language": "Langue"
+    "Language": "Langue",
+    "My update history": "Mon historique de comptes-rendus",
+    "No updates found.": "Aucun compte-rendu trouvé.",
+    "Daily update missing": "Compte-rendu manquant",
+    "The submission deadline (:time, :timezone) has passed.": "La date limite de soumission (:time, :timezone) est dépassée.",
+    "Reminder: submit your daily update": "Rappel : soumettez votre compte-rendu",
+    "Please submit before :time (:timezone).": "Merci de soumettre avant :time (:timezone).",
+    "Submit now": "Soumettre maintenant",
+    "Copy brief": "Copier le brief",
+    "Download PDF": "Télécharger le PDF",
+    "Copied!": "Copié !",
+    "Toggle dark mode": "Activer le mode sombre",
+    "Preferences": "Préférences"
 }

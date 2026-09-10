@@ -4,14 +4,19 @@
 @section('breadcrumb', __('Overview'))
 
 @section('content')
+@include('partials.update-reminder')
+
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
     <div>
         <p class="text-muted mb-1">{{ __('Welcome back, :name', ['name' => $user->name]) }}</p>
         <p class="mb-0 small">{{ $today->translatedFormat('l j F Y') }}</p>
     </div>
-    <a href="{{ route('daily-update.edit') }}" class="btn btn-primary">
-        {{ $todayUpdate ? __('Edit My Update') : __('Submit Daily Update') }}
-    </a>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{{ route('daily-update.history') }}" class="btn btn-outline-secondary btn-sm">{{ __('My update history') }}</a>
+        <a href="{{ route('daily-update.edit') }}" class="btn btn-primary">
+            {{ $todayUpdate ? __('Edit My Update') : __('Submit Daily Update') }}
+        </a>
+    </div>
 </div>
 
 <div class="row g-4">

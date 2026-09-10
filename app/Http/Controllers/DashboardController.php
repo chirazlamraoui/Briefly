@@ -6,6 +6,7 @@ use App\Models\Brief;
 use App\Models\DailyUpdate;
 use App\Services\BlockerService;
 use App\Services\BriefService;
+use App\Services\DailyUpdateDeadlineService;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -13,6 +14,7 @@ class DashboardController extends Controller
     public function __construct(
         private BriefService $briefService,
         private BlockerService $blockerService,
+        private DailyUpdateDeadlineService $deadlineService,
     ) {
     }
 
@@ -28,6 +30,7 @@ class DashboardController extends Controller
             ->first();
 
         $publishedBrief = $this->briefService->getPublishedForTeamOnDate($user->team_id, $today);
+        $updateReminder = $this->deadlineService->reminderFor($todayUpdate);
 
         if ($user->isTeamLead()) {
             $stats = $this->briefService->teamDashboardStats($user->team, $today);
@@ -37,9 +40,9 @@ class DashboardController extends Controller
                 ->whereDate('date', $today)
                 ->first();
 
-            return view('dashboard.lead', compact('user', 'todayUpdate', 'publishedBrief', 'stats', 'todayDraft', 'today', 'blockerChart'));
+            return view('dashboard.lead', compact('user', 'todayUpdate', 'publishedBrief', 'stats', 'todayDraft', 'today', 'blockerChart', 'updateReminder'));
         }
 
-        return view('dashboard.member', compact('user', 'todayUpdate', 'publishedBrief', 'today'));
+        return view('dashboard.member', compact('user', 'todayUpdate', 'publishedBrief', 'today', 'updateReminder'));
     }
 }

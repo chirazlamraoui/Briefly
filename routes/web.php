@@ -38,11 +38,13 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
 
     Route::get('/daily-update', [DailyUpdateController::class, 'edit'])->name('daily-update.edit');
+    Route::get('/daily-update/history', [DailyUpdateController::class, 'history'])->name('daily-update.history');
     Route::post('/daily-update', [DailyUpdateController::class, 'store'])->name('daily-update.store');
     Route::put('/daily-update', [DailyUpdateController::class, 'update'])->name('daily-update.update');
 
     Route::get('/briefs/today', [BriefController::class, 'today'])->name('briefs.today');
     Route::get('/briefs/{brief}', [BriefController::class, 'show'])->name('briefs.show');
+    Route::get('/briefs/{brief}/export/pdf', [BriefController::class, 'exportPdf'])->name('briefs.export.pdf');
     Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
     Route::get('/history/{brief}', [HistoryController::class, 'show'])->name('history.show');
 
