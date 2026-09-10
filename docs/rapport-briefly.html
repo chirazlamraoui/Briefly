@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Rapport Briefly</title>
+    <style>
+        @page { margin: 2cm 2.2cm; }
+        body {
+            font-family: DejaVu Sans, sans-serif;
+            font-size: 10.5pt;
+            line-height: 1.45;
+            color: #18181b;
+        }
+        h1 {
+            font-size: 22pt;
+            margin: 0 0 4px;
+            letter-spacing: -0.02em;
+        }
+        h2 {
+            font-size: 13pt;
+            margin: 18px 0 8px;
+            color: #18181b;
+            border-bottom: 1px solid #e4e4e7;
+            padding-bottom: 4px;
+        }
+        h3 {
+            font-size: 11pt;
+            margin: 12px 0 6px;
+            color: #27272a;
+        }
+        .subtitle {
+            font-size: 12pt;
+            color: #52525b;
+            margin-bottom: 18px;
+        }
+        .meta {
+            font-size: 10pt;
+            color: #52525b;
+            margin-bottom: 22px;
+        }
+        .meta p { margin: 2px 0; }
+        p { margin: 0 0 8px; text-align: justify; }
+        ul { margin: 4px 0 10px; padding-left: 18px; }
+        li { margin-bottom: 4px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0 12px;
+            font-size: 9.5pt;
+        }
+        th, td {
+            border: 1px solid #d4d4d8;
+            padding: 6px 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background: #f4f4f5;
+            font-weight: 600;
+        }
+        .accent-line {
+            height: 3px;
+            background: #e8b4bc;
+            margin-bottom: 16px;
+        }
+        .page-break { page-break-before: always; }
+        .footer-note {
+            margin-top: 16px;
+            font-size: 9pt;
+            color: #71717a;
+        }
+    </style>
+</head>
+<body>
+
+<div class="accent-line"></div>
+<h1>Briefly</h1>
+<p class="subtitle">Application web de suivi quotidien d'équipe</p>
+<div class="meta">
+    <p><strong>Rapport de présentation — Projet de fin d'études</strong></p>
+    <p><strong>Étudiante :</strong> Chiraz</p>
+    <p><strong>Date :</strong> Septembre 2026</p>
+</div>
+
+<h2>1. Introduction</h2>
+<p>
+    <strong>Briefly</strong> est une application web développée avec <strong>Laravel</strong> et <strong>Bootstrap 5</strong>,
+    destinée aux équipes qui souhaitent centraliser leurs comptes-rendus quotidiens.
+    Elle remplace les échanges informels (messages, tableurs) par un outil structuré où chaque membre indique
+    ce qu'il a <strong>réalisé</strong>, ce qui est <strong>en cours</strong>, et les <strong>blocages</strong> éventuels,
+    avec un statut visuel (🟢 sur la bonne voie, 🟠 attention, 🔴 bloqué).
+</p>
+<p>
+    Le <strong>responsable d'équipe</strong> dispose d'une vue d'ensemble, peut consulter
+    les mises à jour du jour, identifier les blocages récurrents et rédiger un <strong>brief quotidien</strong> à publier
+    pour toute l'équipe. L'application est bilingue (français / anglais), propose un mode sombre, et utilise
+    une base de données <strong>MySQL</strong> (environnement XAMPP).
+</p>
+
+<h2>2. Présentation du projet</h2>
+<h3>2.1 Contexte et problématique</h3>
+<p>
+    Dans une équipe de projet (développement, stage, startup), le suivi quotidien est essentiel pour savoir où en est
+    chaque membre, détecter les blocages tôt, et produire un résumé clair pour l'équipe ou l'encadrement.
+    Briefly répond à ce besoin avec un format simple (Réalisé / En cours / Blocage) et une séparation claire
+    des rôles membre et responsable d'équipe.
+</p>
+
+<h3>2.2 Objectifs</h3>
+<ul>
+    <li>Permettre à chaque membre de soumettre un compte-rendu par jour.</li>
+    <li>Offrir au responsable d'équipe un tableau de bord et une vue « Mises à jour de l'équipe ».</li>
+    <li>Gérer des blocages partagés par équipe et visualiser leur récurrence.</li>
+    <li>Publier un brief du jour (brouillon → aperçu → publication).</li>
+    <li>Conserver un historique des briefs publiés avec recherche.</li>
+    <li>Garantir l'isolation des données entre équipes.</li>
+</ul>
+
+<h3>2.3 Stack technique</h3>
+<table>
+    <tr><th>Composant</th><th>Technologie</th></tr>
+    <tr><td>Backend</td><td>Laravel 13, PHP 8.3+</td></tr>
+    <tr><td>Base de données</td><td>MySQL (XAMPP)</td></tr>
+    <tr><td>Frontend</td><td>Bootstrap 5, Blade</td></tr>
+    <tr><td>Sécurité</td><td>Sessions, mots de passe hashés, policies Laravel</td></tr>
+    <tr><td>Tests</td><td>PHPUnit (32 tests automatisés)</td></tr>
+    <tr><td>Export</td><td>PDF (DomPDF)</td></tr>
+</table>
+
+<div class="page-break"></div>
+
+<h2>3. Les acteurs</h2>
+<p>Chaque utilisateur appartient à <strong>une seule équipe</strong> (ex. Web Team, Mobile Team). Deux rôles principaux :</p>
+
+<h3>3.1 Membre</h3>
+<p><strong>Profil :</strong> membre opérationnel de l'équipe.</p>
+<p><strong>Responsabilités :</strong></p>
+<ul>
+    <li>Se connecter et soumettre sa mise à jour quotidienne (une soumission par jour, modifiable le même jour).</li>
+    <li>Choisir un statut 🟢 / 🟠 / 🔴.</li>
+    <li>Sélectionner un blocage existant, en créer un nouveau, ou indiquer « aucun blocage ».</li>
+    <li>Consulter le brief publié du jour et son historique de comptes-rendus.</li>
+    <li>Gérer son profil (nom, e-mail, mot de passe).</li>
+</ul>
+<p><strong>Limites :</strong> pas d'accès aux brouillons de brief ni à la vue « Mises à jour de l'équipe » réservée au responsable.</p>
+
+<h3>3.2 Responsable d'équipe</h3>
+<p><strong>Profil :</strong> personne qui pilote l'équipe (chef de projet, lead technique, encadrant).</p>
+<p><strong>Responsabilités :</strong></p>
+<ul>
+    <li>Tout ce qu'un membre peut faire (y compris sa propre mise à jour quotidienne).</li>
+    <li>Tableau de bord : effectifs, mises à jour envoyées / manquantes, répartition des statuts.</li>
+    <li>Graphique des blocages récurrents sur 14 jours.</li>
+    <li>Vue « Mises à jour de l'équipe » par date et détail par membre.</li>
+    <li>Rédaction du brief du jour (brouillon), aperçu, publication.</li>
+    <li>Historique des briefs avec filtres ; export PDF et copie du contenu.</li>
+</ul>
+<p><strong>Limites :</strong> accès limité aux données de son équipe uniquement.</p>
+
+<h3>3.3 Synthèse</h3>
+<table>
+    <tr><th>Acteur</th><th>Objectif principal</th></tr>
+    <tr><td>Membre</td><td>Renseigner son avancement quotidien et lire le brief publié</td></tr>
+    <tr><td>Responsable d'équipe</td><td>Superviser l'équipe, synthétiser et publier le brief du jour</td></tr>
+</table>
+
+<div class="page-break"></div>
+
+<h2>4. Les fonctionnalités</h2>
+
+<h3>4.1 Authentification et sécurité</h3>
+<ul>
+    <li>Connexion par e-mail et mot de passe (stockage hashé).</li>
+    <li>Réinitialisation du mot de passe.</li>
+    <li>Deux rôles avec middleware et policies Laravel.</li>
+    <li>Isolation par équipe : chaque utilisateur n'accède qu'aux données de son équipe.</li>
+</ul>
+
+<h3>4.2 Mise à jour quotidienne</h3>
+<ul>
+    <li>Formulaire : Réalisé, En cours, Blocage + statut 🟢🟠🔴.</li>
+    <li>Blocages partagés : aucun, existant, ou nouveau.</li>
+    <li>Une mise à jour par utilisateur et par jour.</li>
+    <li>Rappel sur le tableau de bord avec échéance configurable (ex. 17h00, fuseau Europe/Paris).</li>
+    <li>Historique personnel paginé.</li>
+</ul>
+
+<h3>4.3 Tableau de bord du responsable d'équipe</h3>
+<ul>
+    <li>Statistiques : membres, mises à jour envoyées / manquantes, statuts.</li>
+    <li>Graphique des blocages récurrents (Chart.js, 14 jours).</li>
+    <li>Accès rapide aux mises à jour d'équipe et au brief du jour.</li>
+</ul>
+
+<h3>4.4 Brief du jour</h3>
+<ul>
+    <li>Brouillon éditable, aperçu avant publication, publication à l'équipe.</li>
+    <li>Export PDF et copie dans le presse-papier.</li>
+</ul>
+
+<h3>4.5 Historique et fonctionnalités transverses</h3>
+<ul>
+    <li>Archives des briefs : filtres date, auteur, section, mot-clé.</li>
+    <li>Interface bilingue FR / EN et mode sombre.</li>
+    <li>Profil utilisateur et 32 tests PHPUnit automatisés.</li>
+</ul>
+
+<h2>5. Modèle de données (aperçu)</h2>
+<table>
+    <tr><th>Entité</th><th>Description</th></tr>
+    <tr><td>Team</td><td>Équipe (ex. Web Team)</td></tr>
+    <tr><td>User</td><td>Utilisateur (membre ou responsable, lié à une équipe)</td></tr>
+    <tr><td>DailyUpdate</td><td>Compte-rendu quotidien (contenu, statut, blocage optionnel)</td></tr>
+    <tr><td>Blocker</td><td>Libellé de blocage partagé au sein d'une équipe</td></tr>
+    <tr><td>Brief</td><td>Brief du jour (brouillon ou publié)</td></tr>
+</table>
+
+<h2>6. Conclusion</h2>
+<p>
+    Briefly couvre un cycle métier complet : saisie quotidienne → supervision → synthèse → diffusion → archivage.
+    Elle démontre la maîtrise de Laravel, d'une base relationnelle MySQL, de la gestion des rôles et de bonnes pratiques
+    (validation, policies, tests, internationalisation).
+</p>
+<p class="footer-note">
+    Dépôt GitHub : github.com/chirazlamraoui/Briefly
+</p>
+
+</body>
+</html>
