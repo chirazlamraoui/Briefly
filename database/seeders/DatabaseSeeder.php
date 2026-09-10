@@ -15,9 +15,12 @@ use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
+    /** Demo password for all seeded users (login: password). */
+    private const DEMO_PASSWORD = 'password';
+
     public function run(): void
     {
-        $password = Hash::make('password');
+        $password = Hash::make(self::DEMO_PASSWORD);
 
         $teams = [
             ['name' => 'Web Team', 'slug' => 'web'],

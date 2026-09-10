@@ -124,5 +124,7 @@
     "Repeated blockers": "Blockers récurrents",
     "Last :days days": ":days derniers jours",
     "Occurrences": "Occurrences",
-    "No repeated blockers in the selected period.": "Aucun blocker récurrent sur la période sélectionnée."
+    "No repeated blockers in the selected period.": "Aucun blocker récurrent sur la période sélectionnée.",
+    "Demo accounts": "Comptes de démonstration",
+    "Password for all accounts": "Mot de passe pour tous les comptes"
 }

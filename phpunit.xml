@@ -18,6 +18,7 @@
         </include>
     </source>
     <php>
+        <!-- Tests use in-memory SQLite so PHPUnit does not require XAMPP MySQL -->
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
