@@ -255,9 +255,9 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        for ($day = 1; $day <= 14; $day++) {
+        for ($day = 1; $day <= 30; $day++) {
             foreach ($members as $memberIndex => $member) {
-                if (($day + $memberIndex) % 3 !== 0) {
+                if (($day + $memberIndex) % 2 !== 0) {
                     continue;
                 }
 
@@ -303,22 +303,22 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        Brief::firstOrCreate(
-            [
-                'team_id' => $team->id,
-                'date' => today()->subDay(),
-            ],
-            [
-                'content' => [
-                    'done' => "Yesterday's completed work for {$teamName}.",
-                    'in_progress' => 'Ongoing sprint items across multiple projects.',
-                    'blocker' => 'Waiting for API access, Design review pending.',
+        for ($day = 1; $day <= 21; $day++) {
+            $date = today()->subDays($day);
+
+            Brief::firstOrCreate(
+                [
+                    'team_id' => $team->id,
+                    'date' => $date,
                 ],
-                'status' => BriefStatus::Published,
-                'created_by' => $lead->id,
-                'published_at' => today()->subDay()->setTime(17, 0),
-            ]
-        );
+                [
+                    'content' => $this->publishedBriefContent($teamName, $day),
+                    'status' => BriefStatus::Published,
+                    'created_by' => $lead->id,
+                    'published_at' => $date->copy()->setTime(17, 15),
+                ]
+            );
+        }
 
         Brief::firstOrCreate(
             [
@@ -335,5 +335,29 @@ class DatabaseSeeder extends Seeder
                 'created_by' => $lead->id,
             ]
         );
+    }
+
+    /**
+     * @return array{done: string, in_progress: string, blocker: string}
+     */
+    private function publishedBriefContent(string $teamName, int $daysAgo): array
+    {
+        $themes = [
+            ['Shipped dashboard improvements', 'API integration and QA fixes', 'Waiting for API access'],
+            ['Closed sprint tickets', 'Mobile release candidate', 'Design review pending'],
+            ['Resolved blocker on auth flow', 'Performance tuning', 'Third-party service outage'],
+            ['Documentation updates merged', 'Onboarding flow polish', 'Staging server unavailable'],
+            ['Test coverage increased', 'Refactoring notification service', 'Security audit pending'],
+            ['Cross-team sync completed', 'Reporting export prototype', 'Unclear product requirements'],
+            ['Bug fixes from regression', 'CI pipeline hardening', 'Deployment pipeline issue'],
+        ];
+
+        $theme = $themes[$daysAgo % count($themes)];
+
+        return [
+            'done' => "{$theme[0]} for {$teamName} (day -{$daysAgo}).",
+            'in_progress' => "{$theme[1]} across active projects.",
+            'blocker' => $theme[2].($daysAgo % 4 === 0 ? ', Waiting for QA sign-off' : '').'.',
+        ];
     }
 }
