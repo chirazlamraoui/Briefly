@@ -30,9 +30,7 @@
                             </td>
                             <td>{{ $task->project->name }}</td>
                             <td>
-                                <span class="badge bg-{{ $task->status->badgeClass() }} status-badge">
-                                    {{ $task->status->label() }}
-                                </span>
+                                @include('partials.status-pill', ['status' => $task->status])
                             </td>
                         </tr>
                     @empty

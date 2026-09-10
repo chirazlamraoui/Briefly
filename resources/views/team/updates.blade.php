@@ -45,11 +45,9 @@
                             <td class="small">{{ $update?->task?->title ?? '—' }}</td>
                             <td>
                                 @if($update)
-                                    <span class="badge bg-{{ $update->status->badgeClass() }} status-badge">
-                                        {{ $update->status->emoji() }} {{ $update->status->label() }}
-                                    </span>
+                                    @include('partials.status-pill', ['status' => $update->status])
                                 @else
-                                    <span class="badge bg-secondary status-badge">{{ __('Not submitted') }}</span>
+                                    <span class="status-pill status-pill--muted">{{ __('Not submitted') }}</span>
                                 @endif
                             </td>
                             <td class="small">{{ $update?->done() ?: '—' }}</td>

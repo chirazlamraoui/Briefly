@@ -107,8 +107,9 @@
                                    value="{{ $status->value }}"
                                    {{ old('status', $update?->status?->value ?? \App\Enums\UpdateStatus::Green->value) === $status->value ? 'checked' : '' }}
                                    required>
-                            <label class="form-check-label" for="status_{{ $status->value }}">
-                                {{ $status->emoji() }} {{ $status->label() }}
+                            <label class="form-check-label d-inline-flex align-items-center gap-2" for="status_{{ $status->value }}">
+                                <span class="{{ $status->dotClass() }}"></span>
+                                {{ $status->label() }}
                             </label>
                         </div>
                     @endforeach

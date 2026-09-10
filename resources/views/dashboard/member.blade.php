@@ -27,9 +27,7 @@
             <div class="card-body">
                 @if($todayUpdate)
                     <p class="mb-3">
-                        <span class="badge bg-{{ $todayUpdate->status->badgeClass() }} status-badge">
-                            {{ $todayUpdate->status->emoji() }} {{ $todayUpdate->status->label() }}
-                        </span>
+                        @include('partials.status-pill', ['status' => $todayUpdate->status])
                     </p>
                     <h6 class="text-success">{{ __('Done') }}</h6>
                     <p class="small">{{ $todayUpdate->done() ?: '—' }}</p>
@@ -87,9 +85,7 @@
                             <div class="fw-semibold">{{ $task->title }}</div>
                             <div class="text-muted">{{ $task->project->name }}</div>
                         </div>
-                        <span class="badge bg-{{ $task->status->badgeClass() }} status-badge">
-                            {{ $task->status->label() }}
-                        </span>
+                        @include('partials.status-pill', ['status' => $task->status])
                     </div>
                 @empty
                     <div class="text-center py-3 text-muted small">{{ __('No tasks assigned to you yet.') }}</div>

@@ -5,10 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreBriefRequest;
 use App\Models\Brief;
 use App\Services\BriefService;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
-use Symfony\Component\HttpFoundation\Response;
 
 class BriefController extends Controller
 {
@@ -77,16 +75,5 @@ class BriefController extends Controller
         $teamUpdates = $this->briefService->teamUpdatesForBrief($brief->team, $brief->date);
 
         return view('briefs.show', compact('brief', 'teamUpdates'));
-    }
-
-    public function exportPdf(Brief $brief): Response
-    {
-        $this->authorize('view', $brief);
-        $brief->load(['team', 'author']);
-        $teamUpdates = $this->briefService->teamUpdatesForBrief($brief->team, $brief->date);
-
-        $filename = 'brief-'.$brief->date->format('Y-m-d').'.pdf';
-
-        return Pdf::loadView('briefs.pdf', compact('brief', 'teamUpdates'))->download($filename);
     }
 }

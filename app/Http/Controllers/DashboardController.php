@@ -8,6 +8,7 @@ use App\Services\BlockerService;
 use App\Services\BriefService;
 use App\Services\DailyUpdateDeadlineService;
 use App\Services\TaskService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -19,9 +20,14 @@ class DashboardController extends Controller
         private TaskService $taskService,
     ) {}
 
-    public function index(): View
+    public function index(): View|RedirectResponse
     {
         $user = auth()->user();
+
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+
         $today = today();
 
         $todayUpdate = DailyUpdate::query()

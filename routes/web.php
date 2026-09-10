@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminProjectController;
+use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\BriefController;
@@ -14,6 +17,8 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamMemberController;
 use App\Http\Controllers\TeamUpdateController;
+use App\Http\Middleware\EnsureAdmin;
+use App\Http\Middleware\EnsureNotAdmin;
 use App\Http\Middleware\EnsureTeamLead;
 use Illuminate\Support\Facades\Route;
 
@@ -36,22 +41,33 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    Route::middleware(EnsureAdmin::class)->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/projects', [AdminProjectController::class, 'index'])->name('projects.index');
+        Route::get('/projects/{project}/teams', [AdminProjectController::class, 'edit'])->name('projects.edit');
+        Route::put('/projects/{project}/teams', [AdminProjectController::class, 'updateTeams'])->name('projects.update-teams');
+        Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
+        Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
+    });
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
 
-    Route::get('/daily-update', [DailyUpdateController::class, 'edit'])->name('daily-update.edit');
-    Route::get('/daily-update/history', [DailyUpdateController::class, 'history'])->name('daily-update.history');
-    Route::post('/daily-update', [DailyUpdateController::class, 'store'])->name('daily-update.store');
-    Route::put('/daily-update', [DailyUpdateController::class, 'update'])->name('daily-update.update');
+    Route::middleware(EnsureNotAdmin::class)->group(function () {
+        Route::get('/daily-update', [DailyUpdateController::class, 'edit'])->name('daily-update.edit');
+        Route::get('/daily-update/history', [DailyUpdateController::class, 'history'])->name('daily-update.history');
+        Route::post('/daily-update', [DailyUpdateController::class, 'store'])->name('daily-update.store');
+        Route::put('/daily-update', [DailyUpdateController::class, 'update'])->name('daily-update.update');
 
-    Route::get('/my-tasks', [MemberTaskController::class, 'index'])->name('tasks.my');
+        Route::get('/my-tasks', [MemberTaskController::class, 'index'])->name('tasks.my');
 
-    Route::get('/briefs/today', [BriefController::class, 'today'])->name('briefs.today');
-    Route::get('/briefs/{brief}', [BriefController::class, 'show'])->name('briefs.show');
-    Route::get('/briefs/{brief}/export/pdf', [BriefController::class, 'exportPdf'])->name('briefs.export.pdf');
-    Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
-    Route::get('/history/{brief}', [HistoryController::class, 'show'])->name('history.show');
+        Route::get('/briefs/today', [BriefController::class, 'today'])->name('briefs.today');
+        Route::get('/briefs/{brief}', [BriefController::class, 'show'])->name('briefs.show');
+        Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
+        Route::get('/history/{brief}', [HistoryController::class, 'show'])->name('history.show');
+    });
 
     Route::middleware(EnsureTeamLead::class)->group(function () {
         Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');

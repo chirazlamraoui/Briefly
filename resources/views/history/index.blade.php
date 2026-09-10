@@ -54,7 +54,7 @@
                         <strong>{{ $brief->date->translatedFormat('j F Y') }}</strong>
                         <div class="small text-muted mt-1">{{ $brief->author->name }} · {{ Str::limit($brief->done(), 80) }}</div>
                     </div>
-                    <span class="badge bg-success status-badge">{{ __('Published') }}</span>
+                    <span class="status-pill status-pill--green">{{ __('Published') }}</span>
                 </div>
             </a>
         @empty

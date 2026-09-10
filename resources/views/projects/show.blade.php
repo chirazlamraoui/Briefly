@@ -41,9 +41,7 @@
                             </td>
                             <td>{{ $task->assignee->name }}</td>
                             <td>
-                                <span class="badge bg-{{ $task->status->badgeClass() }} status-badge">
-                                    {{ $task->status->label() }}
-                                </span>
+                                @include('partials.status-pill', ['status' => $task->status])
                             </td>
                             <td class="text-end">
                                 <a href="{{ route('tasks.edit', $task) }}" class="btn btn-sm btn-outline-primary">{{ __('Edit') }}</a>

@@ -6,7 +6,7 @@
 @section('content')
 <p class="text-muted mb-4">
     {{ $brief->date->translatedFormat('l j F Y') }}
-    · <span class="badge bg-secondary status-badge">{{ $brief->status->label() }}</span>
+    · <span class="status-pill status-pill--neutral">{{ $brief->status->label() }}</span>
 </p>
 
 @include('partials.team-updates-reference', ['teamUpdates' => $teamUpdates])

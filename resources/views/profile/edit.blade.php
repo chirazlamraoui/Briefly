@@ -25,7 +25,9 @@
                         @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="mb-4 small text-muted">
-                        <div>{{ __('Team') }} : {{ $user->team->name }}</div>
+                        @if($user->team)
+                            <div>{{ __('Team') }} : {{ $user->team->name }}</div>
+                        @endif
                         <div>{{ __('Role') }} : {{ $user->role->label() }}</div>
                     </div>
                     <button type="submit" class="btn btn-primary">{{ __('Save profile') }}</button>

@@ -14,7 +14,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->redirectGuestsTo(fn () => route('login'));
-        $middleware->redirectUsersTo(fn () => route('dashboard'));
+        $middleware->redirectUsersTo(function () {
+            return auth()->user()?->isAdmin()
+                ? route('admin.dashboard')
+                : route('dashboard');
+        });
         $middleware->web(append: [
             SetLocale::class,
         ]);

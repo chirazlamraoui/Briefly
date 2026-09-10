@@ -34,9 +34,6 @@
     <button type="button" class="btn btn-outline-primary" id="copyBriefBtn">
         <i class="bi bi-clipboard me-1"></i>{{ __('Copy brief') }}
     </button>
-    <a href="{{ route('briefs.export.pdf', $brief) }}" class="btn btn-outline-primary">
-        <i class="bi bi-file-earmark-pdf me-1"></i>{{ __('Download PDF') }}
-    </a>
 </div>
 
 <span class="visually-hidden" id="copyBriefText">@include('briefs.partials.plain-text', ['brief' => $brief])</span>

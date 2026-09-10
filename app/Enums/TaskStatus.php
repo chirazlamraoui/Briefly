@@ -17,6 +17,15 @@ enum TaskStatus: string
         };
     }
 
+    public function pillClass(): string
+    {
+        return match ($this) {
+            self::Todo => 'status-pill status-pill--neutral',
+            self::InProgress => 'status-pill status-pill--blue',
+            self::Done => 'status-pill status-pill--green',
+        };
+    }
+
     public function badgeClass(): string
     {
         return match ($this) {

@@ -19,9 +19,7 @@
             <div class="list-group-item py-3">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <strong>{{ $update->date->translatedFormat('l j F Y') }}</strong>
-                    <span class="badge bg-{{ $update->status->badgeClass() }} status-badge">
-                        {{ $update->status->emoji() }} {{ $update->status->label() }}
-                    </span>
+                    @include('partials.status-pill', ['status' => $update->status])
                 </div>
                 <div class="small">
                     @if($update->task)

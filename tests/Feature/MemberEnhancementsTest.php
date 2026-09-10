@@ -35,32 +35,7 @@ class MemberEnhancementsTest extends TestCase
             ->assertSee(__('Reminder: submit your daily update'), false);
     }
 
-    public function test_member_can_download_published_brief_pdf(): void
-    {
-        $team = Team::factory()->create();
-        $lead = User::factory()->teamLead()->create(['team_id' => $team->id]);
-        $member = User::factory()->create(['team_id' => $team->id]);
-
-        $brief = Brief::create([
-            'team_id' => $team->id,
-            'date' => today(),
-            'content' => [
-                'done' => 'Shipped feature',
-                'in_progress' => 'Testing',
-                'blocker' => 'None',
-            ],
-            'status' => BriefStatus::Published,
-            'created_by' => $lead->id,
-            'published_at' => now(),
-        ]);
-
-        $this->actingAs($member)
-            ->get(route('briefs.export.pdf', $brief))
-            ->assertOk()
-            ->assertHeader('content-type', 'application/pdf');
-    }
-
-    public function test_brief_show_page_has_copy_and_pdf_actions(): void
+    public function test_brief_show_page_has_copy_action(): void
     {
         $team = Team::factory()->create();
         $lead = User::factory()->teamLead()->create(['team_id' => $team->id]);
@@ -82,7 +57,6 @@ class MemberEnhancementsTest extends TestCase
         $this->actingAs($member)
             ->get(route('briefs.show', $brief))
             ->assertOk()
-            ->assertSee(__('Copy brief'), false)
-            ->assertSee(__('Download PDF'), false);
+            ->assertSee(__('Copy brief'), false);
     }
 }

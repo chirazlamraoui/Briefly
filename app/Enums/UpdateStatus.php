@@ -26,6 +26,24 @@ enum UpdateStatus: string
         };
     }
 
+    public function dotClass(): string
+    {
+        return match ($this) {
+            self::Green => 'status-dot status-dot--green',
+            self::Orange => 'status-dot status-dot--orange',
+            self::Red => 'status-dot status-dot--red',
+        };
+    }
+
+    public function pillClass(): string
+    {
+        return match ($this) {
+            self::Green => 'status-pill status-pill--green',
+            self::Orange => 'status-pill status-pill--orange',
+            self::Red => 'status-pill status-pill--red',
+        };
+    }
+
     public function badgeClass(): string
     {
         return match ($this) {

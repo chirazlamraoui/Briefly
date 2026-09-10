@@ -270,6 +270,135 @@
             padding: 0.45em 0.85em;
         }
 
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            line-height: 1;
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .status-pill::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .status-pill--green {
+            background: #ecfdf5;
+            color: #047857;
+            border-color: #bbf7d0;
+        }
+
+        .status-pill--green::before {
+            background: #10b981;
+        }
+
+        .status-pill--orange {
+            background: #fffbeb;
+            color: #b45309;
+            border-color: #fde68a;
+        }
+
+        .status-pill--orange::before {
+            background: #f59e0b;
+        }
+
+        .status-pill--red {
+            background: #fff1f2;
+            color: #be123c;
+            border-color: #fecdd3;
+        }
+
+        .status-pill--red::before {
+            background: #f43f5e;
+        }
+
+        .status-pill--blue {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border-color: #bfdbfe;
+        }
+
+        .status-pill--blue::before {
+            background: #3b82f6;
+        }
+
+        .status-pill--neutral {
+            background: #f4f4f5;
+            color: #52525b;
+            border-color: #e4e4e7;
+        }
+
+        .status-pill--neutral::before {
+            background: #a1a1aa;
+        }
+
+        .status-pill--muted {
+            background: #fafafa;
+            color: #71717a;
+            border-color: #ececef;
+        }
+
+        .status-pill--muted::before {
+            background: #d4d4d8;
+        }
+
+        [data-theme="dark"] .status-pill--green {
+            background: #052e1c;
+            color: #6ee7b7;
+            border-color: #065f46;
+        }
+
+        [data-theme="dark"] .status-pill--orange {
+            background: #451a03;
+            color: #fcd34d;
+            border-color: #92400e;
+        }
+
+        [data-theme="dark"] .status-pill--red {
+            background: #4c0519;
+            color: #fda4af;
+            border-color: #9f1239;
+        }
+
+        [data-theme="dark"] .status-pill--blue {
+            background: #172554;
+            color: #93c5fd;
+            border-color: #1e40af;
+        }
+
+        [data-theme="dark"] .status-pill--neutral {
+            background: #27272a;
+            color: #d4d4d8;
+            border-color: #3f3f46;
+        }
+
+        [data-theme="dark"] .status-pill--muted {
+            background: #18181b;
+            color: #a1a1aa;
+            border-color: #3f3f46;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .status-dot--green { background: #10b981; }
+        .status-dot--orange { background: #f59e0b; }
+        .status-dot--red { background: #f43f5e; }
+
         .page-title {
             font-weight: 600;
             color: var(--text);
@@ -588,6 +717,20 @@
         </a>
 
         <nav class="sidebar-nav">
+            @if(auth()->user()->isAdmin())
+            <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                <i class="bi bi-grid-1x2"></i>
+                {{ __('Administration') }}
+            </a>
+            <a href="{{ route('admin.projects.index') }}" class="sidebar-link {{ request()->routeIs('admin.projects.*') ? 'active' : '' }}">
+                <i class="bi bi-diagram-3"></i>
+                {{ __('Project teams') }}
+            </a>
+            <a href="{{ route('admin.users.index') }}" class="sidebar-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                <i class="bi bi-people"></i>
+                {{ __('User assignments') }}
+            </a>
+            @else
             <a href="{{ route('dashboard') }}" class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                 <i class="bi bi-grid-1x2"></i>
                 {{ __('Dashboard') }}
@@ -622,6 +765,7 @@
                 <i class="bi bi-clock-history"></i>
                 {{ __('Historique') }}
             </a>
+            @endif
             <a href="{{ route('profile.edit') }}" class="sidebar-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
                 <i class="bi bi-person"></i>
                 {{ __('Profile') }}
@@ -657,7 +801,12 @@
                 </div>
             </div>
             <span class="badge rounded-pill team-badge">
-                <i class="bi bi-building me-1"></i>{{ auth()->user()->team->name }}
+                <i class="bi bi-building me-1"></i>
+                @if(auth()->user()->isAdmin())
+                    {{ __('All teams') }}
+                @else
+                    {{ auth()->user()->team->name }}
+                @endif
             </span>
         </header>
 

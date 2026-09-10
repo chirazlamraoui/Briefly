@@ -38,10 +38,21 @@
         </div>
     </div>
     <div class="col-md-3 col-6">
-        <div class="stat-card p-4 small">
-            <div class="mb-1">🟢 {{ $stats['status_counts']['GREEN'] }} {{ __('On Track') }}</div>
-            <div class="mb-1">🟠 {{ $stats['status_counts']['ORANGE'] }} {{ __('Attention') }}</div>
-            <div>🔴 {{ $stats['status_counts']['RED'] }} {{ __('Blocked') }}</div>
+        <div class="stat-card p-4">
+            <div class="d-flex flex-column gap-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    @include('partials.status-pill', ['status' => \App\Enums\UpdateStatus::Green])
+                    <span class="fw-semibold">{{ $stats['status_counts']['GREEN'] }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    @include('partials.status-pill', ['status' => \App\Enums\UpdateStatus::Orange])
+                    <span class="fw-semibold">{{ $stats['status_counts']['ORANGE'] }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    @include('partials.status-pill', ['status' => \App\Enums\UpdateStatus::Red])
+                    <span class="fw-semibold">{{ $stats['status_counts']['RED'] }}</span>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -106,9 +117,7 @@
             <div class="card-header">{{ __('My Daily Update') }}</div>
             <div class="card-body">
                 @if($todayUpdate)
-                    <span class="badge bg-{{ $todayUpdate->status->badgeClass() }} status-badge">
-                        {{ $todayUpdate->status->emoji() }} {{ $todayUpdate->status->label() }}
-                    </span>
+                    @include('partials.status-pill', ['status' => $todayUpdate->status])
                     <a href="{{ route('daily-update.edit') }}" class="btn btn-sm btn-link">{{ __('Edit') }}</a>
                 @else
                     <p class="text-muted">{{ __('No update submitted yet.') }}</p>
@@ -122,10 +131,10 @@
             <div class="card-header">{{ __('Today\'s Brief') }}</div>
             <div class="card-body">
                 @if($publishedBrief)
-                    <span class="badge bg-success status-badge">{{ __('Published') }}</span>
+                    <span class="status-pill status-pill--green">{{ __('Published') }}</span>
                     <a href="{{ route('briefs.show', $publishedBrief) }}" class="btn btn-sm btn-outline-primary ms-2">{{ __('View') }}</a>
                 @elseif($todayDraft)
-                    <span class="badge bg-secondary status-badge">{{ __('Draft in progress') }}</span>
+                    <span class="status-pill status-pill--neutral">{{ __('Draft in progress') }}</span>
                     <a href="{{ route('briefs.today') }}" class="btn btn-sm btn-primary ms-2">{{ __('Continue editing') }}</a>
                 @else
                     <p class="text-muted mb-2">{{ __('No brief started for today.') }}</p>

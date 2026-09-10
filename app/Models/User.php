@@ -57,4 +57,18 @@ class User extends Authenticatable
     {
         return $this->role === UserRole::Member;
     }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === UserRole::Admin;
+    }
+
+    public function belongsToTeam(?int $teamId): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        return $this->team_id === $teamId;
+    }
 }

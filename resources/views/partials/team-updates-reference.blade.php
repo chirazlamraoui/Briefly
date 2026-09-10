@@ -20,9 +20,7 @@
                             <td class="small">{{ $update->task?->project?->name ?? '—' }}</td>
                             <td class="small">{{ $update->task?->title ?? '—' }}</td>
                             <td>
-                                <span class="badge bg-{{ $update->status->badgeClass() }} status-badge">
-                                    {{ $update->status->emoji() }}
-                                </span>
+                                @include('partials.status-pill', ['status' => $update->status])
                             </td>
                             <td class="small">{{ Str::limit($update->done(), 60) ?: '—' }}</td>
                         </tr>

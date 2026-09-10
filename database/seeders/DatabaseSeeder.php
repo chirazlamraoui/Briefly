@@ -14,6 +14,7 @@ use App\Models\Task;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
@@ -31,6 +32,8 @@ class DatabaseSeeder extends Seeder
         'Unclear product requirements',
         'Environment configuration issue',
         'Dependency upgrade blocked',
+        'Staging server unavailable',
+        'Security audit pending',
     ];
 
     /** @var list<array{0: string, 1: string}> */
@@ -41,12 +44,28 @@ class DatabaseSeeder extends Seeder
         ['Diana', 'diana'],
         ['Ethan', 'ethan'],
         ['Fatima', 'fatima'],
+        ['George', 'george'],
+        ['Hannah', 'hannah'],
     ];
 
     /** @var list<array{0: string, 1: string}> */
+    private const TEAMS = [
+        ['Web Team', 'web'],
+        ['Mobile Team', 'mobile'],
+        ['Backend Team', 'backend'],
+        ['QA Team', 'qa'],
+    ];
+
+    /**
+     * @var list<array{0: string, 1: string, 2: list<string>}>
+     */
     private const PROJECTS = [
-        ['Briefly Platform', 'Core daily update and brief workflow.'],
-        ['Customer Portal', 'Self-service portal for end users.'],
+        ['Briefly Platform', 'Core daily update and brief workflow.', ['web', 'mobile', 'backend', 'qa']],
+        ['Customer Portal', 'Self-service portal for end users.', ['web', 'mobile']],
+        ['API Modernization', 'Migrate legacy REST endpoints to Laravel.', ['backend', 'web']],
+        ['Mobile App v2', 'Next-generation iOS and Android app.', ['mobile', 'qa']],
+        ['Quality Automation', 'End-to-end test suite and CI pipelines.', ['qa', 'backend']],
+        ['Design System', 'Shared UI components and documentation.', ['web', 'mobile', 'qa']],
     ];
 
     /** @var list<string> */
@@ -57,6 +76,12 @@ class DatabaseSeeder extends Seeder
         'Prepare release notes',
         'Review pull requests',
         'Update unit tests',
+        'Refactor notification service',
+        'Build reporting export',
+        'Optimize database queries',
+        'Create onboarding flow',
+        'Set up monitoring alerts',
+        'Validate cross-browser layout',
     ];
 
     public function run(): void
@@ -67,76 +92,156 @@ class DatabaseSeeder extends Seeder
 
         $password = Hash::make(self::DEMO_PASSWORD);
 
-        $teams = [
-            ['name' => 'Web Team', 'slug' => 'web'],
-            ['name' => 'Mobile Team', 'slug' => 'mobile'],
-        ];
-
-        $sharedProjects = collect(self::PROJECTS)->map(fn (array $projectData) => Project::create([
-            'name' => $projectData[0],
-            'description' => $projectData[1],
-        ]));
-
-        foreach ($teams as $teamData) {
-            $team = Team::create(['name' => $teamData['name']]);
-            $sharedProjects->each(fn (Project $project) => $project->teams()->attach($team->id));
-
-            $blockers = collect(self::BLOCKER_LABELS)->map(fn (string $label) => Blocker::create([
-                'team_id' => $team->id,
-                'label' => $label,
-            ]));
-
-            $lead = User::create([
-                'name' => "{$teamData['name']} Lead",
-                'email' => "lead@{$teamData['slug']}.test",
+        User::firstOrCreate(
+            ['email' => 'admin@briefly.test'],
+            [
+                'name' => 'Administrator',
                 'password' => $password,
-                'role' => UserRole::TeamLead,
-                'team_id' => $team->id,
-            ]);
+                'role' => UserRole::Admin,
+                'team_id' => null,
+            ]
+        );
 
-            $members = collect(self::MEMBERS)->map(fn (array $member) => User::create([
-                'name' => "{$member[0]} ({$teamData['name']})",
-                'email' => "{$member[1]}@{$teamData['slug']}.test",
-                'password' => $password,
-                'role' => UserRole::Member,
-                'team_id' => $team->id,
-            ]));
+        $teamsBySlug = collect(self::TEAMS)->mapWithKeys(function (array $teamData) use ($password) {
+            [$name, $slug] = $teamData;
 
-            $memberTasks = $members->mapWithKeys(function (User $member, int $index) use ($sharedProjects) {
-                $project = $sharedProjects[$index % $sharedProjects->count()];
-                $title = self::TASK_TITLES[$index % count(self::TASK_TITLES)];
+            $team = Team::firstOrCreate(['name' => $name]);
 
-                $task = Task::create([
-                    'project_id' => $project->id,
-                    'assigned_to' => $member->id,
-                    'title' => "{$title} ({$member->name})",
-                    'description' => 'Seeded task for daily updates.',
-                    'status' => match ($index % 3) {
-                        0 => TaskStatus::Todo,
-                        1 => TaskStatus::InProgress,
-                        default => TaskStatus::Done,
-                    },
+            $blockers = collect(self::BLOCKER_LABELS)->map(fn (string $label) => Blocker::firstOrCreate(
+                ['team_id' => $team->id, 'label' => $label],
+                ['team_id' => $team->id, 'label' => $label],
+            ));
+
+            $lead = User::firstOrCreate(
+                ['email' => "lead@{$slug}.test"],
+                [
+                    'name' => "{$name} Lead",
+                    'password' => $password,
+                    'role' => UserRole::TeamLead,
+                    'team_id' => $team->id,
+                ]
+            );
+
+            if ($lead->team_id !== $team->id || $lead->role !== UserRole::TeamLead) {
+                $lead->update([
+                    'team_id' => $team->id,
+                    'role' => UserRole::TeamLead,
                 ]);
+            }
 
-                return [$member->id => $task];
+            $members = collect(self::MEMBERS)->map(function (array $member) use ($name, $slug, $password, $team) {
+                $user = User::firstOrCreate(
+                    ['email' => "{$member[1]}@{$slug}.test"],
+                    [
+                        'name' => "{$member[0]} ({$name})",
+                        'password' => $password,
+                        'role' => UserRole::Member,
+                        'team_id' => $team->id,
+                    ]
+                );
+
+                if ($user->team_id !== $team->id) {
+                    $user->update(['team_id' => $team->id, 'role' => UserRole::Member]);
+                }
+
+                return $user;
             });
 
-            $todayBlockerRotation = [
-                null,
-                $blockers[0]->id,
-                $blockers[1]->id,
-                $blockers[2]->id,
-                $blockers[3]->id,
-                $blockers[4]->id,
-            ];
+            return [$slug => compact('team', 'blockers', 'lead', 'members', 'name', 'slug')];
+        });
 
-            foreach ($members as $index => $member) {
-                DailyUpdate::create([
+        $projects = collect(self::PROJECTS)->map(function (array $projectData) use ($teamsBySlug) {
+            [$name, $description, $teamSlugs] = $projectData;
+
+            $project = Project::firstOrCreate(
+                ['name' => $name],
+                ['description' => $description],
+            );
+
+            $teamIds = collect($teamSlugs)
+                ->filter(fn (string $slug) => $teamsBySlug->has($slug))
+                ->map(fn (string $slug) => $teamsBySlug[$slug]['team']->id)
+                ->all();
+
+            $project->teams()->syncWithoutDetaching($teamIds);
+
+            return $project;
+        });
+
+        foreach ($teamsBySlug as $teamBundle) {
+            $this->seedTeamData($teamBundle, $projects);
+        }
+    }
+
+    /**
+     * @param  array{team: Team, blockers: Collection, lead: User, members: Collection, name: string, slug: string}  $teamBundle
+     * @param  Collection<int, Project>  $projects
+     */
+    private function seedTeamData(array $teamBundle, Collection $projects): void
+    {
+        $team = $teamBundle['team'];
+        $blockers = $teamBundle['blockers'];
+        $lead = $teamBundle['lead'];
+        $members = $teamBundle['members'];
+        $teamName = $teamBundle['name'];
+
+        $teamProjects = $team->projects()->get();
+
+        if ($teamProjects->isEmpty()) {
+            return;
+        }
+
+        $memberTasks = $members->mapWithKeys(function (User $member, int $memberIndex) use ($teamProjects) {
+            $tasks = collect();
+
+            foreach (range(0, 2) as $taskOffset) {
+                $project = $teamProjects[($memberIndex + $taskOffset) % $teamProjects->count()];
+                $title = self::TASK_TITLES[($memberIndex + $taskOffset) % count(self::TASK_TITLES)];
+                $statusIndex = ($memberIndex + $taskOffset) % 3;
+
+                $tasks->push(Task::firstOrCreate(
+                    [
+                        'project_id' => $project->id,
+                        'assigned_to' => $member->id,
+                        'title' => $title,
+                    ],
+                    [
+                        'description' => "Seeded task {$taskOffset} for {$member->name}.",
+                        'status' => match ($statusIndex) {
+                            0 => TaskStatus::Todo,
+                            1 => TaskStatus::InProgress,
+                            default => TaskStatus::Done,
+                        },
+                    ]
+                ));
+            }
+
+            return [$member->id => $tasks];
+        });
+
+        $todayBlockerRotation = [
+            null,
+            $blockers[0]->id,
+            $blockers[1]->id,
+            $blockers[2]->id,
+            $blockers[3]->id,
+            $blockers[4]->id,
+            $blockers[5]->id,
+            $blockers[6]->id,
+        ];
+
+        foreach ($members as $index => $member) {
+            $primaryTask = $memberTasks[$member->id]->first();
+
+            DailyUpdate::firstOrCreate(
+                [
                     'user_id' => $member->id,
-                    'task_id' => $memberTasks[$member->id]->id,
                     'date' => today(),
+                ],
+                [
+                    'task_id' => $primaryTask->id,
                     'content' => [
-                        'done' => "Completed task {$index} for {$teamData['name']}.",
+                        'done' => "Completed work on {$primaryTask->title} for {$teamName}.",
                         'in_progress' => 'Working on feature implementation.',
                         'blocker' => '',
                     ],
@@ -146,23 +251,28 @@ class DatabaseSeeder extends Seeder
                         default => UpdateStatus::Red,
                     },
                     'blocker_id' => $todayBlockerRotation[$index] ?? $blockers[$index % $blockers->count()]->id,
-                ]);
-            }
+                ]
+            );
+        }
 
-            for ($day = 1; $day <= 14; $day++) {
-                foreach ($members as $memberIndex => $member) {
-                    if (($day + $memberIndex) % 3 !== 0) {
-                        continue;
-                    }
+        for ($day = 1; $day <= 14; $day++) {
+            foreach ($members as $memberIndex => $member) {
+                if (($day + $memberIndex) % 3 !== 0) {
+                    continue;
+                }
 
-                    $blocker = $blockers[($day + $memberIndex) % $blockers->count()];
+                $task = $memberTasks[$member->id][($day + $memberIndex) % 3];
+                $blocker = $blockers[($day + $memberIndex) % $blockers->count()];
 
-                    DailyUpdate::create([
+                DailyUpdate::firstOrCreate(
+                    [
                         'user_id' => $member->id,
-                        'task_id' => $memberTasks[$member->id]->id,
                         'date' => today()->subDays($day),
+                    ],
+                    [
+                        'task_id' => $task->id,
                         'content' => [
-                            'done' => "Progress logged on day -{$day}.",
+                            'done' => "Progress on {$task->title} logged on day -{$day}.",
                             'in_progress' => 'Continued sprint work.',
                             'blocker' => '',
                         ],
@@ -172,13 +282,17 @@ class DatabaseSeeder extends Seeder
                             default => UpdateStatus::Red,
                         },
                         'blocker_id' => ($day + $memberIndex) % 4 === 0 ? null : $blocker->id,
-                    ]);
-                }
+                    ]
+                );
             }
+        }
 
-            DailyUpdate::create([
+        DailyUpdate::firstOrCreate(
+            [
                 'user_id' => $lead->id,
                 'date' => today(),
+            ],
+            [
                 'content' => [
                     'done' => 'Reviewed team updates.',
                     'in_progress' => 'Preparing daily brief.',
@@ -186,24 +300,32 @@ class DatabaseSeeder extends Seeder
                 ],
                 'status' => UpdateStatus::Green,
                 'blocker_id' => null,
-            ]);
+            ]
+        );
 
-            Brief::create([
+        Brief::firstOrCreate(
+            [
                 'team_id' => $team->id,
                 'date' => today()->subDay(),
+            ],
+            [
                 'content' => [
-                    'done' => "Yesterday's completed work for {$teamData['name']}.",
-                    'in_progress' => 'Ongoing sprint items.',
+                    'done' => "Yesterday's completed work for {$teamName}.",
+                    'in_progress' => 'Ongoing sprint items across multiple projects.',
                     'blocker' => 'Waiting for API access, Design review pending.',
                 ],
                 'status' => BriefStatus::Published,
                 'created_by' => $lead->id,
                 'published_at' => today()->subDay()->setTime(17, 0),
-            ]);
+            ]
+        );
 
-            Brief::create([
+        Brief::firstOrCreate(
+            [
                 'team_id' => $team->id,
                 'date' => today(),
+            ],
+            [
                 'content' => [
                     'done' => '',
                     'in_progress' => '',
@@ -211,7 +333,7 @@ class DatabaseSeeder extends Seeder
                 ],
                 'status' => BriefStatus::Draft,
                 'created_by' => $lead->id,
-            ]);
-        }
+            ]
+        );
     }
 }
