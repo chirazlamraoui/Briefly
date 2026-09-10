@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -339,9 +339,43 @@
             margin: 0 auto 1rem;
             font-size: 1.15rem;
         }
+
+        .locale-switcher {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1060;
+            display: inline-flex;
+            gap: 0.15rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 0.2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .locale-switcher a {
+            padding: 0.3rem 0.7rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-decoration: none;
+            color: var(--text-muted);
+            line-height: 1;
+        }
+
+        .locale-switcher a:hover {
+            color: var(--text);
+        }
+
+        .locale-switcher a.active {
+            background: var(--accent-soft);
+            color: var(--text);
+        }
     </style>
 </head>
 <body>
+    @include('partials.locale-switcher')
     @auth
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
