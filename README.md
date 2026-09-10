@@ -95,10 +95,16 @@ Password for all seeded users: **`password`**
 | Web Team | Member | `alice@web.test` |
 | Web Team | Member | `bob@web.test` |
 | Web Team | Member | `carol@web.test` |
+| Web Team | Member | `diana@web.test` |
+| Web Team | Member | `ethan@web.test` |
+| Web Team | Member | `fatima@web.test` |
 | Mobile Team | Team Lead | `lead@mobile.test` |
 | Mobile Team | Member | `alice@mobile.test` |
 | Mobile Team | Member | `bob@mobile.test` |
 | Mobile Team | Member | `carol@mobile.test` |
+| Mobile Team | Member | `diana@mobile.test` |
+| Mobile Team | Member | `ethan@mobile.test` |
+| Mobile Team | Member | `fatima@mobile.test` |
 
 ## Browse the database
 

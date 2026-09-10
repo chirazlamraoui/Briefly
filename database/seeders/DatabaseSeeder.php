@@ -18,6 +18,28 @@ class DatabaseSeeder extends Seeder
     /** Demo password for all seeded users (login: password). */
     private const DEMO_PASSWORD = 'password';
 
+    /** @var list<string> */
+    private const BLOCKER_LABELS = [
+        'Waiting for API access',
+        'Design review pending',
+        'Deployment pipeline issue',
+        'Third-party service outage',
+        'Waiting for QA sign-off',
+        'Unclear product requirements',
+        'Environment configuration issue',
+        'Dependency upgrade blocked',
+    ];
+
+    /** @var list<array{0: string, 1: string}> */
+    private const MEMBERS = [
+        ['Alice', 'alice'],
+        ['Bob', 'bob'],
+        ['Carol', 'carol'],
+        ['Diana', 'diana'],
+        ['Ethan', 'ethan'],
+        ['Fatima', 'fatima'],
+    ];
+
     public function run(): void
     {
         if (! app()->environment('local')) {
@@ -34,9 +56,10 @@ class DatabaseSeeder extends Seeder
         foreach ($teams as $teamData) {
             $team = Team::create(['name' => $teamData['name']]);
 
-            $apiBlocker = Blocker::create(['team_id' => $team->id, 'label' => 'Waiting for API access']);
-            $designBlocker = Blocker::create(['team_id' => $team->id, 'label' => 'Design review pending']);
-            $deployBlocker = Blocker::create(['team_id' => $team->id, 'label' => 'Deployment pipeline issue']);
+            $blockers = collect(self::BLOCKER_LABELS)->map(fn (string $label) => Blocker::create([
+                'team_id' => $team->id,
+                'label' => $label,
+            ]));
 
             $lead = User::create([
                 'name' => "{$teamData['name']} Lead",
@@ -46,11 +69,7 @@ class DatabaseSeeder extends Seeder
                 'team_id' => $team->id,
             ]);
 
-            $members = collect([
-                ['Alice', 'alice'],
-                ['Bob', 'bob'],
-                ['Carol', 'carol'],
-            ])->map(fn (array $member) => User::create([
+            $members = collect(self::MEMBERS)->map(fn (array $member) => User::create([
                 'name' => "{$member[0]} ({$teamData['name']})",
                 'email' => "{$member[1]}@{$teamData['slug']}.test",
                 'password' => $password,
@@ -58,7 +77,14 @@ class DatabaseSeeder extends Seeder
                 'team_id' => $team->id,
             ]));
 
-            $todayBlockers = [$apiBlocker, $designBlocker, $apiBlocker];
+            $todayBlockerRotation = [
+                null,
+                $blockers[0]->id,
+                $blockers[1]->id,
+                $blockers[2]->id,
+                $blockers[3]->id,
+                $blockers[4]->id,
+            ];
 
             foreach ($members as $index => $member) {
                 DailyUpdate::create([
@@ -69,39 +95,37 @@ class DatabaseSeeder extends Seeder
                         'in_progress' => 'Working on feature implementation.',
                         'blocker' => '',
                     ],
-                    'status' => match ($index) {
+                    'status' => match ($index % 3) {
                         0 => UpdateStatus::Green,
                         1 => UpdateStatus::Orange,
                         default => UpdateStatus::Red,
                     },
-                    'blocker_id' => $index === 0 ? null : $todayBlockers[$index]->id,
+                    'blocker_id' => $todayBlockerRotation[$index] ?? $blockers[$index % $blockers->count()]->id,
                 ]);
             }
 
-            for ($day = 1; $day <= 7; $day++) {
-                DailyUpdate::create([
-                    'user_id' => $members[1]->id,
-                    'date' => today()->subDays($day),
-                    'content' => [
-                        'done' => 'Past progress item.',
-                        'in_progress' => 'Continued work.',
-                        'blocker' => '',
-                    ],
-                    'status' => UpdateStatus::Orange,
-                    'blocker_id' => $apiBlocker->id,
-                ]);
+            for ($day = 1; $day <= 14; $day++) {
+                foreach ($members as $memberIndex => $member) {
+                    if (($day + $memberIndex) % 3 !== 0) {
+                        continue;
+                    }
 
-                if ($day % 2 === 0) {
+                    $blocker = $blockers[($day + $memberIndex) % $blockers->count()];
+
                     DailyUpdate::create([
-                        'user_id' => $members[2]->id,
+                        'user_id' => $member->id,
                         'date' => today()->subDays($day),
                         'content' => [
-                            'done' => 'Resolved tasks.',
-                            'in_progress' => 'Next sprint item.',
+                            'done' => "Progress logged on day -{$day}.",
+                            'in_progress' => 'Continued sprint work.',
                             'blocker' => '',
                         ],
-                        'status' => UpdateStatus::Red,
-                        'blocker_id' => $deployBlocker->id,
+                        'status' => match (($day + $memberIndex) % 3) {
+                            0 => UpdateStatus::Green,
+                            1 => UpdateStatus::Orange,
+                            default => UpdateStatus::Red,
+                        },
+                        'blocker_id' => ($day + $memberIndex) % 4 === 0 ? null : $blocker->id,
                     ]);
                 }
             }
@@ -124,7 +148,7 @@ class DatabaseSeeder extends Seeder
                 'content' => [
                     'done' => "Yesterday's completed work for {$teamData['name']}.",
                     'in_progress' => 'Ongoing sprint items.',
-                    'blocker' => 'None.',
+                    'blocker' => 'Waiting for API access, Design review pending.',
                 ],
                 'status' => BriefStatus::Published,
                 'created_by' => $lead->id,
