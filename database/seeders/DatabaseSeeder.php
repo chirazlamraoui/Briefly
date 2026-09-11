@@ -53,6 +53,15 @@ class DatabaseSeeder extends Seeder
         ['Sara Mendez', 'sara.mendez'],
         ['Alex Turner', 'alex.turner'],
         ['Julia Fischer', 'julia.fischer'],
+        ['Thomas Berger', 'thomas.berger'],
+        ['Camille Rousseau', 'camille.rousseau'],
+        ['Youssef Hassan', 'youssef.hassan'],
+        ['Priya Sharma', 'priya.sharma'],
+        ['Marco Rossi', 'marco.rossi'],
+        ['Hannah Okafor', 'hannah.okafor'],
+        ['Leo Schmidt', 'leo.schmidt'],
+        ['Nina Alvarez', 'nina.alvarez'],
+        ['Omar Khalil', 'omar.khalil'],
     ];
 
     /**
@@ -70,11 +79,11 @@ class DatabaseSeeder extends Seeder
      * @var array<string, list<string>>
      */
     private const TEAM_MEMBER_EMAILS = [
-        'atlas' => ['emma.nguyen', 'lucas.martin', 'olivia.brooks', 'noah.williams'],
-        'nova' => ['mia.andersen', 'liam.costa', 'ava.ibrahim', 'ethan.park', 'emma.nguyen'],
-        'pulse' => ['chloe.dubois', 'ryan.murphy', 'isabelle.moore', 'daniel.kim'],
-        'harbor' => ['sara.mendez', 'alex.turner', 'julia.fischer', 'emma.nguyen'],
-        'summit' => ['olivia.brooks', 'ethan.park', 'ryan.murphy', 'lucas.martin'],
+        'atlas' => ['emma.nguyen', 'lucas.martin', 'olivia.brooks', 'thomas.berger', 'camille.rousseau'],
+        'nova' => ['mia.andersen', 'liam.costa', 'ava.ibrahim', 'ethan.park', 'marco.rossi', 'emma.nguyen'],
+        'pulse' => ['chloe.dubois', 'ryan.murphy', 'isabelle.moore', 'daniel.kim', 'priya.sharma'],
+        'harbor' => ['sara.mendez', 'alex.turner', 'julia.fischer', 'youssef.hassan', 'emma.nguyen'],
+        'summit' => ['olivia.brooks', 'ethan.park', 'ryan.murphy', 'hannah.okafor', 'leo.schmidt', 'nina.alvarez'],
     ];
 
     /**
@@ -114,6 +123,8 @@ class DatabaseSeeder extends Seeder
         }
 
         $password = Hash::make(self::DEMO_PASSWORD);
+
+        $this->cleanupLegacySeedData();
 
         User::firstOrCreate(
             ['email' => 'admin@briefly.test'],
@@ -396,5 +407,36 @@ class DatabaseSeeder extends Seeder
             'in_progress' => "{$theme[1]} across active projects.",
             'blocker' => $theme[2].($daysAgo % 4 === 0 ? ', Waiting for QA sign-off' : '').'.',
         ];
+    }
+
+    private function cleanupLegacySeedData(): void
+    {
+        User::query()
+            ->where('role', '!=', UserRole::Admin)
+            ->where(function ($query) {
+                $query->where('email', 'like', '%@web.test')
+                    ->orWhere('email', 'like', '%@mobile.test')
+                    ->orWhere('email', 'like', '%@backend.test')
+                    ->orWhere('email', 'like', '%@qa.test')
+                    ->orWhere('email', 'like', 'lead@%.test')
+                    ->orWhere('name', 'like', '% (%');
+            })
+            ->delete();
+
+        Team::query()->whereIn('name', [
+            'Web Team',
+            'Mobile Team',
+            'Backend Team',
+            'QA Team',
+        ])->delete();
+
+        Project::query()->whereIn('name', [
+            'Briefly Platform',
+            'Customer Portal',
+            'API Modernization',
+            'Mobile App v2',
+            'Quality Automation',
+            'Design System',
+        ])->delete();
     }
 }
