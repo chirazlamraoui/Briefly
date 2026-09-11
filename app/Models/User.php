@@ -8,9 +8,11 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 
 #[Fillable(['name', 'email', 'password', 'role', 'team_id'])]
 #[Hidden(['password', 'remember_token'])]
@@ -31,6 +33,29 @@ class User extends Authenticatable
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);
+    }
+
+    public function teams(): BelongsToMany
+    {
+        return $this->belongsToMany(Team::class)->withTimestamps();
+    }
+
+    public function accessibleProjects(): Collection
+    {
+        $teamIds = $this->teams()->pluck('teams.id');
+
+        if ($this->team_id && ! $teamIds->contains($this->team_id)) {
+            $teamIds->push($this->team_id);
+        }
+
+        if ($teamIds->isEmpty()) {
+            return collect();
+        }
+
+        return Project::query()
+            ->whereHas('teams', fn ($query) => $query->whereIn('teams.id', $teamIds))
+            ->orderBy('name')
+            ->get();
     }
 
     public function updates(): HasMany
@@ -69,6 +94,41 @@ class User extends Authenticatable
             return true;
         }
 
-        return $this->team_id === $teamId;
+        if ($teamId === null) {
+            return false;
+        }
+
+        if ($this->team_id === $teamId) {
+            return true;
+        }
+
+        return $this->teams()->where('teams.id', $teamId)->exists();
+    }
+
+    public function syncTeams(array $teamIds): void
+    {
+        $teamIds = collect($teamIds)->filter()->unique()->values()->all();
+        $currentIds = $this->teams()->pluck('teams.id')->all();
+
+        $toAttach = array_values(array_diff($teamIds, $currentIds));
+        $toDetach = array_values(array_diff($currentIds, $teamIds));
+
+        if ($toAttach !== []) {
+            $this->teams()->attach($toAttach);
+        }
+
+        if ($toDetach !== []) {
+            $this->teams()->detach($toDetach);
+        }
+
+        if ($teamIds === []) {
+            $this->update(['team_id' => null]);
+
+            return;
+        }
+
+        if (! in_array((int) $this->team_id, array_map('intval', $teamIds), true)) {
+            $this->update(['team_id' => $teamIds[0]]);
+        }
     }
 }

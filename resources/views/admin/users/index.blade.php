@@ -1,16 +1,14 @@
 @extends('layouts.app')
 
-@section('title', __('User assignments'))
+@section('title', __('Users'))
 @section('breadcrumb', __('Administration'))
 
 @section('content')
+@include('admin.partials.nav')
+
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
-    <p class="text-muted mb-0">{{ __('Assign users to teams and set their role.') }}</p>
-    <div class="d-flex gap-2 flex-wrap">
-        <a href="{{ route('admin.users.create') }}" class="btn btn-primary">{{ __('New user') }}</a>
-        <a href="{{ route('admin.teams.create') }}" class="btn btn-outline-primary">{{ __('New team') }}</a>
-        <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-secondary">{{ __('Back to overview') }}</a>
-    </div>
+    <p class="text-muted mb-0">{{ __('Manage users, their teams and roles.') }}</p>
+    <a href="{{ route('admin.users.create') }}" class="btn btn-primary">{{ __('New user') }}</a>
 </div>
 
 <div class="card">
@@ -21,7 +19,8 @@
                     <tr>
                         <th>{{ __('Name') }}</th>
                         <th>{{ __('Email') }}</th>
-                        <th>{{ __('Team') }}</th>
+                        <th>{{ __('Teams') }}</th>
+                        <th>{{ __('Projects') }}</th>
                         <th>{{ __('Role') }}</th>
                         <th></th>
                     </tr>
@@ -31,17 +30,18 @@
                         <tr>
                             <td class="fw-semibold">{{ $user->name }}</td>
                             <td class="small">{{ $user->email }}</td>
-                            <td>{{ $user->team?->name ?? '—' }}</td>
+                            <td class="small">{{ $adminUserService->teamSummary($user) }}</td>
+                            <td class="small">{{ $adminUserService->projectSummary($user) }}</td>
                             <td>{{ $user->role->label() }}</td>
                             <td class="text-end">
-                                <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-outline-primary">
-                                    {{ __('Edit') }}
+                                <a href="{{ route('admin.users.show', $user) }}" class="btn btn-sm btn-outline-primary">
+                                    {{ __('View') }}
                                 </a>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center text-muted py-4">{{ __('No users found.') }}</td>
+                            <td colspan="6" class="text-center text-muted py-4">{{ __('No users found.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

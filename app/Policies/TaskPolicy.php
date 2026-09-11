@@ -19,7 +19,7 @@ class TaskPolicy
         }
 
         return $user->isTeamLead()
-            && $task->assignee->team_id === $user->team_id
+            && $task->assignee->belongsToTeam($user->team_id)
             && $task->project->teams()->where('teams.id', $user->team_id)->exists();
     }
 
@@ -31,7 +31,7 @@ class TaskPolicy
     public function update(User $user, Task $task): bool
     {
         return $user->isTeamLead()
-            && $task->assignee->team_id === $user->team_id
+            && $task->assignee->belongsToTeam($user->team_id)
             && $task->project->teams()->where('teams.id', $user->team_id)->exists();
     }
 

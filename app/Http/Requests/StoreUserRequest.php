@@ -22,7 +22,8 @@ class StoreUserRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'team_id' => ['required', 'integer', 'exists:teams,id'],
+            'team_ids' => ['required', 'array', 'min:1'],
+            'team_ids.*' => ['integer', 'exists:teams,id'],
             'role' => ['required', Rule::in([UserRole::Member->value, UserRole::TeamLead->value])],
         ];
     }

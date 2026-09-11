@@ -18,9 +18,11 @@ class AdminUserController extends Controller
     public function index(): View
     {
         $users = $this->adminUserService->assignableUsers();
-        $teams = Team::query()->orderBy('name')->get();
 
-        return view('admin.users.index', compact('users', 'teams'));
+        return view('admin.users.index', [
+            'users' => $users,
+            'adminUserService' => $this->adminUserService,
+        ]);
     }
 
     public function create(): View
@@ -38,26 +40,31 @@ class AdminUserController extends Controller
             ->with('success', __('User created successfully.'));
     }
 
-    public function edit(User $user): View
+    public function show(User $user): View
     {
         abort_if($user->isAdmin(), 404);
 
+        $user->load(['team', 'teams']);
         $teams = Team::query()->orderBy('name')->get();
+        $selectedTeamIds = $user->teams->pluck('id')->all();
+        if ($selectedTeamIds === [] && $user->team_id) {
+            $selectedTeamIds = [$user->team_id];
+        }
 
-        return view('admin.users.edit', compact('user', 'teams'));
+        return view('admin.users.show', compact('user', 'teams', 'selectedTeamIds'));
     }
 
     public function update(UpdateUserAssignmentRequest $request, User $user): RedirectResponse
     {
         abort_if($user->isAdmin(), 404);
 
-        $this->adminUserService->assignTeamAndRole(
+        $this->adminUserService->syncTeamsAndRole(
             $user,
-            $request->integer('team_id'),
+            $request->validated('team_ids'),
             UserRole::from($request->validated('role')),
         );
 
-        return redirect()->route('admin.users.index')
+        return redirect()->route('admin.users.show', $user)
             ->with('success', __('User assignment updated successfully.'));
     }
 }

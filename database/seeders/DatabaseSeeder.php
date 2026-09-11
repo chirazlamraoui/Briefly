@@ -38,34 +38,57 @@ class DatabaseSeeder extends Seeder
 
     /** @var list<array{0: string, 1: string}> */
     private const MEMBERS = [
-        ['Alice', 'alice'],
-        ['Bob', 'bob'],
-        ['Carol', 'carol'],
-        ['Diana', 'diana'],
-        ['Ethan', 'ethan'],
-        ['Fatima', 'fatima'],
-        ['George', 'george'],
-        ['Hannah', 'hannah'],
+        ['Emma Nguyen', 'emma.nguyen'],
+        ['Lucas Martin', 'lucas.martin'],
+        ['Olivia Brooks', 'olivia.brooks'],
+        ['Noah Williams', 'noah.williams'],
+        ['Mia Andersen', 'mia.andersen'],
+        ['Liam Costa', 'liam.costa'],
+        ['Ava Ibrahim', 'ava.ibrahim'],
+        ['Ethan Park', 'ethan.park'],
+        ['Chloe Dubois', 'chloe.dubois'],
+        ['Ryan Murphy', 'ryan.murphy'],
+        ['Isabelle Moore', 'isabelle.moore'],
+        ['Daniel Kim', 'daniel.kim'],
+        ['Sara Mendez', 'sara.mendez'],
+        ['Alex Turner', 'alex.turner'],
+        ['Julia Fischer', 'julia.fischer'],
     ];
 
-    /** @var list<array{0: string, 1: string}> */
+    /**
+     * @var list<array{0: string, 1: string, 2: string, 3: string}>
+     */
     private const TEAMS = [
-        ['Web Team', 'web'],
-        ['Mobile Team', 'mobile'],
-        ['Backend Team', 'backend'],
-        ['QA Team', 'qa'],
+        ['Atlas Product', 'atlas', 'Sophie Laurent', 'sophie.laurent'],
+        ['Nova Engineering', 'nova', 'Marcus Chen', 'marcus.chen'],
+        ['Pulse Analytics', 'pulse', 'Elena Rodriguez', 'elena.rodriguez'],
+        ['Harbor Operations', 'harbor', 'James Okonkwo', 'james.okonkwo'],
+        ['Summit Quality', 'summit', 'Nina Petrov', 'nina.petrov'],
+    ];
+
+    /**
+     * @var array<string, list<string>>
+     */
+    private const TEAM_MEMBER_EMAILS = [
+        'atlas' => ['emma.nguyen', 'lucas.martin', 'olivia.brooks', 'noah.williams'],
+        'nova' => ['mia.andersen', 'liam.costa', 'ava.ibrahim', 'ethan.park', 'emma.nguyen'],
+        'pulse' => ['chloe.dubois', 'ryan.murphy', 'isabelle.moore', 'daniel.kim'],
+        'harbor' => ['sara.mendez', 'alex.turner', 'julia.fischer', 'emma.nguyen'],
+        'summit' => ['olivia.brooks', 'ethan.park', 'ryan.murphy', 'lucas.martin'],
     ];
 
     /**
      * @var list<array{0: string, 1: string, 2: list<string>}>
      */
     private const PROJECTS = [
-        ['Briefly Platform', 'Core daily update and brief workflow.', ['web', 'mobile', 'backend', 'qa']],
-        ['Customer Portal', 'Self-service portal for end users.', ['web', 'mobile']],
-        ['API Modernization', 'Migrate legacy REST endpoints to Laravel.', ['backend', 'web']],
-        ['Mobile App v2', 'Next-generation iOS and Android app.', ['mobile', 'qa']],
-        ['Quality Automation', 'End-to-end test suite and CI pipelines.', ['qa', 'backend']],
-        ['Design System', 'Shared UI components and documentation.', ['web', 'mobile', 'qa']],
+        ['Employee Onboarding', 'Streamline the first weeks for new hires.', ['atlas', 'harbor']],
+        ['Metrics Dashboard', 'Unified KPIs and reporting for leadership.', ['pulse', 'atlas']],
+        ['Customer Billing Revamp', 'Modernize invoicing and payment flows.', ['nova', 'harbor']],
+        ['Internal Tools Platform', 'Shared tooling for operational teams.', ['nova', 'pulse']],
+        ['Mobile Experience Refresh', 'Improve core journeys on iOS and Android.', ['nova', 'summit']],
+        ['API Reliability Program', 'Stabilize and document critical endpoints.', ['nova', 'pulse', 'harbor']],
+        ['Design System Refresh', 'Update shared UI components and guidelines.', ['atlas', 'summit']],
+        ['Quality Automation Suite', 'Expand end-to-end coverage in CI.', ['summit', 'pulse']],
     ];
 
     /** @var list<string> */
@@ -102,8 +125,29 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $teamsBySlug = collect(self::TEAMS)->mapWithKeys(function (array $teamData) use ($password) {
-            [$name, $slug] = $teamData;
+        $usersByEmail = collect(self::MEMBERS)->mapWithKeys(function (array $member) use ($password) {
+            [$name, $slug] = $member;
+            $email = "{$slug}@briefly.test";
+
+            $user = User::firstOrCreate(
+                ['email' => $email],
+                [
+                    'name' => $name,
+                    'password' => $password,
+                    'role' => UserRole::Member,
+                    'team_id' => null,
+                ]
+            );
+
+            if ($user->name !== $name) {
+                $user->update(['name' => $name]);
+            }
+
+            return [$slug => $user];
+        });
+
+        $teamsBySlug = collect(self::TEAMS)->mapWithKeys(function (array $teamData) use ($password, $usersByEmail) {
+            [$name, $slug, $leadName, $leadSlug] = $teamData;
 
             $team = Team::firstOrCreate(['name' => $name]);
 
@@ -113,34 +157,27 @@ class DatabaseSeeder extends Seeder
             ));
 
             $lead = User::firstOrCreate(
-                ['email' => "lead@{$slug}.test"],
+                ['email' => "{$leadSlug}@briefly.test"],
                 [
-                    'name' => "{$name} Lead",
+                    'name' => $leadName,
                     'password' => $password,
                     'role' => UserRole::TeamLead,
                     'team_id' => $team->id,
                 ]
             );
 
-            if ($lead->team_id !== $team->id || $lead->role !== UserRole::TeamLead) {
-                $lead->update([
-                    'team_id' => $team->id,
-                    'role' => UserRole::TeamLead,
-                ]);
-            }
+            $lead->update([
+                'name' => $leadName,
+                'team_id' => $team->id,
+                'role' => UserRole::TeamLead,
+            ]);
+            $lead->teams()->syncWithoutDetaching([$team->id]);
 
-            $members = collect(self::MEMBERS)->map(function (array $member) use ($name, $slug, $password, $team) {
-                $user = User::firstOrCreate(
-                    ['email' => "{$member[1]}@{$slug}.test"],
-                    [
-                        'name' => "{$member[0]} ({$name})",
-                        'password' => $password,
-                        'role' => UserRole::Member,
-                        'team_id' => $team->id,
-                    ]
-                );
+            $members = collect(self::TEAM_MEMBER_EMAILS[$slug] ?? [])->map(function (string $memberSlug) use ($team, $usersByEmail) {
+                $user = $usersByEmail[$memberSlug];
+                $user->teams()->syncWithoutDetaching([$team->id]);
 
-                if ($user->team_id !== $team->id) {
+                if ($user->team_id === null) {
                     $user->update(['team_id' => $team->id, 'role' => UserRole::Member]);
                 }
 

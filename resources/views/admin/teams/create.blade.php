@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
 @section('title', __('New team'))
-@section('breadcrumb', __('Team management'))
+@section('breadcrumb', __('Teams'))
 
 @section('content')
+@include('admin.partials.nav')
+
 <div class="card">
     <div class="card-body p-4">
-        <p class="text-muted small mb-4">{{ __('After creating a team, assign a Team Lead and members from user assignments.') }}</p>
-
         <form method="POST" action="{{ route('admin.teams.store') }}">
             @csrf
 

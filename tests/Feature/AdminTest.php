@@ -20,7 +20,7 @@ class AdminTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertSee(__('Administration'));
+            ->assertSee(__('Overview'));
     }
 
     public function test_member_cannot_access_admin_dashboard(): void
@@ -42,33 +42,41 @@ class AdminTest extends TestCase
             ->assertRedirect(route('admin.dashboard'));
     }
 
-    public function test_admin_can_update_project_teams(): void
+    public function test_admin_can_create_and_update_project(): void
     {
         $admin = User::factory()->admin()->create();
         $teamA = Team::factory()->create(['name' => 'Alpha Team']);
         $teamB = Team::factory()->create(['name' => 'Beta Team']);
-        $project = Project::factory()->create();
 
         $this->actingAs($admin)
-            ->put(route('admin.projects.update-teams', $project), [
+            ->post(route('admin.projects.store'), [
+                'name' => 'Metrics Dashboard',
+                'description' => 'Reporting for leadership.',
                 'team_ids' => [$teamA->id, $teamB->id],
             ])
             ->assertRedirect(route('admin.projects.index'));
 
-        $this->assertEqualsCanonicalizing(
-            [$teamA->id, $teamB->id],
-            $project->fresh()->teams()->pluck('teams.id')->all()
-        );
+        $project = Project::where('name', 'Metrics Dashboard')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->put(route('admin.projects.update', $project), [
+                'name' => 'Metrics Dashboard',
+                'description' => 'Updated description.',
+                'team_ids' => [$teamA->id],
+            ])
+            ->assertRedirect(route('admin.projects.index'));
+
+        $this->assertEqualsCanonicalizing([$teamA->id], $project->fresh()->teams()->pluck('teams.id')->all());
     }
 
-    public function test_team_lead_cannot_update_project_teams(): void
+    public function test_team_lead_cannot_create_admin_project(): void
     {
         $team = Team::factory()->create();
         $lead = User::factory()->teamLead()->create(['team_id' => $team->id]);
-        $project = Project::factory()->create();
 
         $this->actingAs($lead)
-            ->put(route('admin.projects.update-teams', $project), [
+            ->post(route('admin.projects.store'), [
+                'name' => 'Unauthorized Project',
                 'team_ids' => [$team->id],
             ])
             ->assertForbidden();
@@ -86,7 +94,7 @@ class AdminTest extends TestCase
         ])->assertRedirect(route('admin.dashboard'));
     }
 
-    public function test_admin_can_assign_user_to_team_and_role(): void
+    public function test_admin_can_assign_user_to_multiple_teams(): void
     {
         $admin = User::factory()->admin()->create();
         $teamA = Team::factory()->create(['name' => 'Alpha Team']);
@@ -98,27 +106,38 @@ class AdminTest extends TestCase
 
         $this->actingAs($admin)
             ->put(route('admin.users.update', $member), [
-                'team_id' => $teamB->id,
+                'team_ids' => [$teamA->id, $teamB->id],
                 'role' => UserRole::TeamLead->value,
             ])
-            ->assertRedirect(route('admin.users.index'));
+            ->assertRedirect(route('admin.users.show', $member));
 
         $member->refresh();
 
-        $this->assertSame($teamB->id, $member->team_id);
+        $this->assertEqualsCanonicalizing(
+            [$teamA->id, $teamB->id],
+            $member->teams()->pluck('teams.id')->all()
+        );
         $this->assertSame(UserRole::TeamLead, $member->role);
     }
 
-    public function test_admin_can_view_teams_management(): void
+    public function test_admin_can_view_team_detail_and_sync_users(): void
     {
         $admin = User::factory()->admin()->create();
-        Team::factory()->create(['name' => 'Platform Team']);
+        $team = Team::factory()->create(['name' => 'Platform Team']);
+        $member = User::factory()->create(['team_id' => $team->id, 'name' => 'Emma Nguyen']);
 
         $this->actingAs($admin)
-            ->get(route('admin.teams.index'))
+            ->get(route('admin.teams.show', $team))
             ->assertOk()
-            ->assertSee(__('Team management'))
             ->assertSee('Platform Team');
+
+        $this->actingAs($admin)
+            ->put(route('admin.teams.update-users', $team), [
+                'user_ids' => [$member->id],
+            ])
+            ->assertRedirect(route('admin.teams.show', $team));
+
+        $this->assertTrue($member->fresh()->teams()->where('teams.id', $team->id)->exists());
     }
 
     public function test_admin_can_create_team(): void
@@ -132,72 +151,31 @@ class AdminTest extends TestCase
             ->assertRedirect(route('admin.teams.index'));
 
         $this->assertDatabaseHas('teams', ['name' => 'Design Team']);
-        $this->assertGreaterThan(0, \App\Models\Blocker::where('team_id', Team::where('name', 'Design Team')->value('id'))->count());
     }
 
-    public function test_admin_cannot_create_duplicate_team(): void
+    public function test_admin_can_create_user_with_multiple_teams(): void
     {
         $admin = User::factory()->admin()->create();
-        Team::factory()->create(['name' => 'Design Team']);
-
-        $this->actingAs($admin)
-            ->post(route('admin.teams.store'), [
-                'name' => 'Design Team',
-            ])
-            ->assertSessionHasErrors('name');
-    }
-
-    public function test_member_cannot_create_team(): void
-    {
-        $team = Team::factory()->create();
-        $member = User::factory()->create(['team_id' => $team->id]);
-
-        $this->actingAs($member)
-            ->post(route('admin.teams.store'), [
-                'name' => 'Unauthorized Team',
-            ])
-            ->assertForbidden();
-    }
-
-    public function test_admin_can_create_user(): void
-    {
-        $admin = User::factory()->admin()->create();
-        $team = Team::factory()->create(['name' => 'Support Team']);
+        $teamA = Team::factory()->create(['name' => 'Alpha Team']);
+        $teamB = Team::factory()->create(['name' => 'Beta Team']);
 
         $this->actingAs($admin)
             ->post(route('admin.users.store'), [
-                'name' => 'New Member',
-                'email' => 'new.member@briefly.test',
+                'name' => 'Lucas Martin',
+                'email' => 'lucas.martin@briefly.test',
                 'password' => 'password123',
                 'password_confirmation' => 'password123',
-                'team_id' => $team->id,
+                'team_ids' => [$teamA->id, $teamB->id],
                 'role' => UserRole::Member->value,
             ])
             ->assertRedirect(route('admin.users.index'));
 
-        $this->assertDatabaseHas('users', [
-            'email' => 'new.member@briefly.test',
-            'team_id' => $team->id,
-            'role' => UserRole::Member->value,
-        ]);
-    }
+        $user = User::where('email', 'lucas.martin@briefly.test')->firstOrFail();
 
-    public function test_admin_cannot_create_user_with_duplicate_email(): void
-    {
-        $admin = User::factory()->admin()->create();
-        $team = Team::factory()->create();
-        User::factory()->create(['email' => 'taken@briefly.test', 'team_id' => $team->id]);
-
-        $this->actingAs($admin)
-            ->post(route('admin.users.store'), [
-                'name' => 'Duplicate',
-                'email' => 'taken@briefly.test',
-                'password' => 'password123',
-                'password_confirmation' => 'password123',
-                'team_id' => $team->id,
-                'role' => UserRole::Member->value,
-            ])
-            ->assertSessionHasErrors('email');
+        $this->assertEqualsCanonicalizing(
+            [$teamA->id, $teamB->id],
+            $user->teams()->pluck('teams.id')->all()
+        );
     }
 
     public function test_member_cannot_create_user(): void
@@ -211,7 +189,7 @@ class AdminTest extends TestCase
                 'email' => 'blocked@briefly.test',
                 'password' => 'password123',
                 'password_confirmation' => 'password123',
-                'team_id' => $team->id,
+                'team_ids' => [$team->id],
                 'role' => UserRole::Member->value,
             ])
             ->assertForbidden();

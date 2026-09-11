@@ -778,19 +778,19 @@
             @if(auth()->user()->isAdmin())
             <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <i class="bi bi-grid-1x2"></i>
-                {{ __('Administration') }}
+                {{ __('Overview') }}
             </a>
             <a href="{{ route('admin.projects.index') }}" class="sidebar-link {{ request()->routeIs('admin.projects.*') ? 'active' : '' }}">
-                <i class="bi bi-diagram-3"></i>
-                {{ __('Project teams') }}
+                <i class="bi bi-folder2"></i>
+                {{ __('Projects') }}
             </a>
             <a href="{{ route('admin.teams.index') }}" class="sidebar-link {{ request()->routeIs('admin.teams.*') ? 'active' : '' }}">
                 <i class="bi bi-building"></i>
-                {{ __('Team management') }}
+                {{ __('Teams') }}
             </a>
             <a href="{{ route('admin.users.index') }}" class="sidebar-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                 <i class="bi bi-people"></i>
-                {{ __('User assignments') }}
+                {{ __('Users') }}
             </a>
             @else
             <a href="{{ route('dashboard') }}" class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">

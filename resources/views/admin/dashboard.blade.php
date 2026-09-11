@@ -1,15 +1,10 @@
 @extends('layouts.app')
 
-@section('title', __('Administration'))
-@section('breadcrumb', __('Global overview'))
+@section('title', __('Overview'))
+@section('breadcrumb', __('Administration'))
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
-    <p class="text-muted mb-0">{{ __('Overview of all teams, projects and tasks.') }}</p>
-    <a href="{{ route('admin.projects.index') }}" class="btn btn-outline-primary">{{ __('Manage project teams') }}</a>
-    <a href="{{ route('admin.teams.index') }}" class="btn btn-outline-primary">{{ __('Team management') }}</a>
-    <a href="{{ route('admin.users.index') }}" class="btn btn-primary">{{ __('User assignments') }}</a>
-</div>
+@include('admin.partials.nav')
 
 <div class="row g-3 mb-4">
     <div class="col-md-3 col-6">
@@ -44,7 +39,7 @@
         <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span>{{ __('Teams') }}</span>
-                <a href="{{ route('admin.teams.index') }}" class="btn btn-sm btn-outline-primary">{{ __('New team') }}</a>
+                <a href="{{ route('admin.teams.index') }}" class="btn btn-sm btn-outline-primary">{{ __('View all') }}</a>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -52,20 +47,20 @@
                         <thead>
                             <tr>
                                 <th>{{ __('Team') }}</th>
-                                <th>{{ __('Team Lead') }}</th>
                                 <th>{{ __('Members') }}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($teams as $team)
+                            @forelse($teams->take(5) as $team)
                                 <tr>
-                                    <td class="fw-semibold">{{ $team->name }}</td>
-                                    <td class="small">{{ $team->teamLead?->name ?? '—' }}</td>
+                                    <td class="fw-semibold">
+                                        <a href="{{ route('admin.teams.show', $team) }}" class="table-link">{{ $team->name }}</a>
+                                    </td>
                                     <td>{{ $team->member_count }}</td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="3" class="text-center text-muted py-4">{{ __('No teams found.') }}</td>
+                                    <td colspan="2" class="text-center text-muted py-4">{{ __('No teams found.') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -79,7 +74,7 @@
         <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span>{{ __('Projects') }}</span>
-                <a href="{{ route('admin.projects.index') }}" class="btn btn-sm btn-outline-primary">{{ __('Manage links') }}</a>
+                <a href="{{ route('admin.projects.index') }}" class="btn btn-sm btn-outline-primary">{{ __('View all') }}</a>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -87,25 +82,20 @@
                         <thead>
                             <tr>
                                 <th>{{ __('Project') }}</th>
-                                <th>{{ __('Teams') }}</th>
                                 <th>{{ __('Tasks') }}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($projects as $project)
+                            @forelse($projects->take(5) as $project)
                                 <tr>
-                                    <td>
-                                        <div class="fw-semibold">{{ $project->name }}</div>
-                                        @if($project->description)
-                                            <div class="small text-muted">{{ Str::limit($project->description, 60) }}</div>
-                                        @endif
+                                    <td class="fw-semibold">
+                                        <a href="{{ route('admin.projects.edit', $project) }}" class="table-link">{{ $project->name }}</a>
                                     </td>
-                                    <td class="small">{{ $project->teams->pluck('name')->join(', ') ?: '—' }}</td>
                                     <td>{{ $project->tasks_count }}</td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="3" class="text-center text-muted py-4">{{ __('No projects found.') }}</td>
+                                    <td colspan="2" class="text-center text-muted py-4">{{ __('No projects found.') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>

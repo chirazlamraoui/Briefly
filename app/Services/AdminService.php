@@ -46,7 +46,7 @@ class AdminService
     {
         return Team::query()
             ->withCount([
-                'users as member_count' => fn ($query) => $query->where('role', UserRole::Member),
+                'assignedUsers as member_count' => fn ($query) => $query->where('role', UserRole::Member),
             ])
             ->with(['teamLead'])
             ->orderBy('name')

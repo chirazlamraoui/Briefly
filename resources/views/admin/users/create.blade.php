@@ -1,9 +1,11 @@
 @extends('layouts.app')
 
 @section('title', __('New user'))
-@section('breadcrumb', __('User assignments'))
+@section('breadcrumb', __('Users'))
 
 @section('content')
+@include('admin.partials.nav')
+
 <div class="card">
     <div class="card-body p-4">
         <form method="POST" action="{{ route('admin.users.store') }}">
@@ -36,16 +38,20 @@
             </div>
 
             <div class="mb-3">
-                <label for="team_id" class="form-label fw-semibold">{{ __('Team') }}</label>
-                <select name="team_id" id="team_id" class="form-select @error('team_id') is-invalid @enderror" required>
-                    <option value="">{{ __('Choose a team') }}</option>
+                <label class="form-label fw-semibold">{{ __('Teams') }}</label>
+                <div class="row g-2">
                     @foreach($teams as $team)
-                        <option value="{{ $team->id }}" @selected((string) old('team_id') === (string) $team->id)>
-                            {{ $team->name }}
-                        </option>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="team_ids[]" id="team_{{ $team->id }}"
+                                       value="{{ $team->id }}"
+                                       @checked(in_array($team->id, old('team_ids', []), true))>
+                                <label class="form-check-label" for="team_{{ $team->id }}">{{ $team->name }}</label>
+                            </div>
+                        </div>
                     @endforeach
-                </select>
-                @error('team_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                @error('team_ids')<div class="text-danger small mt-2">{{ $message }}</div>@enderror
             </div>
 
             <div class="mb-4">

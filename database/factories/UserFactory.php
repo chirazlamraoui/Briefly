@@ -16,6 +16,15 @@ class UserFactory extends Factory
 {
     protected static ?string $password;
 
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            if ($user->team_id) {
+                $user->teams()->syncWithoutDetaching([$user->team_id]);
+            }
+        });
+    }
+
     public function definition(): array
     {
         return [

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\UserRole;
+use App\Models\Team;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
@@ -15,13 +16,50 @@ class AdminUserService
     public function assignableUsers(): Collection
     {
         return User::query()
-            ->with('team')
+            ->with(['team', 'teams'])
             ->where('role', '!=', UserRole::Admin)
             ->orderBy('name')
             ->get();
     }
 
-    public function assignTeamAndRole(User $user, int $teamId, UserRole $role): void
+    public function teamSummary(User $user): string
+    {
+        $teams = $user->teams->sortBy('name')->values();
+
+        if ($teams->isEmpty() && $user->team) {
+            return $user->team->name;
+        }
+
+        if ($teams->isEmpty()) {
+            return '—';
+        }
+
+        if ($teams->count() === 1) {
+            return $teams->first()->name;
+        }
+
+        return __(':count teams', ['count' => $teams->count()]);
+    }
+
+    public function projectSummary(User $user): string
+    {
+        $projects = $user->accessibleProjects();
+
+        if ($projects->isEmpty()) {
+            return '—';
+        }
+
+        if ($projects->count() === 1) {
+            return $projects->first()->name;
+        }
+
+        return __(':count projects', ['count' => $projects->count()]);
+    }
+
+    /**
+     * @param  list<int>  $teamIds
+     */
+    public function syncTeamsAndRole(User $user, array $teamIds, UserRole $role): void
     {
         if ($user->isAdmin()) {
             throw ValidationException::withMessages([
@@ -35,22 +73,27 @@ class AdminUserService
             ]);
         }
 
+        if ($teamIds === []) {
+            throw ValidationException::withMessages([
+                'team_ids' => __('Select at least one team.'),
+            ]);
+        }
+
+        $user->syncTeams($teamIds);
+
         if ($role === UserRole::TeamLead) {
             User::query()
-                ->where('team_id', $teamId)
+                ->where('team_id', $user->team_id)
                 ->where('role', UserRole::TeamLead)
                 ->where('id', '!=', $user->id)
                 ->update(['role' => UserRole::Member]);
         }
 
-        $user->update([
-            'team_id' => $teamId,
-            'role' => $role,
-        ]);
+        $user->update(['role' => $role]);
     }
 
     /**
-     * @param  array{name: string, email: string, password: string, team_id: int, role: string}  $data
+     * @param  array{name: string, email: string, password: string, team_ids: list<int>, role: string}  $data
      */
     public function createUser(array $data): User
     {
@@ -59,11 +102,51 @@ class AdminUserService
             'email' => $data['email'],
             'password' => $data['password'],
             'role' => UserRole::Member,
-            'team_id' => $data['team_id'],
+            'team_id' => $data['team_ids'][0],
         ]);
 
-        $this->assignTeamAndRole($user, $data['team_id'], UserRole::from($data['role']));
+        $this->syncTeamsAndRole($user, $data['team_ids'], UserRole::from($data['role']));
 
-        return $user->fresh(['team']);
+        return $user->fresh(['team', 'teams']);
+    }
+
+    /**
+     * @param  list<int>  $userIds
+     */
+    public function syncTeamUsers(Team $team, array $userIds): void
+    {
+        $users = User::query()
+            ->whereIn('id', $userIds)
+            ->where('role', '!=', UserRole::Admin)
+            ->get();
+
+        $currentUserIds = $team->assignedUsers()->pluck('users.id')->all();
+
+        foreach ($users as $user) {
+            if (! $user->teams()->where('teams.id', $team->id)->exists()) {
+                $user->teams()->attach($team->id);
+            }
+
+            if ($user->team_id === null) {
+                $user->update(['team_id' => $team->id]);
+            }
+        }
+
+        $detachIds = array_diff($currentUserIds, $users->pluck('id')->all());
+
+        foreach ($detachIds as $userId) {
+            $user = User::query()->find($userId);
+
+            if ($user === null) {
+                continue;
+            }
+
+            $user->teams()->detach($team->id);
+
+            if ((int) $user->team_id === (int) $team->id) {
+                $nextTeamId = $user->teams()->value('teams.id');
+                $user->update(['team_id' => $nextTeamId]);
+            }
+        }
     }
 }

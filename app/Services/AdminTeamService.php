@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\UserRole;
 use App\Models\Blocker;
 use App\Models\Team;
+use App\Models\User;
 use Illuminate\Support\Collection;
 
 class AdminTeamService
@@ -26,7 +27,7 @@ class AdminTeamService
     {
         return Team::query()
             ->withCount([
-                'users as member_count' => fn ($query) => $query->where('role', UserRole::Member),
+                'assignedUsers as member_count' => fn ($query) => $query->where('role', UserRole::Member),
             ])
             ->with(['teamLead'])
             ->orderBy('name')
@@ -45,5 +46,25 @@ class AdminTeamService
         }
 
         return $team;
+    }
+
+    public function teamDetail(Team $team): Team
+    {
+        return $team->load([
+            'projects' => fn ($query) => $query->orderBy('name'),
+            'assignedUsers' => fn ($query) => $query->orderBy('name'),
+            'teamLead',
+        ]);
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function assignableUsersForTeam(Team $team): Collection
+    {
+        return User::query()
+            ->where('role', '!=', UserRole::Admin)
+            ->orderBy('name')
+            ->get();
     }
 }

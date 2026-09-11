@@ -22,9 +22,14 @@ class Team extends Model
         return $this->hasMany(User::class);
     }
 
-    public function members(): HasMany
+    public function assignedUsers(): BelongsToMany
     {
-        return $this->hasMany(User::class)->where('role', UserRole::Member);
+        return $this->belongsToMany(User::class)->withTimestamps();
+    }
+
+    public function members(): BelongsToMany
+    {
+        return $this->assignedUsers()->where('users.role', UserRole::Member);
     }
 
     public function teamLead(): HasOne

@@ -59,7 +59,7 @@ class BriefService
      */
     public function teamDashboardStats(Team $team, Carbon $date): array
     {
-        $members = $team->users()->where('role', UserRole::Member)->get();
+        $members = $team->members()->orderBy('users.name')->get();
         $memberIds = $members->pluck('id');
 
         $updates = DailyUpdate::query()
@@ -90,7 +90,7 @@ class BriefService
      */
     public function teamUpdatesForDate(Team $team, Carbon $date): array
     {
-        $members = $team->users()->where('role', UserRole::Member)->orderBy('name')->get();
+        $members = $team->members()->orderBy('users.name')->get();
         $updates = DailyUpdate::query()
             ->with(['user', 'blocker', 'task.project'])
             ->whereIn('user_id', $members->pluck('id'))
@@ -115,8 +115,11 @@ class BriefService
         return DailyUpdate::query()
             ->with(['user', 'blocker', 'task.project'])
             ->whereHas('user', fn ($query) => $query
-                ->where('team_id', $team->id)
-                ->where('role', UserRole::Member))
+                ->where('role', UserRole::Member)
+                ->where(function ($inner) use ($team) {
+                    $inner->where('team_id', $team->id)
+                        ->orWhereHas('teams', fn ($teams) => $teams->where('teams.id', $team->id));
+                }))
             ->whereDate('date', $date)
             ->orderBy('user_id')
             ->get();

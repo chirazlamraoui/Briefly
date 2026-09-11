@@ -2,11 +2,10 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\UserRole;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateUserAssignmentRequest extends FormRequest
+class AdminUpdateTeamUsersRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -19,9 +18,8 @@ class UpdateUserAssignmentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'team_ids' => ['required', 'array', 'min:1'],
-            'team_ids.*' => ['integer', 'exists:teams,id'],
-            'role' => ['required', Rule::in([UserRole::Member->value, UserRole::TeamLead->value])],
+            'user_ids' => ['nullable', 'array'],
+            'user_ids.*' => ['integer', 'exists:users,id'],
         ];
     }
 }

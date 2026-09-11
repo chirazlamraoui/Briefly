@@ -18,7 +18,7 @@ class TaskService
 
     public function assignableMembers(Team $team): Collection
     {
-        return $team->members()->orderBy('name')->get();
+        return $team->members()->orderBy('users.name')->get();
     }
 
     public function assignedTasksFor(User $user): Collection
@@ -42,7 +42,7 @@ class TaskService
 
     public function ensureAssigneeOnTeam(User $assignee, Team $team): void
     {
-        if ($assignee->team_id !== $team->id || ! $assignee->isMember()) {
+        if (! $assignee->belongsToTeam($team->id) || ! $assignee->isMember()) {
             throw ValidationException::withMessages([
                 'assigned_to' => __('The selected member is invalid.'),
             ]);

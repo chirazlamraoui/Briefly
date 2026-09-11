@@ -45,15 +45,19 @@ Route::middleware('auth')->group(function () {
     Route::middleware(EnsureAdmin::class)->prefix('admin')->name('admin.')->group(function () {
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::get('/projects', [AdminProjectController::class, 'index'])->name('projects.index');
-        Route::get('/projects/{project}/teams', [AdminProjectController::class, 'edit'])->name('projects.edit');
-        Route::put('/projects/{project}/teams', [AdminProjectController::class, 'updateTeams'])->name('projects.update-teams');
+        Route::get('/projects/create', [AdminProjectController::class, 'create'])->name('projects.create');
+        Route::post('/projects', [AdminProjectController::class, 'store'])->name('projects.store');
+        Route::get('/projects/{project}/edit', [AdminProjectController::class, 'edit'])->name('projects.edit');
+        Route::put('/projects/{project}', [AdminProjectController::class, 'update'])->name('projects.update');
         Route::get('/teams', [AdminTeamController::class, 'index'])->name('teams.index');
         Route::get('/teams/create', [AdminTeamController::class, 'create'])->name('teams.create');
         Route::post('/teams', [AdminTeamController::class, 'store'])->name('teams.store');
+        Route::get('/teams/{team}', [AdminTeamController::class, 'show'])->name('teams.show');
+        Route::put('/teams/{team}/users', [AdminTeamController::class, 'updateUsers'])->name('teams.update-users');
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
         Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');
         Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
-        Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
+        Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('users.show');
         Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
     });
 
