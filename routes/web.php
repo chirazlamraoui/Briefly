@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminProjectController;
+use App\Http\Controllers\AdminTeamController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
@@ -46,6 +47,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/projects', [AdminProjectController::class, 'index'])->name('projects.index');
         Route::get('/projects/{project}/teams', [AdminProjectController::class, 'edit'])->name('projects.edit');
         Route::put('/projects/{project}/teams', [AdminProjectController::class, 'updateTeams'])->name('projects.update-teams');
+        Route::get('/teams', [AdminTeamController::class, 'index'])->name('teams.index');
+        Route::get('/teams/create', [AdminTeamController::class, 'create'])->name('teams.create');
+        Route::post('/teams', [AdminTeamController::class, 'store'])->name('teams.store');
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
         Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
         Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');

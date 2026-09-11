@@ -726,6 +726,10 @@
                 <i class="bi bi-diagram-3"></i>
                 {{ __('Project teams') }}
             </a>
+            <a href="{{ route('admin.teams.index') }}" class="sidebar-link {{ request()->routeIs('admin.teams.*') ? 'active' : '' }}">
+                <i class="bi bi-building"></i>
+                {{ __('Team management') }}
+            </a>
             <a href="{{ route('admin.users.index') }}" class="sidebar-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                 <i class="bi bi-people"></i>
                 {{ __('User assignments') }}

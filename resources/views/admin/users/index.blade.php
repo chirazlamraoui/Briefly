@@ -6,7 +6,10 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
     <p class="text-muted mb-0">{{ __('Assign users to teams and set their role.') }}</p>
-    <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-secondary">{{ __('Back to overview') }}</a>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{{ route('admin.teams.create') }}" class="btn btn-outline-primary">{{ __('New team') }}</a>
+        <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-secondary">{{ __('Back to overview') }}</a>
+    </div>
 </div>
 
 <div class="card">

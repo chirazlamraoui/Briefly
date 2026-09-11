@@ -108,4 +108,54 @@ class AdminTest extends TestCase
         $this->assertSame($teamB->id, $member->team_id);
         $this->assertSame(UserRole::TeamLead, $member->role);
     }
+
+    public function test_admin_can_view_teams_management(): void
+    {
+        $admin = User::factory()->admin()->create();
+        Team::factory()->create(['name' => 'Platform Team']);
+
+        $this->actingAs($admin)
+            ->get(route('admin.teams.index'))
+            ->assertOk()
+            ->assertSee(__('Team management'))
+            ->assertSee('Platform Team');
+    }
+
+    public function test_admin_can_create_team(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)
+            ->post(route('admin.teams.store'), [
+                'name' => 'Design Team',
+            ])
+            ->assertRedirect(route('admin.teams.index'));
+
+        $this->assertDatabaseHas('teams', ['name' => 'Design Team']);
+        $this->assertGreaterThan(0, \App\Models\Blocker::where('team_id', Team::where('name', 'Design Team')->value('id'))->count());
+    }
+
+    public function test_admin_cannot_create_duplicate_team(): void
+    {
+        $admin = User::factory()->admin()->create();
+        Team::factory()->create(['name' => 'Design Team']);
+
+        $this->actingAs($admin)
+            ->post(route('admin.teams.store'), [
+                'name' => 'Design Team',
+            ])
+            ->assertSessionHasErrors('name');
+    }
+
+    public function test_member_cannot_create_team(): void
+    {
+        $team = Team::factory()->create();
+        $member = User::factory()->create(['team_id' => $team->id]);
+
+        $this->actingAs($member)
+            ->post(route('admin.teams.store'), [
+                'name' => 'Unauthorized Team',
+            ])
+            ->assertForbidden();
+    }
 }

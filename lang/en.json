@@ -79,5 +79,12 @@
     "Assigning a new team lead replaces the current lead for that team.": "Assigning a new team lead replaces the current lead for that team.",
     "Administrators cannot be reassigned through this form.": "Administrators cannot be reassigned through this form.",
     "The selected role is invalid.": "The selected role is invalid.",
-    "No users found.": "No users found."
+    "No users found.": "No users found.",
+    "Team management": "Team management",
+    "New team": "New team",
+    "Team name": "Team name",
+    "Create team": "Create team",
+    "Team created successfully.": "Team created successfully.",
+    "Create teams and manage the organization structure.": "Create teams and manage the organization structure.",
+    "After creating a team, assign a Team Lead and members from user assignments.": "After creating a team, assign a Team Lead and members from user assignments."
 }

@@ -202,5 +202,12 @@
     "Assigning a new team lead replaces the current lead for that team.": "Assigner un nouveau responsable remplace le responsable actuel de l'équipe.",
     "Administrators cannot be reassigned through this form.": "Les administrateurs ne peuvent pas être réaffectés via ce formulaire.",
     "The selected role is invalid.": "Le rôle sélectionné est invalide.",
-    "No users found.": "Aucun utilisateur trouvé."
+    "No users found.": "Aucun utilisateur trouvé.",
+    "Team management": "Gestion des équipes",
+    "New team": "Nouvelle équipe",
+    "Team name": "Nom de l'équipe",
+    "Create team": "Créer l'équipe",
+    "Team created successfully.": "Équipe créée avec succès.",
+    "Create teams and manage the organization structure.": "Créez des équipes et gérez la structure de l'organisation.",
+    "After creating a team, assign a Team Lead and members from user assignments.": "Après la création, assignez un responsable et des membres via les affectations utilisateurs."
 }

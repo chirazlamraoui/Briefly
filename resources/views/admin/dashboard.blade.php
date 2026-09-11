@@ -7,6 +7,7 @@
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
     <p class="text-muted mb-0">{{ __('Overview of all teams, projects and tasks.') }}</p>
     <a href="{{ route('admin.projects.index') }}" class="btn btn-outline-primary">{{ __('Manage project teams') }}</a>
+    <a href="{{ route('admin.teams.index') }}" class="btn btn-outline-primary">{{ __('Team management') }}</a>
     <a href="{{ route('admin.users.index') }}" class="btn btn-primary">{{ __('User assignments') }}</a>
 </div>
 
@@ -41,7 +42,10 @@
 <div class="row g-4">
     <div class="col-lg-6">
         <div class="card h-100">
-            <div class="card-header">{{ __('Teams') }}</div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>{{ __('Teams') }}</span>
+                <a href="{{ route('admin.teams.index') }}" class="btn btn-sm btn-outline-primary">{{ __('New team') }}</a>
+            </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0 align-middle">
