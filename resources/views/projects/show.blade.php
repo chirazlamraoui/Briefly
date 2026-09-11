@@ -34,10 +34,12 @@
                     @forelse($tasks as $task)
                         <tr>
                             <td>
-                                <div class="fw-semibold">{{ $task->title }}</div>
-                                @if($task->description)
-                                    <div class="small text-muted">{{ Str::limit($task->description, 80) }}</div>
-                                @endif
+                                <a href="{{ route('tasks.show', $task) }}" class="text-decoration-none text-body">
+                                    <div class="fw-semibold">{{ $task->title }}</div>
+                                    @if($task->description)
+                                        <div class="small text-muted">{{ Str::limit($task->description, 80) }}</div>
+                                    @endif
+                                </a>
                             </td>
                             <td>{{ $task->assignee->name }}</td>
                             <td>

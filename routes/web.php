@@ -62,6 +62,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/daily-update', [DailyUpdateController::class, 'update'])->name('daily-update.update');
 
         Route::get('/my-tasks', [MemberTaskController::class, 'index'])->name('tasks.my');
+        Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
+        Route::patch('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.update-status');
 
         Route::get('/briefs/today', [BriefController::class, 'today'])->name('briefs.today');
         Route::get('/briefs/{brief}', [BriefController::class, 'show'])->name('briefs.show');

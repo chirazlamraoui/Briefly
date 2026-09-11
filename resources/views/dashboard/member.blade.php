@@ -80,13 +80,13 @@
             </div>
             <div class="card-body">
                 @forelse($assignedTasks->take(5) as $task)
-                    <div class="d-flex justify-content-between align-items-start mb-3">
+                    <a href="{{ route('tasks.show', $task) }}" class="d-flex justify-content-between align-items-start mb-3 text-decoration-none text-body">
                         <div class="small">
                             <div class="fw-semibold">{{ $task->title }}</div>
                             <div class="text-muted">{{ $task->project->name }}</div>
                         </div>
                         @include('partials.status-pill', ['status' => $task->status])
-                    </div>
+                    </a>
                 @empty
                     <div class="text-center py-3 text-muted small">{{ __('No tasks assigned to you yet.') }}</div>
                 @endforelse

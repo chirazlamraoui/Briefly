@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreTaskRequest;
+use App\Http\Requests\UpdateTaskStatusRequest;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
@@ -13,6 +14,27 @@ use Illuminate\View\View;
 class TaskController extends Controller
 {
     public function __construct(private TaskService $taskService) {}
+
+    public function show(Task $task): View
+    {
+        $this->authorize('view', $task);
+
+        $task->load(['project', 'assignee']);
+
+        return view('tasks.show', [
+            'task' => $task,
+            'canUpdateStatus' => auth()->user()->can('updateStatus', $task),
+            'canEdit' => auth()->user()->can('update', $task),
+        ]);
+    }
+
+    public function updateStatus(UpdateTaskStatusRequest $request, Task $task): RedirectResponse
+    {
+        $task->update($request->validated());
+
+        return redirect()->route('tasks.show', $task)
+            ->with('success', __('Task status updated successfully.'));
+    }
 
     public function create(Project $project): View
     {

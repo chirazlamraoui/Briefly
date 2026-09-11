@@ -89,6 +89,83 @@ class ProjectTaskTest extends TestCase
             ->assertSee($task->project->name);
     }
 
+    public function test_member_can_view_task_details(): void
+    {
+        $team = Team::factory()->create();
+        $member = User::factory()->create(['team_id' => $team->id]);
+        $task = $this->createTaskForMember($member);
+
+        $this->actingAs($member)
+            ->get(route('tasks.show', $task))
+            ->assertOk()
+            ->assertSee($task->title)
+            ->assertSee($task->description)
+            ->assertSee(__('Update status'));
+    }
+
+    public function test_member_can_update_task_status(): void
+    {
+        $team = Team::factory()->create();
+        $member = User::factory()->create(['team_id' => $team->id]);
+        $task = $this->createTaskForMember($member);
+
+        $this->actingAs($member)
+            ->patch(route('tasks.update-status', $task), [
+                'status' => TaskStatus::InProgress->value,
+            ])
+            ->assertRedirect(route('tasks.show', $task));
+
+        $this->assertDatabaseHas('tasks', [
+            'id' => $task->id,
+            'status' => TaskStatus::InProgress->value,
+        ]);
+    }
+
+    public function test_member_cannot_view_task_assigned_to_someone_else(): void
+    {
+        $team = Team::factory()->create();
+        $member = User::factory()->create(['team_id' => $team->id]);
+        $otherMember = User::factory()->create(['team_id' => $team->id]);
+        $task = $this->createTaskForMember($otherMember);
+
+        $this->actingAs($member)
+            ->get(route('tasks.show', $task))
+            ->assertForbidden();
+    }
+
+    public function test_member_cannot_update_status_of_task_assigned_to_someone_else(): void
+    {
+        $team = Team::factory()->create();
+        $member = User::factory()->create(['team_id' => $team->id]);
+        $otherMember = User::factory()->create(['team_id' => $team->id]);
+        $task = $this->createTaskForMember($otherMember);
+
+        $this->actingAs($member)
+            ->patch(route('tasks.update-status', $task), [
+                'status' => TaskStatus::Done->value,
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('tasks', [
+            'id' => $task->id,
+            'status' => TaskStatus::Todo->value,
+        ]);
+    }
+
+    public function test_team_lead_can_view_team_task_details(): void
+    {
+        $team = Team::factory()->create();
+        $lead = User::factory()->teamLead()->create(['team_id' => $team->id]);
+        $member = User::factory()->create(['team_id' => $team->id]);
+        $task = $this->createTaskForMember($member);
+
+        $this->actingAs($lead)
+            ->get(route('tasks.show', $task))
+            ->assertOk()
+            ->assertSee($task->title)
+            ->assertSee(__('Edit task'));
+    }
+
     public function test_member_must_select_task_when_submitting_daily_update(): void
     {
         $team = Team::factory()->create();

@@ -34,4 +34,13 @@ class TaskPolicy
             && $task->assignee->team_id === $user->team_id
             && $task->project->teams()->where('teams.id', $user->team_id)->exists();
     }
+
+    public function updateStatus(User $user, Task $task): bool
+    {
+        if ($task->assigned_to === $user->id) {
+            return true;
+        }
+
+        return $this->update($user, $task);
+    }
 }
