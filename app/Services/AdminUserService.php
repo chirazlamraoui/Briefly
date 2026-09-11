@@ -48,4 +48,22 @@ class AdminUserService
             'role' => $role,
         ]);
     }
+
+    /**
+     * @param  array{name: string, email: string, password: string, team_id: int, role: string}  $data
+     */
+    public function createUser(array $data): User
+    {
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => $data['password'],
+            'role' => UserRole::Member,
+            'team_id' => $data['team_id'],
+        ]);
+
+        $this->assignTeamAndRole($user, $data['team_id'], UserRole::from($data['role']));
+
+        return $user->fresh(['team']);
+    }
 }

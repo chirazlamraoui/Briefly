@@ -86,5 +86,9 @@
     "Create team": "Create team",
     "Team created successfully.": "Team created successfully.",
     "Create teams and manage the organization structure.": "Create teams and manage the organization structure.",
-    "After creating a team, assign a Team Lead and members from user assignments.": "After creating a team, assign a Team Lead and members from user assignments."
+    "After creating a team, assign a Team Lead and members from user assignments.": "After creating a team, assign a Team Lead and members from user assignments.",
+    "New user": "New user",
+    "Create user": "Create user",
+    "User created successfully.": "User created successfully.",
+    "Choose a team": "Choose a team"
 }

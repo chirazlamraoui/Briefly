@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
+use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserAssignmentRequest;
 use App\Models\Team;
 use App\Models\User;
@@ -20,6 +21,21 @@ class AdminUserController extends Controller
         $teams = Team::query()->orderBy('name')->get();
 
         return view('admin.users.index', compact('users', 'teams'));
+    }
+
+    public function create(): View
+    {
+        $teams = Team::query()->orderBy('name')->get();
+
+        return view('admin.users.create', compact('teams'));
+    }
+
+    public function store(StoreUserRequest $request): RedirectResponse
+    {
+        $this->adminUserService->createUser($request->validated());
+
+        return redirect()->route('admin.users.index')
+            ->with('success', __('User created successfully.'));
     }
 
     public function edit(User $user): View

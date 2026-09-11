@@ -209,5 +209,9 @@
     "Create team": "Créer l'équipe",
     "Team created successfully.": "Équipe créée avec succès.",
     "Create teams and manage the organization structure.": "Créez des équipes et gérez la structure de l'organisation.",
-    "After creating a team, assign a Team Lead and members from user assignments.": "Après la création, assignez un responsable et des membres via les affectations utilisateurs."
+    "After creating a team, assign a Team Lead and members from user assignments.": "Après la création, assignez un responsable et des membres via les affectations utilisateurs.",
+    "New user": "Nouvel utilisateur",
+    "Create user": "Créer l'utilisateur",
+    "User created successfully.": "Utilisateur créé avec succès.",
+    "Choose a team": "Choisir une équipe"
 }

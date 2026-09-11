@@ -13,7 +13,7 @@
 </div>
 
 @if($missing->isNotEmpty())
-<div class="alert alert-warning">
+<div class="alert alert-missing mb-4">
     <strong>{{ __('Missing updates (:count):', ['count' => $missing->count()]) }}</strong>
     {{ $missing->pluck('name')->join(', ') }}
 </div>
@@ -37,9 +37,9 @@
                 <tbody>
                     @forelse($members as $member)
                         @php $update = $updates->get($member->id); @endphp
-                        <tr class="{{ $update ? '' : 'table-warning' }}">
+                        <tr @class(['update-row--missing' => ! $update])>
                             <td class="fw-semibold">
-                                <a href="{{ route('team.members.show', $member) }}" class="text-decoration-none">{{ $member->name }}</a>
+                                <a href="{{ route('team.members.show', $member) }}" class="table-link">{{ $member->name }}</a>
                             </td>
                             <td class="small">{{ $update?->task?->project?->name ?? '—' }}</td>
                             <td class="small">{{ $update?->task?->title ?? '—' }}</td>

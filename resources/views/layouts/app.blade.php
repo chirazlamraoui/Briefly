@@ -31,6 +31,8 @@
             --bs-primary-rgb: 24, 24, 27;
             --bs-link-color: #18181b;
             --bs-link-hover-color: #000;
+            --bs-link-color-rgb: 24, 24, 27;
+            --bs-link-hover-color-rgb: 0, 0, 0;
         }
 
         body {
@@ -539,6 +541,38 @@
             color: #b45309;
         }
 
+        .alert-missing {
+            background: #fdf2f8;
+            color: #9d174d;
+            border: 1px solid #fbcfe8;
+        }
+
+        .alert-missing strong {
+            color: #831843;
+        }
+
+        .update-row--missing {
+            background: #f8fafc;
+        }
+
+        .update-row--missing td:first-child {
+            box-shadow: inset 3px 0 0 #cbd5e1;
+        }
+
+        .update-row--missing:hover {
+            background: #f1f5f9;
+        }
+
+        .table-link {
+            color: var(--text);
+            text-decoration: none;
+            transition: color 0.15s ease;
+        }
+
+        .table-link:hover {
+            color: var(--accent-muted);
+        }
+
         [data-theme="dark"] {
             color-scheme: dark;
             --accent: #e8b4bc;
@@ -554,6 +588,8 @@
             --bs-primary-rgb: 250, 250, 250;
             --bs-link-color: #f0c4cb;
             --bs-link-hover-color: #fde4e8;
+            --bs-link-color-rgb: 240, 196, 203;
+            --bs-link-hover-color-rgb: 253, 228, 232;
             --bs-body-bg: #09090b;
             --bs-body-color: #fafafa;
             --bs-border-color: #3f3f46;
@@ -610,6 +646,28 @@
         [data-theme="dark"] .alert-warning {
             background: #451a03;
             color: #fcd34d;
+        }
+
+        [data-theme="dark"] .alert-missing {
+            background: var(--accent-soft);
+            color: var(--accent-muted);
+            border-color: #52525b;
+        }
+
+        [data-theme="dark"] .alert-missing strong {
+            color: var(--text);
+        }
+
+        [data-theme="dark"] .update-row--missing {
+            background: rgba(39, 39, 42, 0.55);
+        }
+
+        [data-theme="dark"] .update-row--missing td:first-child {
+            box-shadow: inset 3px 0 0 #71717a;
+        }
+
+        [data-theme="dark"] .update-row--missing:hover {
+            background: var(--surface-elevated);
         }
 
         [data-theme="dark"] .alert-warning .alert-link {
@@ -752,7 +810,7 @@
                 {{ __('My Tasks') }}
             </a>
             @if(auth()->user()->isTeamLead())
-            <a href="{{ route('projects.index') }}" class="sidebar-link {{ request()->routeIs('projects.*', 'tasks.*') ? 'active' : '' }}">
+            <a href="{{ route('projects.index') }}" class="sidebar-link {{ request()->routeIs('projects.*', 'tasks.create', 'tasks.store', 'tasks.edit', 'tasks.update') ? 'active' : '' }}">
                 <i class="bi bi-folder2"></i>
                 {{ __('Projects') }}
             </a>

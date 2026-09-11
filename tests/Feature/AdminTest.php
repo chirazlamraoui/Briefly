@@ -158,4 +158,62 @@ class AdminTest extends TestCase
             ])
             ->assertForbidden();
     }
+
+    public function test_admin_can_create_user(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $team = Team::factory()->create(['name' => 'Support Team']);
+
+        $this->actingAs($admin)
+            ->post(route('admin.users.store'), [
+                'name' => 'New Member',
+                'email' => 'new.member@briefly.test',
+                'password' => 'password123',
+                'password_confirmation' => 'password123',
+                'team_id' => $team->id,
+                'role' => UserRole::Member->value,
+            ])
+            ->assertRedirect(route('admin.users.index'));
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'new.member@briefly.test',
+            'team_id' => $team->id,
+            'role' => UserRole::Member->value,
+        ]);
+    }
+
+    public function test_admin_cannot_create_user_with_duplicate_email(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $team = Team::factory()->create();
+        User::factory()->create(['email' => 'taken@briefly.test', 'team_id' => $team->id]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.users.store'), [
+                'name' => 'Duplicate',
+                'email' => 'taken@briefly.test',
+                'password' => 'password123',
+                'password_confirmation' => 'password123',
+                'team_id' => $team->id,
+                'role' => UserRole::Member->value,
+            ])
+            ->assertSessionHasErrors('email');
+    }
+
+    public function test_member_cannot_create_user(): void
+    {
+        $team = Team::factory()->create();
+        $member = User::factory()->create(['team_id' => $team->id]);
+
+        $this->actingAs($member)
+            ->post(route('admin.users.store'), [
+                'name' => 'Blocked',
+                'email' => 'blocked@briefly.test',
+                'password' => 'password123',
+                'password_confirmation' => 'password123',
+                'team_id' => $team->id,
+                'role' => UserRole::Member->value,
+            ])
+            ->assertForbidden();
+    }
 }
