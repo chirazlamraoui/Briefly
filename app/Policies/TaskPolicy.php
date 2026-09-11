@@ -18,21 +18,27 @@ class TaskPolicy
             return true;
         }
 
+        $teamId = $user->primaryTeamId();
+
         return $user->isTeamLead()
-            && $task->assignee->belongsToTeam($user->team_id)
-            && $task->project->teams()->where('teams.id', $user->team_id)->exists();
+            && $teamId !== null
+            && $task->assignee->belongsToTeam($teamId)
+            && $task->project->teams()->where('teams.id', $teamId)->exists();
     }
 
     public function create(User $user): bool
     {
-        return $user->isTeamLead();
+        return $user->isTeamLead() && $user->primaryTeamId() !== null;
     }
 
     public function update(User $user, Task $task): bool
     {
+        $teamId = $user->primaryTeamId();
+
         return $user->isTeamLead()
-            && $task->assignee->belongsToTeam($user->team_id)
-            && $task->project->teams()->where('teams.id', $user->team_id)->exists();
+            && $teamId !== null
+            && $task->assignee->belongsToTeam($teamId)
+            && $task->project->teams()->where('teams.id', $teamId)->exists();
     }
 
     public function updateStatus(User $user, Task $task): bool

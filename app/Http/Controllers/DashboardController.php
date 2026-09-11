@@ -21,8 +21,15 @@ class DashboardController extends Controller
         $today = today();
 
         if ($user->isTeamLead()) {
-            $stats = $this->taskService->teamTaskStats($user->team);
-            $blockedTasks = $this->taskService->teamTasksForLead($user->team, \App\Enums\TaskStatus::Blocked)->take(5);
+            $team = $user->primaryTeam();
+
+            if ($team === null) {
+                return redirect()->route('profile.edit')
+                    ->with('error', __('Your account is not linked to a team yet. Contact an administrator.'));
+            }
+
+            $stats = $this->taskService->teamTaskStats($team);
+            $blockedTasks = $this->taskService->teamTasksForLead($team, \App\Enums\TaskStatus::Blocked)->take(5);
 
             return view('dashboard.lead', compact('user', 'stats', 'blockedTasks', 'today'));
         }

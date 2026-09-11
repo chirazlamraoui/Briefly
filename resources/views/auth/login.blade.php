@@ -8,7 +8,7 @@
     <div class="login-header">
         <div class="login-logo"><i class="bi bi-lightning-charge"></i></div>
         <h1 class="h4 mb-1 fw-semibold">{{ __('Briefly') }}</h1>
-        <p class="text-muted small mb-0">{{ __('Daily team progress tracking') }}</p>
+        <p class="text-muted small mb-0">{{ __('Task progress tracking for teams') }}</p>
     </div>
     <div class="card-body p-4 pt-3">
         <form method="POST" action="{{ route('login') }}">

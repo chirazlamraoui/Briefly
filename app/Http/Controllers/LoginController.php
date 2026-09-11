@@ -24,7 +24,13 @@ class LoginController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-            $home = auth()->user()->isAdmin()
+            $user = auth()->user();
+
+            if (! $user->isAdmin()) {
+                $user->primaryTeam();
+            }
+
+            $home = $user->isAdmin()
                 ? route('admin.dashboard')
                 : route('dashboard');
 

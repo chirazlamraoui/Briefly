@@ -29,6 +29,7 @@
         <div class="stat-card p-4 small">
             <div class="mb-1">{{ __('To Do') }}: {{ $stats['task_status_counts']['TODO'] }}</div>
             <div class="mb-1">{{ __('In Progress') }}: {{ $stats['task_status_counts']['IN_PROGRESS'] }}</div>
+            <div class="mb-1">{{ __('Blocked') }}: {{ $stats['task_status_counts']['BLOCKED'] }}</div>
             <div>{{ __('Done') }}: {{ $stats['task_status_counts']['DONE'] }}</div>
         </div>
     </div>

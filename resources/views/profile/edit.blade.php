@@ -25,8 +25,8 @@
                         @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="mb-4 small text-muted">
-                        @if($user->team)
-                            <div>{{ __('Team') }} : {{ $user->team->name }}</div>
+                        @if($user->primaryTeam())
+                            <div>{{ __('Team') }} : {{ $user->primaryTeam()->name }}</div>
                         @endif
                         <div>{{ __('Role') }} : {{ $user->role->label() }}</div>
                     </div>

@@ -16,7 +16,10 @@ class ProjectController extends Controller
     {
         $this->authorize('viewAny', Project::class);
 
-        $team = auth()->user()->team;
+        $team = auth()->user()->primaryTeam();
+
+        abort_if($team === null, 403);
+
         $projects = $this->taskService->projectsForTeam($team)->loadCount('tasks');
 
         return view('projects.index', compact('projects', 'team'));
@@ -34,7 +37,11 @@ class ProjectController extends Controller
         $this->authorize('create', Project::class);
 
         $project = Project::create($request->validated());
-        $project->teams()->attach(auth()->user()->team_id);
+        $team = auth()->user()->primaryTeam();
+
+        abort_if($team === null, 403);
+
+        $project->teams()->attach($team->id);
 
         return redirect()->route('projects.show', $project)
             ->with('success', __('Project created successfully.'));
@@ -44,7 +51,10 @@ class ProjectController extends Controller
     {
         $this->authorize('view', $project);
 
-        $team = auth()->user()->team;
+        $team = auth()->user()->primaryTeam();
+
+        abort_if($team === null, 403);
+
         $tasks = $project->tasks()
             ->with('assignee')
             ->whereHas('assignee', fn ($query) => $query->where('team_id', $team->id))

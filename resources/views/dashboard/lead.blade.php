@@ -6,7 +6,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
     <div>
-        <p class="text-muted mb-1">{{ $user->team->name }}</p>
+        <p class="text-muted mb-1">{{ $user->teamLabel() }}</p>
         <p class="mb-0 small">{{ $today->translatedFormat('l j F Y') }}</p>
     </div>
     <div class="d-flex gap-2 flex-wrap">

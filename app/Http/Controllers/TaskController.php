@@ -41,7 +41,10 @@ class TaskController extends Controller
         $this->authorize('view', $project);
         $this->authorize('create', Task::class);
 
-        $team = auth()->user()->team;
+        $team = auth()->user()->primaryTeam();
+
+        abort_if($team === null, 403);
+
         $members = $this->taskService->assignableMembers($team);
 
         return view('tasks.create', compact('project', 'members'));
@@ -52,7 +55,10 @@ class TaskController extends Controller
         $this->authorize('view', $project);
         $this->authorize('create', Task::class);
 
-        $team = auth()->user()->team;
+        $team = auth()->user()->primaryTeam();
+
+        abort_if($team === null, 403);
+
         $this->taskService->ensureProjectAccessibleToTeam($project, $team);
 
         $assignee = User::query()->findOrFail($request->validated('assigned_to'));
@@ -69,7 +75,11 @@ class TaskController extends Controller
         $this->authorize('update', $task);
 
         $task->load(['project', 'assignee']);
-        $members = $this->taskService->assignableMembers(auth()->user()->team);
+        $team = auth()->user()->primaryTeam();
+
+        abort_if($team === null, 403);
+
+        $members = $this->taskService->assignableMembers($team);
 
         return view('tasks.edit', compact('task', 'members'));
     }
@@ -78,7 +88,10 @@ class TaskController extends Controller
     {
         $this->authorize('update', $task);
 
-        $team = auth()->user()->team;
+        $team = auth()->user()->primaryTeam();
+
+        abort_if($team === null, 403);
+
         $assignee = User::query()->findOrFail($request->validated('assigned_to'));
         $this->taskService->ensureAssigneeOnTeam($assignee, $team);
 

@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Enums\UserRole;
-use App\Models\Blocker;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Support\Collection;
@@ -11,15 +10,6 @@ use Illuminate\Support\Collection;
 class AdminTeamService
 {
     public function __construct(private AdminUserService $adminUserService) {}
-    /** @var list<string> */
-    private const DEFAULT_BLOCKERS = [
-        'Waiting for API access',
-        'Design review pending',
-        'Deployment pipeline issue',
-        'Third-party service outage',
-        'Waiting for QA sign-off',
-        'Unclear product requirements',
-    ];
 
     /**
      * @return Collection<int, Team>
@@ -42,13 +32,6 @@ class AdminTeamService
     {
         $team = Team::create(['name' => $name]);
 
-        foreach (self::DEFAULT_BLOCKERS as $label) {
-            Blocker::create([
-                'team_id' => $team->id,
-                'label' => $label,
-            ]);
-        }
-
         if ($teamLeadId) {
             $this->adminUserService->assignTeamLead($team, User::query()->findOrFail($teamLeadId));
         }
@@ -61,10 +44,6 @@ class AdminTeamService
 
         if ($userIds !== []) {
             $this->adminUserService->syncTeamUsers($team, $userIds);
-        }
-
-        if ($teamLeadId) {
-            $this->adminUserService->assignTeamLead($team, User::query()->findOrFail($teamLeadId));
         }
 
         return $team;

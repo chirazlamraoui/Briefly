@@ -12,7 +12,7 @@ class TeamMemberController extends Controller
 
     public function show(User $user): View
     {
-        abort_unless($user->belongsToTeam(auth()->user()->team_id), 404);
+        abort_unless($user->belongsToTeam(auth()->user()->primaryTeam()?->id), 404);
         abort_if($user->isAdmin(), 404);
 
         $tasks = $this->taskService->assignedTasksFor($user);

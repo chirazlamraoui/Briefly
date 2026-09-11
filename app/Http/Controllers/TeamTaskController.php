@@ -13,7 +13,10 @@ class TeamTaskController extends Controller
 
     public function index(Request $request): View
     {
-        $team = auth()->user()->team;
+        $team = auth()->user()->primaryTeam();
+
+        abort_if($team === null, 403);
+
         $status = $request->filled('status')
             ? TaskStatus::tryFrom($request->input('status'))
             : null;

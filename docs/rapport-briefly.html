@@ -200,24 +200,24 @@
 
 <h3>4.5 Historique et fonctionnalités transverses</h3>
 <ul>
-    <li>Archives des briefs : filtres date, auteur, section, mot-clé.</li>
+    <li>Historique des mises à jour de tâches par membre et par tâche.</li>
     <li>Interface bilingue FR / EN et mode sombre.</li>
-    <li>Profil utilisateur et 32 tests PHPUnit automatisés.</li>
+    <li>Profil utilisateur et tests PHPUnit automatisés.</li>
 </ul>
 
 <h2>5. Modèle de données (aperçu)</h2>
 <table>
     <tr><th>Entité</th><th>Description</th></tr>
-    <tr><td>Team</td><td>Équipe (ex. Web Team)</td></tr>
-    <tr><td>User</td><td>Utilisateur (membre ou responsable, lié à une équipe)</td></tr>
-    <tr><td>DailyUpdate</td><td>Compte-rendu quotidien (contenu, statut, blocage optionnel)</td></tr>
-    <tr><td>Blocker</td><td>Libellé de blocage partagé au sein d'une équipe</td></tr>
-    <tr><td>Brief</td><td>Brief du jour (brouillon ou publié)</td></tr>
+    <tr><td>Team</td><td>Équipe (ex. Atlas Product)</td></tr>
+    <tr><td>User</td><td>Utilisateur (membre, responsable ou administrateur)</td></tr>
+    <tr><td>Project</td><td>Projet rattaché à une ou plusieurs équipes</td></tr>
+    <tr><td>Task</td><td>Tâche assignée à un membre (statut, avancement, blocage optionnel)</td></tr>
+    <tr><td>TaskUpdate</td><td>Historique des mises à jour de progression sur une tâche</td></tr>
 </table>
 
 <h2>6. Conclusion</h2>
 <p>
-    Briefly couvre un cycle métier complet : saisie quotidienne → supervision → synthèse → diffusion → archivage.
+    Briefly couvre un cycle métier orienté tâches : assignation → suivi de l'avancement → supervision par le responsable → archivage de l'historique.
     Elle démontre la maîtrise de Laravel, d'une base relationnelle MySQL, de la gestion des rôles et de bonnes pratiques
     (validation, policies, tests, internationalisation).
 </p>

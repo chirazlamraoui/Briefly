@@ -21,14 +21,14 @@ class AdminService
      */
     public function overviewStats(): array
     {
-        $taskStatusCounts = [
-            TaskStatus::Todo->value => 0,
-            TaskStatus::InProgress->value => 0,
-            TaskStatus::Done->value => 0,
-        ];
+        $taskStatusCounts = collect(TaskStatus::cases())
+            ->mapWithKeys(fn (TaskStatus $status) => [$status->value => 0])
+            ->all();
 
         foreach (Task::query()->select('status')->get() as $task) {
-            $taskStatusCounts[$task->status->value]++;
+            if (isset($taskStatusCounts[$task->status->value])) {
+                $taskStatusCounts[$task->status->value]++;
+            }
         }
 
         return [

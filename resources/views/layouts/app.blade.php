@@ -852,11 +852,7 @@
             </div>
             <span class="badge rounded-pill team-badge">
                 <i class="bi bi-building me-1"></i>
-                @if(auth()->user()->isAdmin())
-                    {{ __('All teams') }}
-                @else
-                    {{ auth()->user()->team->name }}
-                @endif
+                {{ auth()->user()->teamLabel() }}
             </span>
         </header>
 

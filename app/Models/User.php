@@ -35,6 +35,36 @@ class User extends Authenticatable
         return $this->belongsTo(Team::class);
     }
 
+    public function primaryTeam(): ?Team
+    {
+        if ($this->team) {
+            return $this->team;
+        }
+
+        $team = $this->teams()->first();
+
+        if ($team !== null && $this->team_id === null) {
+            $this->update(['team_id' => $team->id]);
+            $this->setRelation('team', $team);
+        }
+
+        return $team;
+    }
+
+    public function teamLabel(): string
+    {
+        if ($this->isAdmin()) {
+            return __('All teams');
+        }
+
+        return $this->primaryTeam()?->name ?? __('No team');
+    }
+
+    public function primaryTeamId(): ?int
+    {
+        return $this->primaryTeam()?->id;
+    }
+
     public function teams(): BelongsToMany
     {
         return $this->belongsToMany(Team::class)->withTimestamps();
