@@ -3,9 +3,8 @@
 namespace Tests\Feature;
 
 use App\Enums\TaskStatus;
-use App\Enums\UpdateStatus;
-use App\Models\DailyUpdate;
 use App\Models\Project;
+use App\Models\TaskUpdate;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -100,40 +99,69 @@ class ProjectTaskTest extends TestCase
             ->assertOk()
             ->assertSee($task->title)
             ->assertSee($task->description)
-            ->assertSee(__('Update status'));
+            ->assertSee(__('Update progress'));
     }
 
-    public function test_member_can_update_task_status(): void
+    public function test_member_can_save_task_progress(): void
     {
         $team = Team::factory()->create();
         $member = User::factory()->create(['team_id' => $team->id]);
         $task = $this->createTaskForMember($member);
 
         $this->actingAs($member)
-            ->patch(route('tasks.update-status', $task), [
+            ->patch(route('tasks.update-progress', $task), [
                 'status' => TaskStatus::InProgress->value,
+                'progress_done' => 'Built the login form',
+                'progress_next' => 'Connect API endpoints',
             ])
             ->assertRedirect(route('tasks.show', $task));
 
         $this->assertDatabaseHas('tasks', [
             'id' => $task->id,
             'status' => TaskStatus::InProgress->value,
+            'progress_done' => 'Built the login form',
+        ]);
+
+        $this->assertDatabaseHas('task_updates', [
+            'task_id' => $task->id,
+            'user_id' => $member->id,
+            'status' => TaskStatus::InProgress->value,
         ]);
     }
 
-    public function test_member_cannot_view_task_assigned_to_someone_else(): void
+    public function test_member_must_provide_blocker_note_when_blocked(): void
     {
         $team = Team::factory()->create();
         $member = User::factory()->create(['team_id' => $team->id]);
-        $otherMember = User::factory()->create(['team_id' => $team->id]);
-        $task = $this->createTaskForMember($otherMember);
+        $task = $this->createTaskForMember($member);
 
         $this->actingAs($member)
-            ->get(route('tasks.show', $task))
-            ->assertForbidden();
+            ->patch(route('tasks.update-progress', $task), [
+                'status' => TaskStatus::Blocked->value,
+                'progress_done' => 'Started work',
+            ])
+            ->assertSessionHasErrors('blocker_note');
     }
 
-    public function test_member_cannot_update_status_of_task_assigned_to_someone_else(): void
+    public function test_member_can_mark_task_done_and_sets_completed_at(): void
+    {
+        $team = Team::factory()->create();
+        $member = User::factory()->create(['team_id' => $team->id]);
+        $task = $this->createTaskForMember($member);
+
+        $this->actingAs($member)
+            ->patch(route('tasks.update-progress', $task), [
+                'status' => TaskStatus::Done->value,
+                'progress_done' => 'Task finished',
+            ])
+            ->assertRedirect(route('tasks.show', $task));
+
+        $task->refresh();
+        $this->assertSame(TaskStatus::Done, $task->status);
+        $this->assertNotNull($task->completed_at);
+    }
+
+    public function test_member_cannot_update_task_assigned_to_someone_else(): void
     {
         $team = Team::factory()->create();
         $member = User::factory()->create(['team_id' => $team->id]);
@@ -141,18 +169,13 @@ class ProjectTaskTest extends TestCase
         $task = $this->createTaskForMember($otherMember);
 
         $this->actingAs($member)
-            ->patch(route('tasks.update-status', $task), [
+            ->patch(route('tasks.update-progress', $task), [
                 'status' => TaskStatus::Done->value,
             ])
             ->assertForbidden();
-
-        $this->assertDatabaseHas('tasks', [
-            'id' => $task->id,
-            'status' => TaskStatus::Todo->value,
-        ]);
     }
 
-    public function test_team_lead_can_view_team_task_details(): void
+    public function test_team_lead_can_view_team_tasks_page(): void
     {
         $team = Team::factory()->create();
         $lead = User::factory()->teamLead()->create(['team_id' => $team->id]);
@@ -160,75 +183,50 @@ class ProjectTaskTest extends TestCase
         $task = $this->createTaskForMember($member);
 
         $this->actingAs($lead)
-            ->get(route('tasks.show', $task))
+            ->get(route('team.tasks'))
             ->assertOk()
             ->assertSee($task->title)
-            ->assertSee(__('Edit task'));
+            ->assertSee($member->name);
     }
 
-    public function test_member_must_select_task_when_submitting_daily_update(): void
+    public function test_member_can_view_task_history(): void
     {
         $team = Team::factory()->create();
         $member = User::factory()->create(['team_id' => $team->id]);
         $task = $this->createTaskForMember($member);
 
         $this->actingAs($member)
-            ->post(route('daily-update.store'), [
-                'task_id' => $task->id,
-                'done' => 'Finished task A',
-                'in_progress' => 'Working on task B',
-                'blocker_type' => 'none',
-                'status' => UpdateStatus::Green->value,
-            ])
-            ->assertRedirect(route('dashboard'));
-
-        $this->assertDatabaseHas('updates', [
-            'user_id' => $member->id,
-            'task_id' => $task->id,
-        ]);
-    }
-
-    public function test_member_cannot_report_on_task_assigned_to_someone_else(): void
-    {
-        $team = Team::factory()->create();
-        $member = User::factory()->create(['team_id' => $team->id]);
-        $otherMember = User::factory()->create(['team_id' => $team->id]);
-        $task = $this->createTaskForMember($otherMember);
+            ->patch(route('tasks.update-progress', $task), [
+                'status' => TaskStatus::InProgress->value,
+                'progress_done' => 'Initial progress',
+            ]);
 
         $this->actingAs($member)
-            ->post(route('daily-update.store'), [
-                'task_id' => $task->id,
-                'done' => 'Finished task A',
-                'in_progress' => 'Working on task B',
-                'blocker_type' => 'none',
-                'status' => UpdateStatus::Green->value,
-            ])
-            ->assertSessionHasErrors('task_id');
+            ->get(route('tasks.history'))
+            ->assertOk()
+            ->assertSee($task->title)
+            ->assertSee('Initial progress');
     }
 
-    public function test_task_can_have_multiple_daily_updates_on_different_days(): void
+    public function test_task_can_have_multiple_progress_updates(): void
     {
         $team = Team::factory()->create();
         $member = User::factory()->create(['team_id' => $team->id]);
         $task = $this->createTaskForMember($member);
 
-        DailyUpdate::create([
-            'user_id' => $member->id,
-            'task_id' => $task->id,
-            'date' => today(),
-            'content' => ['done' => 'Day 1', 'in_progress' => 'Day 1', 'blocker' => ''],
-            'status' => UpdateStatus::Green,
-        ]);
+        $this->actingAs($member)
+            ->patch(route('tasks.update-progress', $task), [
+                'status' => TaskStatus::InProgress->value,
+                'progress_done' => 'Step one',
+            ]);
 
-        DailyUpdate::create([
-            'user_id' => $member->id,
-            'task_id' => $task->id,
-            'date' => today()->subDay(),
-            'content' => ['done' => 'Day 0', 'in_progress' => 'Day 0', 'blocker' => ''],
-            'status' => UpdateStatus::Green,
-        ]);
+        $this->actingAs($member)
+            ->patch(route('tasks.update-progress', $task), [
+                'status' => TaskStatus::Done->value,
+                'progress_done' => 'Step two',
+            ]);
 
-        $this->assertSame(2, DailyUpdate::where('task_id', $task->id)->count());
+        $this->assertSame(2, TaskUpdate::where('task_id', $task->id)->count());
     }
 
     public function test_member_cannot_access_project_management(): void

@@ -797,36 +797,24 @@
                 <i class="bi bi-grid-1x2"></i>
                 {{ __('Dashboard') }}
             </a>
-            <a href="{{ route('daily-update.edit') }}" class="sidebar-link {{ request()->routeIs('daily-update.edit') ? 'active' : '' }}">
-                <i class="bi bi-journal-text"></i>
-                {{ __('My Daily Update') }}
-            </a>
-            <a href="{{ route('daily-update.history') }}" class="sidebar-link {{ request()->routeIs('daily-update.history') ? 'active' : '' }}">
-                <i class="bi bi-journal-bookmark"></i>
-                {{ __('My update history') }}
-            </a>
-            <a href="{{ route('tasks.my') }}" class="sidebar-link {{ request()->routeIs('tasks.my') ? 'active' : '' }}">
+            <a href="{{ route('tasks.my') }}" class="sidebar-link {{ request()->routeIs('tasks.my', 'tasks.show', 'tasks.update-progress') ? 'active' : '' }}">
                 <i class="bi bi-check2-square"></i>
                 {{ __('My Tasks') }}
+            </a>
+            <a href="{{ route('tasks.history') }}" class="sidebar-link {{ request()->routeIs('tasks.history') ? 'active' : '' }}">
+                <i class="bi bi-clock-history"></i>
+                {{ __('Task history') }}
             </a>
             @if(auth()->user()->isTeamLead())
             <a href="{{ route('projects.index') }}" class="sidebar-link {{ request()->routeIs('projects.*', 'tasks.create', 'tasks.store', 'tasks.edit', 'tasks.update') ? 'active' : '' }}">
                 <i class="bi bi-folder2"></i>
                 {{ __('Projects') }}
             </a>
-            <a href="{{ route('team.updates') }}" class="sidebar-link {{ request()->routeIs('team.updates', 'team.members.*') ? 'active' : '' }}">
+            <a href="{{ route('team.tasks') }}" class="sidebar-link {{ request()->routeIs('team.tasks', 'team.members.*') ? 'active' : '' }}">
                 <i class="bi bi-people"></i>
-                {{ __('Team Updates') }}
-            </a>
-            <a href="{{ route('briefs.today') }}" class="sidebar-link {{ request()->routeIs('briefs.*') ? 'active' : '' }}">
-                <i class="bi bi-megaphone"></i>
-                {{ __('Brief du jour') }}
+                {{ __('Team Tasks') }}
             </a>
             @endif
-            <a href="{{ route('history.index') }}" class="sidebar-link {{ request()->routeIs('history.*') ? 'active' : '' }}">
-                <i class="bi bi-clock-history"></i>
-                {{ __('Historique') }}
-            </a>
             @endif
             <a href="{{ route('profile.edit') }}" class="sidebar-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
                 <i class="bi bi-person"></i>

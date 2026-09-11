@@ -38,7 +38,7 @@ class AdminTest extends TestCase
         $admin = User::factory()->admin()->create();
 
         $this->actingAs($admin)
-            ->get(route('daily-update.edit'))
+            ->get(route('tasks.my'))
             ->assertRedirect(route('admin.dashboard'));
     }
 
@@ -151,6 +151,27 @@ class AdminTest extends TestCase
             ->assertRedirect(route('admin.teams.index'));
 
         $this->assertDatabaseHas('teams', ['name' => 'Design Team']);
+    }
+
+    public function test_admin_can_create_team_with_team_lead_and_members(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $lead = User::factory()->teamLead()->create(['name' => 'Sophie Laurent']);
+        $member = User::factory()->create(['name' => 'Emma Nguyen']);
+
+        $this->actingAs($admin)
+            ->post(route('admin.teams.store'), [
+                'name' => 'Platform Team',
+                'team_lead_id' => $lead->id,
+                'user_ids' => [$member->id],
+            ])
+            ->assertRedirect(route('admin.teams.index'));
+
+        $team = Team::where('name', 'Platform Team')->firstOrFail();
+
+        $this->assertSame(UserRole::TeamLead, $lead->fresh()->role);
+        $this->assertSame($team->id, $lead->fresh()->team_id);
+        $this->assertTrue($member->fresh()->teams()->where('teams.id', $team->id)->exists());
     }
 
     public function test_admin_can_create_user_with_multiple_teams(): void

@@ -9,7 +9,13 @@
 <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
     <div>
         <h2 class="h5 mb-1">{{ $user->name }}</h2>
-        <p class="text-muted small mb-0">{{ $user->email }} · {{ $user->role->label() }}</p>
+        <p class="text-muted small mb-0">
+            {{ $user->email }}
+            @if($user->job_title)
+                · {{ $user->job_title }}
+            @endif
+            · {{ $user->role->label() }}
+        </p>
     </div>
     <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary btn-sm">{{ __('Back to users') }}</a>
 </div>

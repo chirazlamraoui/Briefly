@@ -2,25 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\DailyUpdate;
 use App\Models\User;
+use App\Services\TaskService;
 use Illuminate\View\View;
 
 class TeamMemberController extends Controller
 {
+    public function __construct(private TaskService $taskService) {}
+
     public function show(User $user): View
     {
-        $lead = auth()->user();
+        abort_unless($user->belongsToTeam(auth()->user()->team_id), 404);
+        abort_if($user->isAdmin(), 404);
 
-        abort_unless($lead->isTeamLead(), 403);
-        abort_unless($user->team_id === $lead->team_id, 403);
+        $tasks = $this->taskService->assignedTasksFor($user);
+        $updates = $user->taskUpdates()->with(['task.project'])->latest()->paginate(15);
 
-        $updates = DailyUpdate::query()
-            ->with(['blocker', 'task.project'])
-            ->where('user_id', $user->id)
-            ->orderByDesc('date')
-            ->paginate(15);
-
-        return view('team.member', compact('user', 'updates'));
+        return view('team.member', compact('user', 'tasks', 'updates'));
     }
 }

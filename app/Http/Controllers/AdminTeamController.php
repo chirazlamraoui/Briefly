@@ -26,12 +26,18 @@ class AdminTeamController extends Controller
 
     public function create(): View
     {
-        return view('admin.teams.create');
+        $users = $this->adminUserService->assignableUsers();
+
+        return view('admin.teams.create', compact('users'));
     }
 
     public function store(StoreTeamRequest $request): RedirectResponse
     {
-        $this->adminTeamService->createTeam($request->validated('name'));
+        $this->adminTeamService->createTeam(
+            $request->validated('name'),
+            $request->filled('team_lead_id') ? $request->integer('team_lead_id') : null,
+            $request->validated('user_ids', []),
+        );
 
         return redirect()->route('admin.teams.index')
             ->with('success', __('Team created successfully.'));

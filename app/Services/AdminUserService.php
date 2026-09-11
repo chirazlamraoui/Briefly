@@ -93,12 +93,13 @@ class AdminUserService
     }
 
     /**
-     * @param  array{name: string, email: string, password: string, team_ids: list<int>, role: string}  $data
+     * @param  array{name: string, job_title?: ?string, email: string, password: string, team_ids: list<int>, role: string}  $data
      */
     public function createUser(array $data): User
     {
         $user = User::create([
             'name' => $data['name'],
+            'job_title' => $data['job_title'] ?? null,
             'email' => $data['email'],
             'password' => $data['password'],
             'role' => UserRole::Member,
@@ -108,6 +109,28 @@ class AdminUserService
         $this->syncTeamsAndRole($user, $data['team_ids'], UserRole::from($data['role']));
 
         return $user->fresh(['team', 'teams']);
+    }
+
+    public function assignTeamLead(Team $team, User $user): void
+    {
+        if ($user->isAdmin()) {
+            throw ValidationException::withMessages([
+                'team_lead_id' => __('The selected team lead is invalid.'),
+            ]);
+        }
+
+        User::query()
+            ->where('team_id', $team->id)
+            ->where('role', UserRole::TeamLead)
+            ->where('id', '!=', $user->id)
+            ->update(['role' => UserRole::Member]);
+
+        $teamIds = $user->teams()->pluck('teams.id')->push($team->id)->unique()->values()->all();
+        $user->syncTeams($teamIds);
+        $user->update([
+            'team_id' => $team->id,
+            'role' => UserRole::TeamLead,
+        ]);
     }
 
     /**

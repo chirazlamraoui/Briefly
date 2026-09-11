@@ -19,6 +19,9 @@ class StoreTeamRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255', Rule::unique('teams', 'name')],
+            'team_lead_id' => ['nullable', 'integer', 'exists:users,id'],
+            'user_ids' => ['nullable', 'array'],
+            'user_ids.*' => ['integer', 'exists:users,id'],
         ];
     }
 }

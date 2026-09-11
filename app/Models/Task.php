@@ -20,12 +20,17 @@ class Task extends Model
         'title',
         'description',
         'status',
+        'progress_done',
+        'progress_next',
+        'blocker_note',
+        'completed_at',
     ];
 
     protected function casts(): array
     {
         return [
             'status' => TaskStatus::class,
+            'completed_at' => 'datetime',
         ];
     }
 
@@ -39,8 +44,8 @@ class Task extends Model
         return $this->belongsTo(User::class, 'assigned_to');
     }
 
-    public function dailyUpdates(): HasMany
+    public function updates(): HasMany
     {
-        return $this->hasMany(DailyUpdate::class);
+        return $this->hasMany(TaskUpdate::class)->latest();
     }
 }

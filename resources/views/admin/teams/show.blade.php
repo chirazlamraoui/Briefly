@@ -51,8 +51,7 @@
                                            value="{{ $user->id }}"
                                            @checked(in_array($user->id, old('user_ids', $selectedUserIds), true))>
                                     <label class="form-check-label" for="user_{{ $user->id }}">
-                                        {{ $user->name }}
-                                        <span class="text-muted small">· {{ $user->role->label() }}</span>
+                                        @include('admin.partials.user-picker-label', ['user' => $user])
                                     </label>
                                 </div>
                             </div>

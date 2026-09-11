@@ -10,6 +10,7 @@ use Illuminate\Support\Collection;
 
 class AdminTeamService
 {
+    public function __construct(private AdminUserService $adminUserService) {}
     /** @var list<string> */
     private const DEFAULT_BLOCKERS = [
         'Waiting for API access',
@@ -34,7 +35,10 @@ class AdminTeamService
             ->get();
     }
 
-    public function createTeam(string $name): Team
+    /**
+     * @param  list<int>  $memberIds
+     */
+    public function createTeam(string $name, ?int $teamLeadId = null, array $memberIds = []): Team
     {
         $team = Team::create(['name' => $name]);
 
@@ -43,6 +47,24 @@ class AdminTeamService
                 'team_id' => $team->id,
                 'label' => $label,
             ]);
+        }
+
+        if ($teamLeadId) {
+            $this->adminUserService->assignTeamLead($team, User::query()->findOrFail($teamLeadId));
+        }
+
+        $userIds = collect($memberIds)
+            ->when($teamLeadId, fn ($ids) => $ids->push($teamLeadId))
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($userIds !== []) {
+            $this->adminUserService->syncTeamUsers($team, $userIds);
+        }
+
+        if ($teamLeadId) {
+            $this->adminUserService->assignTeamLead($team, User::query()->findOrFail($teamLeadId));
         }
 
         return $team;

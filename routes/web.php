@@ -6,10 +6,7 @@ use App\Http\Controllers\AdminTeamController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
-use App\Http\Controllers\BriefController;
-use App\Http\Controllers\DailyUpdateController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\MemberTaskController;
@@ -17,7 +14,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamMemberController;
-use App\Http\Controllers\TeamUpdateController;
+use App\Http\Controllers\TeamTaskController;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureNotAdmin;
 use App\Http\Middleware\EnsureTeamLead;
@@ -66,19 +63,10 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
 
     Route::middleware(EnsureNotAdmin::class)->group(function () {
-        Route::get('/daily-update', [DailyUpdateController::class, 'edit'])->name('daily-update.edit');
-        Route::get('/daily-update/history', [DailyUpdateController::class, 'history'])->name('daily-update.history');
-        Route::post('/daily-update', [DailyUpdateController::class, 'store'])->name('daily-update.store');
-        Route::put('/daily-update', [DailyUpdateController::class, 'update'])->name('daily-update.update');
-
         Route::get('/my-tasks', [MemberTaskController::class, 'index'])->name('tasks.my');
+        Route::get('/my-tasks/history', [MemberTaskController::class, 'history'])->name('tasks.history');
         Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
-        Route::patch('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.update-status');
-
-        Route::get('/briefs/today', [BriefController::class, 'today'])->name('briefs.today');
-        Route::get('/briefs/{brief}', [BriefController::class, 'show'])->name('briefs.show');
-        Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
-        Route::get('/history/{brief}', [HistoryController::class, 'show'])->name('history.show');
+        Route::patch('/tasks/{task}/progress', [TaskController::class, 'updateProgress'])->name('tasks.update-progress');
     });
 
     Route::middleware(EnsureTeamLead::class)->group(function () {
@@ -91,10 +79,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/tasks/{task}/edit', [TaskController::class, 'edit'])->name('tasks.edit');
         Route::put('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
 
-        Route::get('/team/updates', [TeamUpdateController::class, 'index'])->name('team.updates');
+        Route::get('/team/tasks', [TeamTaskController::class, 'index'])->name('team.tasks');
         Route::get('/team/members/{user}', [TeamMemberController::class, 'show'])->name('team.members.show');
-        Route::get('/briefs/{brief}/preview', [BriefController::class, 'preview'])->name('briefs.preview');
-        Route::put('/briefs/{brief}', [BriefController::class, 'update'])->name('briefs.update');
-        Route::post('/briefs/{brief}/publish', [BriefController::class, 'publish'])->name('briefs.publish');
     });
 });

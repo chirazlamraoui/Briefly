@@ -14,7 +14,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
 
-#[Fillable(['name', 'email', 'password', 'role', 'team_id'])]
+#[Fillable(['name', 'job_title', 'email', 'password', 'role', 'team_id'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -58,19 +58,14 @@ class User extends Authenticatable
             ->get();
     }
 
-    public function updates(): HasMany
-    {
-        return $this->hasMany(DailyUpdate::class);
-    }
-
-    public function createdBriefs(): HasMany
-    {
-        return $this->hasMany(Brief::class, 'created_by');
-    }
-
     public function assignedTasks(): HasMany
     {
         return $this->hasMany(Task::class, 'assigned_to');
+    }
+
+    public function taskUpdates(): HasMany
+    {
+        return $this->hasMany(TaskUpdate::class);
     }
 
     public function isTeamLead(): bool

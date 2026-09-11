@@ -19,6 +19,14 @@
             </div>
 
             <div class="mb-3">
+                <label for="job_title" class="form-label fw-semibold">{{ __('Job title') }}</label>
+                <input type="text" name="job_title" id="job_title" value="{{ old('job_title') }}"
+                       class="form-control @error('job_title') is-invalid @enderror"
+                       placeholder="{{ __('e.g. Developer, QA Engineer, Marketing') }}">
+                @error('job_title')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+
+            <div class="mb-3">
                 <label for="email" class="form-label fw-semibold">{{ __('Email') }}</label>
                 <input type="email" name="email" id="email" value="{{ old('email') }}"
                        class="form-control @error('email') is-invalid @enderror" required>

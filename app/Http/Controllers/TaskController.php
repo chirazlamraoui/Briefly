@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreTaskRequest;
-use App\Http\Requests\UpdateTaskStatusRequest;
+use App\Http\Requests\UpdateTaskProgressRequest;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
@@ -19,21 +19,21 @@ class TaskController extends Controller
     {
         $this->authorize('view', $task);
 
-        $task->load(['project', 'assignee']);
+        $task->load(['project', 'assignee', 'updates.user']);
 
         return view('tasks.show', [
             'task' => $task,
-            'canUpdateStatus' => auth()->user()->can('updateStatus', $task),
+            'canUpdateProgress' => auth()->user()->can('updateStatus', $task),
             'canEdit' => auth()->user()->can('update', $task),
         ]);
     }
 
-    public function updateStatus(UpdateTaskStatusRequest $request, Task $task): RedirectResponse
+    public function updateProgress(UpdateTaskProgressRequest $request, Task $task): RedirectResponse
     {
-        $task->update($request->validated());
+        $this->taskService->recordProgress($task, auth()->user(), $request->validated());
 
         return redirect()->route('tasks.show', $task)
-            ->with('success', __('Task status updated successfully.'));
+            ->with('success', __('Task progress saved successfully.'));
     }
 
     public function create(Project $project): View

@@ -2,11 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Enums\BriefStatus;
-use App\Enums\UpdateStatus;
 use App\Enums\UserRole;
-use App\Models\Brief;
-use App\Models\DailyUpdate;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
