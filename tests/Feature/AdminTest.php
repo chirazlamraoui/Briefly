@@ -20,7 +20,10 @@ class AdminTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertSee(__('Overview'));
+            ->assertSee(__('Overview'))
+            ->assertSee(__('Completion rate'))
+            ->assertSee(__('Completion rate by team'))
+            ->assertSee(__('Completion rate by project'));
     }
 
     public function test_member_cannot_access_admin_dashboard(): void

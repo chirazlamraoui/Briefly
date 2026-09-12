@@ -15,6 +15,13 @@
     </div>
 </div>
 
+@include('partials.completion-summary-card', [
+    'rate' => $progress['overall_rate'],
+    'done' => $progress['done_count'],
+    'total' => $progress['total_count'],
+    'label' => __('Team completion rate'),
+])
+
 <div class="row g-3 mb-4">
     <div class="col-md-3 col-6">
         <div class="stat-card text-center p-4">
@@ -38,6 +45,35 @@
         <div class="stat-card text-center p-4">
             <div class="display-6 fw-bold text-success">{{ $stats['done_this_week'] }}</div>
             <div class="text-muted small">{{ __('Done this week') }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">{{ __('Member progress') }}</div>
+            <div class="card-body">
+                @include('partials.completion-progress-list', [
+                    'items' => $progress['member_rates'],
+                    'empty' => __('No members in this team.'),
+                    'linkRoute' => 'team.members.show',
+                    'linkKey' => 'id',
+                ])
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">{{ __('Project progress') }}</div>
+            <div class="card-body">
+                @include('partials.completion-progress-list', [
+                    'items' => $progress['project_rates'],
+                    'empty' => __('No projects assigned to this team.'),
+                    'linkRoute' => 'projects.show',
+                    'linkKey' => 'id',
+                ])
+            </div>
         </div>
     </div>
 </div>

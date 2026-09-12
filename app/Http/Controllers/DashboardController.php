@@ -29,13 +29,15 @@ class DashboardController extends Controller
             }
 
             $stats = $this->taskService->teamTaskStats($team);
+            $progress = $this->taskService->teamLeadProgressOverview($team);
             $blockedTasks = $this->taskService->teamTasksForLead($team, \App\Enums\TaskStatus::Blocked)->take(5);
 
-            return view('dashboard.lead', compact('user', 'stats', 'blockedTasks', 'today'));
+            return view('dashboard.lead', compact('user', 'stats', 'progress', 'blockedTasks', 'today'));
         }
 
         $assignedTasks = $this->taskService->assignedTasksFor($user);
+        $progress = $this->taskService->memberProgressOverview($user);
 
-        return view('dashboard.member', compact('user', 'today', 'assignedTasks'));
+        return view('dashboard.member', compact('user', 'today', 'assignedTasks', 'progress'));
     }
 }

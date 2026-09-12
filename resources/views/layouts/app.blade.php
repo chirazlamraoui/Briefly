@@ -230,6 +230,46 @@
             font-size: 0.95rem;
         }
 
+        .completion-ring {
+            --completion-rate: 0;
+            width: 132px;
+            height: 132px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background:
+                radial-gradient(var(--surface) 58%, transparent 59%),
+                conic-gradient(#22c55e calc(var(--completion-rate) * 1%), #ececef 0);
+            flex-shrink: 0;
+        }
+
+        .completion-ring__value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+        }
+
+        .completion-progress {
+            height: 0.55rem;
+            background: #ececef;
+            border-radius: 999px;
+        }
+
+        .completion-progress .progress-bar {
+            background: linear-gradient(90deg, #86efac, #22c55e);
+            border-radius: 999px;
+        }
+
+        [data-theme="dark"] .completion-ring {
+            background:
+                radial-gradient(var(--surface) 58%, transparent 59%),
+                conic-gradient(#22c55e calc(var(--completion-rate) * 1%), #3f3f46 0);
+        }
+
+        [data-theme="dark"] .completion-progress {
+            background: #3f3f46;
+        }
+
         .alert {
             border: none;
             border-radius: 14px;

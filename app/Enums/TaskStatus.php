@@ -38,4 +38,14 @@ enum TaskStatus: string
             self::Done => 'success',
         };
     }
+
+    public function progressPercent(): int
+    {
+        return match ($this) {
+            self::Todo => 0,
+            self::InProgress => 60,
+            self::Blocked => 30,
+            self::Done => 100,
+        };
+    }
 }

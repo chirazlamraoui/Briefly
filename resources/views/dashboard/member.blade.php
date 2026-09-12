@@ -15,7 +15,14 @@
     </div>
 </div>
 
-<div class="row g-4">
+@include('partials.completion-summary-card', [
+    'rate' => $progress['overall_rate'],
+    'done' => $progress['done_count'],
+    'total' => $progress['total_count'],
+    'label' => __('My completion rate'),
+])
+
+<div class="row g-4 mb-4">
     @php
         $activeTasks = $assignedTasks->whereIn('status', [\App\Enums\TaskStatus::Todo, \App\Enums\TaskStatus::InProgress, \App\Enums\TaskStatus::Blocked]);
         $blockedTasks = $assignedTasks->where('status', \App\Enums\TaskStatus::Blocked);
@@ -41,19 +48,31 @@
     </div>
 </div>
 
-<div class="card mt-4">
+<div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <span>{{ __('My Tasks') }}</span>
+        <span>{{ __('Task progress') }}</span>
         <a href="{{ route('tasks.my') }}" class="btn btn-sm btn-outline-primary">{{ __('View all') }}</a>
     </div>
     <div class="card-body">
-        @forelse($assignedTasks->take(5) as $task)
-            <a href="{{ route('tasks.show', $task) }}" class="d-flex justify-content-between align-items-start mb-3 text-decoration-none text-body">
-                <div class="small">
-                    <div class="fw-semibold">{{ $task->title }}</div>
-                    <div class="text-muted">{{ $task->project->name }}</div>
+        @forelse($progress['tasks'] as $entry)
+            @php($task = $entry['task'])
+            <a href="{{ route('tasks.show', $task) }}" class="d-block mb-4 text-decoration-none text-body {{ !$loop->last ? 'pb-4 border-bottom' : '' }}">
+                <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                    <div>
+                        <div class="fw-semibold">{{ $task->title }}</div>
+                        <div class="small text-muted">{{ $task->project->name }}</div>
+                    </div>
+                    @include('partials.status-pill', ['status' => $task->status])
                 </div>
-                @include('partials.status-pill', ['status' => $task->status])
+                <div class="d-flex justify-content-between align-items-center gap-3 mb-1">
+                    <span class="small text-muted">{{ __('Progress') }}</span>
+                    <span class="small fw-semibold">{{ $entry['rate'] }}%</span>
+                </div>
+                <div class="progress completion-progress" role="progressbar"
+                     aria-valuenow="{{ $entry['rate'] }}" aria-valuemin="0" aria-valuemax="100"
+                     aria-label="{{ $task->title }}">
+                    <div class="progress-bar" style="width: {{ $entry['rate'] }}%;"></div>
+                </div>
             </a>
         @empty
             <div class="text-center py-3 text-muted small">{{ __('No tasks assigned to you yet.') }}</div>

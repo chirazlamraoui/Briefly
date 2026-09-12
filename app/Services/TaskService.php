@@ -157,4 +157,107 @@ class TaskService
             ->latest()
             ->paginate(15);
     }
+
+    /**
+     * @param  Collection<int, Task>  $tasks
+     * @return array{total: int, done: int, rate: int}
+     */
+    public function completionSummary(Collection $tasks): array
+    {
+        $total = $tasks->count();
+        $done = $tasks->where('status', TaskStatus::Done)->count();
+
+        return [
+            'total' => $total,
+            'done' => $done,
+            'rate' => $total > 0 ? (int) round(($done / $total) * 100) : 0,
+        ];
+    }
+
+    /**
+     * @return array{
+     *     overall_rate: int,
+     *     done_count: int,
+     *     total_count: int,
+     *     member_rates: list<array{id: int, name: string, total: int, done: int, rate: int}>,
+     *     project_rates: list<array{id: int, name: string, total: int, done: int, rate: int}>
+     * }
+     */
+    public function teamLeadProgressOverview(Team $team): array
+    {
+        $tasks = $this->teamTasksQuery($team)->get();
+        $summary = $this->completionSummary($tasks);
+
+        $memberRates = $this->assignableMembers($team)->map(function (User $member) use ($team): array {
+            $memberTasks = Task::query()
+                ->where('assigned_to', $member->id)
+                ->whereHas('project.teams', fn ($query) => $query->where('teams.id', $team->id))
+                ->get();
+
+            return array_merge(
+                ['id' => $member->id, 'name' => $member->name],
+                $this->completionSummary($memberTasks),
+            );
+        })->sort(function (array $a, array $b): int {
+            $rateCompare = $b['rate'] <=> $a['rate'];
+
+            return $rateCompare !== 0
+                ? $rateCompare
+                : strcasecmp($a['name'], $b['name']);
+        })->values()->all();
+
+        $projectRates = $this->projectsForTeam($team)->map(function (Project $project) use ($team): array {
+            return array_merge(
+                ['id' => $project->id, 'name' => $project->name],
+                $this->completionSummary($this->teamTasksForProject($team, $project)),
+            );
+        })->sort(function (array $a, array $b): int {
+            $rateCompare = $b['rate'] <=> $a['rate'];
+
+            return $rateCompare !== 0
+                ? $rateCompare
+                : strcasecmp($a['name'], $b['name']);
+        })->values()->all();
+
+        return [
+            'overall_rate' => $summary['rate'],
+            'done_count' => $summary['done'],
+            'total_count' => $summary['total'],
+            'member_rates' => $memberRates,
+            'project_rates' => $projectRates,
+        ];
+    }
+
+    /**
+     * @return array{
+     *     overall_rate: int,
+     *     done_count: int,
+     *     total_count: int,
+     *     tasks: Collection<int, array{task: Task, rate: int}>
+     * }
+     */
+    public function memberProgressOverview(User $user): array
+    {
+        $tasks = $this->assignedTasksFor($user);
+        $summary = $this->completionSummary($tasks);
+
+        return [
+            'overall_rate' => $summary['rate'],
+            'done_count' => $summary['done'],
+            'total_count' => $summary['total'],
+            'tasks' => $tasks
+                ->map(fn (Task $task): array => [
+                    'task' => $task,
+                    'rate' => $task->status->progressPercent(),
+                ])
+                ->sort(function (array $a, array $b): int {
+                    $rateCompare = $b['rate'] <=> $a['rate'];
+
+                    return $rateCompare !== 0
+                        ? $rateCompare
+                        : strcasecmp($a['task']->title, $b['task']->title);
+                })
+                ->values(),
+        ];
+    }
 }

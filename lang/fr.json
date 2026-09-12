@@ -170,5 +170,20 @@
     "Select at least one team.": "Sélectionnez au moins une équipe.",
     "Choose a team lead": "Choisir un responsable d'équipe",
     "The selected team lead is invalid.": "Le responsable d'équipe sélectionné est invalide.",
-    "Team leads must remain assigned to at least one team.": "Les responsables d'équipe doivent rester assignés à au moins une équipe."
+    "Team leads must remain assigned to at least one team.": "Les responsables d'équipe doivent rester assignés à au moins une équipe.",
+    "Completion rate": "Taux d'accomplissement",
+    "Completion rate by team": "Taux d'accomplissement par équipe",
+    "Completion rate by project": "Taux d'accomplissement par projet",
+    "Task distribution": "Répartition des tâches",
+    ":done of :total tasks completed": ":done tâches terminées sur :total",
+    "Based on tasks marked as done.": "Basé sur les tâches marquées comme terminées.",
+    "Organization snapshot": "Vue d'ensemble de l'organisation",
+    "Team completion rate": "Taux d'accomplissement de l'équipe",
+    "Member progress": "Avancement des membres",
+    "Project progress": "Avancement des projets",
+    "My completion rate": "Mon taux d'accomplissement",
+    "Task progress": "Avancement des tâches",
+    "Progress": "Avancement",
+    "No data yet.": "Aucune donnée pour le moment.",
+    "No members in this team.": "Aucun membre dans cette équipe."
 }

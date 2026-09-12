@@ -12,9 +12,10 @@ class AdminDashboardController extends Controller
     public function index(): View
     {
         $stats = $this->adminService->overviewStats();
+        $completion = $this->adminService->completionOverview();
         $teams = $this->adminService->teamsOverview();
         $projects = $this->adminService->projectsOverview();
 
-        return view('admin.dashboard', compact('stats', 'teams', 'projects'));
+        return view('admin.dashboard', compact('stats', 'completion', 'teams', 'projects'));
     }
 }

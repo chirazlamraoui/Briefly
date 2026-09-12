@@ -188,6 +188,75 @@ class ProjectTaskTest extends TestCase
             ->assertSee($member->name);
     }
 
+    public function test_team_lead_dashboard_shows_member_and_project_progress(): void
+    {
+        $team = Team::factory()->create(['name' => 'Nova Engineering']);
+        $lead = User::factory()->teamLead()->create(['team_id' => $team->id]);
+        $member = User::factory()->create(['team_id' => $team->id, 'name' => 'Emma Nguyen']);
+        $project = Project::factory()->create(['name' => 'Metrics Dashboard']);
+        $project->teams()->attach($team->id);
+        Task::factory()->create([
+            'project_id' => $project->id,
+            'assigned_to' => $member->id,
+            'status' => TaskStatus::Done,
+        ]);
+
+        $this->actingAs($lead)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee(__('Member progress'))
+            ->assertSee(__('Project progress'))
+            ->assertSee('Emma Nguyen')
+            ->assertSee('Metrics Dashboard');
+    }
+
+    public function test_member_dashboard_shows_task_progress(): void
+    {
+        $team = Team::factory()->create();
+        $member = User::factory()->create(['team_id' => $team->id]);
+        $project = Project::factory()->create();
+        $project->teams()->attach($team->id);
+
+        Task::factory()->create([
+            'project_id' => $project->id,
+            'assigned_to' => $member->id,
+            'title' => 'Blocked task',
+            'status' => TaskStatus::Blocked,
+        ]);
+        Task::factory()->create([
+            'project_id' => $project->id,
+            'assigned_to' => $member->id,
+            'title' => 'In progress task',
+            'status' => TaskStatus::InProgress,
+        ]);
+        Task::factory()->create([
+            'project_id' => $project->id,
+            'assigned_to' => $member->id,
+            'title' => 'Done task',
+            'status' => TaskStatus::Done,
+        ]);
+
+        $response = $this->actingAs($member)->get(route('dashboard'));
+
+        $response->assertOk()
+            ->assertSee(__('Task progress'))
+            ->assertSee(__('My completion rate'))
+            ->assertSee('Done task')
+            ->assertSee('In progress task')
+            ->assertSee('Blocked task');
+
+        $content = $response->getContent();
+        $donePos = strpos($content, 'Done task');
+        $inProgressPos = strpos($content, 'In progress task');
+        $blockedPos = strpos($content, 'Blocked task');
+
+        $this->assertNotFalse($donePos);
+        $this->assertNotFalse($inProgressPos);
+        $this->assertNotFalse($blockedPos);
+        $this->assertTrue($donePos < $inProgressPos);
+        $this->assertTrue($inProgressPos < $blockedPos);
+    }
+
     public function test_project_show_lists_tasks_for_members_on_team_pivot_even_when_primary_team_differs(): void
     {
         $teamA = Team::factory()->create(['name' => 'Alpha Team']);

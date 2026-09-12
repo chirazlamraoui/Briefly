@@ -163,5 +163,20 @@
     "Select at least one team.": "Select at least one team.",
     "Choose a team lead": "Choose a team lead",
     "The selected team lead is invalid.": "The selected team lead is invalid.",
-    "Team leads must remain assigned to at least one team.": "Team leads must remain assigned to at least one team."
+    "Team leads must remain assigned to at least one team.": "Team leads must remain assigned to at least one team.",
+    "Completion rate": "Completion rate",
+    "Completion rate by team": "Completion rate by team",
+    "Completion rate by project": "Completion rate by project",
+    "Task distribution": "Task distribution",
+    ":done of :total tasks completed": ":done of :total tasks completed",
+    "Based on tasks marked as done.": "Based on tasks marked as done.",
+    "Organization snapshot": "Organization snapshot",
+    "Team completion rate": "Team completion rate",
+    "Member progress": "Member progress",
+    "Project progress": "Project progress",
+    "My completion rate": "My completion rate",
+    "Task progress": "Task progress",
+    "Progress": "Progress",
+    "No data yet.": "No data yet.",
+    "No members in this team.": "No members in this team."
 }
