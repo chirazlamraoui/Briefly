@@ -4,10 +4,6 @@
 @section('breadcrumb', __('Project management'))
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
-    <p class="text-muted mb-0">{{ $team->name }}</p>
-</div>
-
 <div class="card">
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -15,6 +11,7 @@
                 <thead>
                     <tr>
                         <th>{{ __('Project') }}</th>
+                        <th>{{ __('Team') }}</th>
                         <th>{{ __('Tasks') }}</th>
                         <th></th>
                     </tr>
@@ -28,6 +25,7 @@
                                     <div class="small text-muted">{{ Str::limit($project->description, 80) }}</div>
                                 @endif
                             </td>
+                            <td class="small">{{ $project->teams->pluck('name')->join(', ') ?: '—' }}</td>
                             <td>{{ $project->tasks_count }}</td>
                             <td class="text-end">
                                 <a href="{{ route('projects.show', $project) }}" class="btn btn-sm btn-outline-primary">{{ __('View') }}</a>
@@ -35,7 +33,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="3" class="text-center text-muted py-4">{{ __('No projects found.') }}</td>
+                            <td colspan="4" class="text-center text-muted py-4">{{ __('No projects found.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

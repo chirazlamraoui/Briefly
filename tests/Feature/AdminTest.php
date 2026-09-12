@@ -41,7 +41,7 @@ class AdminTest extends TestCase
         $admin = User::factory()->admin()->create();
 
         $this->actingAs($admin)
-            ->get(route('tasks.my'))
+            ->get(route('tasks.index'))
             ->assertRedirect(route('admin.dashboard'));
     }
 

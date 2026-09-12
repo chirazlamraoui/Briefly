@@ -22,8 +22,14 @@ class TaskPolicy
             return false;
         }
 
+        $assignee = $task->assignee;
+
+        if ($assignee === null) {
+            return false;
+        }
+
         foreach ($user->managedTeamIds() as $teamId) {
-            if ($task->assignee->belongsToTeam($teamId)
+            if ($assignee->belongsToTeam($teamId)
                 && $task->project->teams()->where('teams.id', $teamId)->exists()) {
                 return true;
             }
@@ -43,8 +49,14 @@ class TaskPolicy
             return false;
         }
 
+        $assignee = $task->assignee;
+
+        if ($assignee === null) {
+            return false;
+        }
+
         foreach ($user->managedTeamIds() as $teamId) {
-            if ($task->assignee->belongsToTeam($teamId)
+            if ($assignee->belongsToTeam($teamId)
                 && $task->project->teams()->where('teams.id', $teamId)->exists()) {
                 return true;
             }

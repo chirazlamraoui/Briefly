@@ -19,10 +19,7 @@
         @if($canEdit)
             <a href="{{ route('tasks.edit', $task) }}" class="btn btn-outline-primary btn-sm">{{ __('Edit task') }}</a>
         @endif
-        <a href="{{ auth()->user()->isTeamLead() ? route('team.tasks') : route('tasks.my') }}"
-           class="btn btn-outline-secondary btn-sm">
-            {{ auth()->user()->isTeamLead() ? __('Back to team tasks') : __('Back to tasks') }}
-        </a>
+        <a href="{{ route('tasks.index') }}" class="btn btn-outline-secondary btn-sm">{{ __('Back to tasks') }}</a>
     </div>
 </div>
 
@@ -32,6 +29,9 @@
             <div class="card-header">{{ __('Task details') }}</div>
             <div class="card-body">
                 <dl class="row mb-0">
+                    <dt class="col-sm-4 text-muted">{{ __('Team') }}</dt>
+                    <dd class="col-sm-8">{{ $teamLabel }}</dd>
+
                     <dt class="col-sm-4 text-muted">{{ __('Project') }}</dt>
                     <dd class="col-sm-8">{{ $task->project->name }}</dd>
 

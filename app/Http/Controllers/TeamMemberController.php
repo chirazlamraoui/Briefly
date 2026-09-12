@@ -12,8 +12,15 @@ class TeamMemberController extends Controller
 
     public function show(User $user): View
     {
-        abort_unless($user->belongsToTeam(auth()->user()->primaryTeam()?->id), 404);
         abort_if($user->isAdmin(), 404);
+
+        $managedTeamIds = auth()->user()->managedTeamIds();
+        $sharedTeamIds = collect($managedTeamIds)
+            ->filter(fn (int $teamId) => $user->belongsToTeam($teamId))
+            ->values()
+            ->all();
+
+        abort_if($sharedTeamIds === [], 404);
 
         $tasks = $this->taskService->assignedTasksFor($user);
         $updates = $user->taskUpdates()->with(['task.project'])->latest()->paginate(15);

@@ -62,11 +62,17 @@ class AdminTeamService
     {
         $team->update(['name' => $data['name']]);
 
+        $requestedUserIds = $data['user_ids'] ?? [];
+
         $teamLeadId = isset($data['team_lead_id']) && $data['team_lead_id']
             ? (int) $data['team_lead_id']
             : null;
 
-        $userIds = collect($data['user_ids'] ?? [])
+        if ($teamLeadId === null && $requestedUserIds !== []) {
+            $teamLeadId = $team->assignedUsers()->wherePivot('is_team_lead', true)->value('users.id');
+        }
+
+        $userIds = collect($requestedUserIds)
             ->when($teamLeadId, fn ($ids) => $ids->push($teamLeadId))
             ->unique()
             ->values()

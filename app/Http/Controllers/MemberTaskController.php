@@ -11,11 +11,14 @@ class MemberTaskController extends Controller
 
     public function index(): View
     {
-        $tasks = $this->taskService->assignedTasksFor(auth()->user());
+        $user = auth()->user();
+        $tasks = $this->taskService->assignedTasksFor($user);
 
-        return view('tasks.member-index', [
+        return view('tasks.index', [
             'tasks' => $tasks,
             'grouped' => $tasks->groupBy(fn ($task) => $task->status->value),
+            'taskService' => $this->taskService,
+            'user' => $user,
         ]);
     }
 

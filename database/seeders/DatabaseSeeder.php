@@ -214,9 +214,7 @@ class DatabaseSeeder extends Seeder
                 'team_id' => $team->id,
                 'role' => UserRole::TeamLead,
             ]);
-            $lead->teams()->syncWithoutDetaching([
-                $team->id => ['is_team_lead' => true],
-            ]);
+            $this->ensureTeamLeadPivot($team, $lead);
 
             $members = collect(self::TEAM_MEMBER_EMAILS[$slug] ?? [])->map(function (string $memberSlug) use ($team, $usersByEmail) {
                 $user = $usersByEmail[$memberSlug];
@@ -253,6 +251,133 @@ class DatabaseSeeder extends Seeder
         foreach ($teamsBySlug as $teamBundle) {
             $this->seedTeamData($teamBundle, $projects);
         }
+
+        $this->seedMultiTeamLeadDemo($teamsBySlug, $projects);
+    }
+
+    /**
+     * Demo user who leads multiple teams, is a member of another, and has personal tasks in each context.
+     *
+     * @param  Collection<string, array{team: Team, lead: User, members: Collection, name: string, slug: string}>  $teamsBySlug
+     * @param  Collection<int, Project>  $projects
+     */
+    private function seedMultiTeamLeadDemo(Collection $teamsBySlug, Collection $projects): void
+    {
+        $marcus = User::query()->where('email', 'marcus.chen@briefly.test')->first();
+
+        if ($marcus === null || ! $teamsBySlug->has('nova') || ! $teamsBySlug->has('atlas') || ! $teamsBySlug->has('summit')) {
+            return;
+        }
+
+        $novaTeam = $teamsBySlug['nova']['team'];
+        $atlasTeam = $teamsBySlug['atlas']['team'];
+        $summitTeam = $teamsBySlug['summit']['team'];
+
+        $marcus->teams()->syncWithoutDetaching([
+            $summitTeam->id => ['is_team_lead' => false],
+        ]);
+        $this->ensureTeamLeadPivot($novaTeam, $marcus);
+        $this->ensureTeamLeadPivot($atlasTeam, $marcus);
+
+        $mobileProject = $projects->firstWhere('name', 'Mobile Experience Refresh');
+        $onboardingProject = $projects->firstWhere('name', 'Employee Onboarding');
+        $metricsProject = $projects->firstWhere('name', 'Metrics Dashboard');
+
+        if ($mobileProject !== null) {
+            Task::updateOrCreate(
+                [
+                    'project_id' => $mobileProject->id,
+                    'assigned_to' => $marcus->id,
+                    'title' => 'Review mobile release checklist',
+                ],
+                [
+                    'description' => 'Final engineering review before the mobile experience refresh ships.',
+                    'status' => TaskStatus::InProgress,
+                    'progress_done' => 'Reviewed crash reports and performance metrics.',
+                    'progress_next' => 'Sign off on release candidate build.',
+                    'blocker_note' => null,
+                    'completed_at' => null,
+                ]
+            );
+        }
+
+        if ($onboardingProject !== null) {
+            Task::updateOrCreate(
+                [
+                    'project_id' => $onboardingProject->id,
+                    'assigned_to' => $marcus->id,
+                    'title' => 'Document engineering onboarding path',
+                ],
+                [
+                    'description' => 'Contribute the Atlas Product onboarding steps for new hires.',
+                    'status' => TaskStatus::Todo,
+                    'progress_done' => null,
+                    'progress_next' => 'Draft checklist for week-one setup.',
+                    'blocker_note' => null,
+                    'completed_at' => null,
+                ]
+            );
+        }
+
+        $atlasMembers = $teamsBySlug['atlas']['members'];
+        $novaMembers = $teamsBySlug['nova']['members'];
+
+        if ($onboardingProject !== null && $atlasMembers->isNotEmpty()) {
+            $member = $atlasMembers->first();
+            Task::updateOrCreate(
+                [
+                    'project_id' => $onboardingProject->id,
+                    'assigned_to' => $member->id,
+                    'title' => 'Map product onboarding milestones',
+                ],
+                [
+                    'description' => 'Define onboarding milestones for Atlas Product new hires.',
+                    'status' => TaskStatus::InProgress,
+                    'progress_done' => 'Drafted milestone outline with HR.',
+                    'progress_next' => 'Review with team leads.',
+                    'blocker_note' => null,
+                    'completed_at' => null,
+                ]
+            );
+        }
+
+        if ($metricsProject !== null && $atlasMembers->count() > 1) {
+            $member = $atlasMembers->get(1);
+            Task::updateOrCreate(
+                [
+                    'project_id' => $metricsProject->id,
+                    'assigned_to' => $member->id,
+                    'title' => 'Validate onboarding KPI widgets',
+                ],
+                [
+                    'description' => 'Ensure onboarding KPIs appear correctly on the metrics dashboard.',
+                    'status' => TaskStatus::Blocked,
+                    'progress_done' => 'Built prototype widgets.',
+                    'progress_next' => 'Wait for data pipeline access.',
+                    'blocker_note' => 'Waiting for API access',
+                    'completed_at' => null,
+                ]
+            );
+        }
+
+        if ($mobileProject !== null && $novaMembers->isNotEmpty()) {
+            $member = $novaMembers->first();
+            Task::updateOrCreate(
+                [
+                    'project_id' => $mobileProject->id,
+                    'assigned_to' => $member->id,
+                    'title' => 'Ship dark mode for mobile shell',
+                ],
+                [
+                    'description' => 'Implement dark mode support in the mobile app shell.',
+                    'status' => TaskStatus::InProgress,
+                    'progress_done' => 'Completed theme token migration.',
+                    'progress_next' => 'QA on iOS and Android.',
+                    'blocker_note' => null,
+                    'completed_at' => null,
+                ]
+            );
+        }
     }
 
     /**
@@ -270,11 +395,6 @@ class DatabaseSeeder extends Seeder
         if ($teamProjects->isEmpty()) {
             return;
         }
-
-        Task::query()
-            ->whereIn('assigned_to', $members->pluck('id'))
-            ->whereIn('project_id', $teamProjects->pluck('id'))
-            ->delete();
 
         foreach ($members as $memberIndex => $member) {
             $project = $teamProjects[$memberIndex % $teamProjects->count()];
@@ -372,5 +492,14 @@ class DatabaseSeeder extends Seeder
             'Quality Automation',
             'Design System',
         ])->delete();
+    }
+
+    private function ensureTeamLeadPivot(Team $team, User $lead): void
+    {
+        if ($lead->teams()->where('teams.id', $team->id)->exists()) {
+            $lead->teams()->updateExistingPivot($team->id, ['is_team_lead' => true]);
+        } else {
+            $lead->teams()->attach($team->id, ['is_team_lead' => true]);
+        }
     }
 }

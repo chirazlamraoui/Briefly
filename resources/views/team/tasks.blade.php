@@ -31,16 +31,14 @@
     </div>
 </div>
 
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
-    <div class="d-flex gap-2 flex-wrap">
-        <a href="{{ route('team.tasks') }}" class="btn btn-sm {{ $status === null ? 'btn-primary' : 'btn-outline-secondary' }}">{{ __('All') }}</a>
-        @foreach([\App\Enums\TaskStatus::Blocked, \App\Enums\TaskStatus::InProgress, \App\Enums\TaskStatus::Todo, \App\Enums\TaskStatus::Done] as $filterStatus)
-            <a href="{{ route('team.tasks', ['status' => $filterStatus->value]) }}"
-               class="btn btn-sm {{ $status === $filterStatus ? 'btn-primary' : 'btn-outline-secondary' }}">
-                {{ $filterStatus->label() }}
-            </a>
-        @endforeach
-    </div>
+<div class="d-flex gap-2 flex-wrap mb-4">
+    <a href="{{ route('team.tasks') }}" class="btn btn-sm {{ $status === null ? 'btn-primary' : 'btn-outline-secondary' }}">{{ __('All') }}</a>
+    @foreach([\App\Enums\TaskStatus::Blocked, \App\Enums\TaskStatus::InProgress, \App\Enums\TaskStatus::Todo, \App\Enums\TaskStatus::Done] as $filterStatus)
+        <a href="{{ route('team.tasks', ['status' => $filterStatus->value]) }}"
+           class="btn btn-sm {{ $status === $filterStatus ? 'btn-primary' : 'btn-outline-secondary' }}">
+            {{ $filterStatus->label() }}
+        </a>
+    @endforeach
 </div>
 
 <div class="card">
@@ -49,6 +47,9 @@
             <table class="table table-hover mb-0 align-middle">
                 <thead>
                     <tr>
+                        @if($managedTeams->count() > 1)
+                            <th>{{ __('Team') }}</th>
+                        @endif
                         <th>{{ __('Member') }}</th>
                         <th>{{ __('Task') }}</th>
                         <th>{{ __('Project') }}</th>
@@ -59,8 +60,14 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($tasks as $task)
+                    @forelse($taskRows as $row)
+                        @php
+                            $task = $row['task'];
+                        @endphp
                         <tr>
+                            @if($managedTeams->count() > 1)
+                                <td class="small">{{ $row['team']->name }}</td>
+                            @endif
                             <td class="fw-semibold">
                                 <a href="{{ route('team.members.show', $task->assignee) }}" class="table-link">{{ $task->assignee->name }}</a>
                             </td>
@@ -75,7 +82,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-4">{{ __('No tasks found.') }}</td>
+                            <td colspan="{{ $managedTeams->count() > 1 ? 8 : 7 }}" class="text-center text-muted py-4">{{ __('No tasks found.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

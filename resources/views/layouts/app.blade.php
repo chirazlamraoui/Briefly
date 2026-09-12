@@ -1109,23 +1109,18 @@
                 <i class="bi bi-grid-1x2"></i>
                 {{ __('Dashboard') }}
             </a>
-            @if(auth()->user()->isTeamLead())
-            <a href="{{ route('projects.index') }}" class="sidebar-link {{ request()->routeIs('projects.*', 'tasks.create', 'tasks.store', 'tasks.edit', 'tasks.update') ? 'active' : '' }}">
-                <i class="bi bi-folder2"></i>
-                {{ __('Projects') }}
+            <a href="{{ route('tasks.index') }}" class="sidebar-link {{ request()->routeIs('tasks.index', 'tasks.history', 'tasks.show', 'tasks.update-progress') ? 'active' : '' }}">
+                <i class="bi bi-check2-square"></i>
+                {{ __('Tasks') }}
             </a>
-            <a href="{{ route('team.tasks') }}" class="sidebar-link {{ request()->routeIs('team.tasks', 'team.members.*', 'tasks.show') ? 'active' : '' }}">
+            @if(auth()->user()->isTeamLead())
+            <a href="{{ route('team.tasks') }}" class="sidebar-link {{ request()->routeIs('team.tasks', 'team.members.*') ? 'active' : '' }}">
                 <i class="bi bi-people"></i>
                 {{ __('Team Tasks') }}
             </a>
-            @else
-            <a href="{{ route('tasks.my') }}" class="sidebar-link {{ request()->routeIs('tasks.my', 'tasks.update-progress') ? 'active' : '' }}">
-                <i class="bi bi-check2-square"></i>
-                {{ __('My Tasks') }}
-            </a>
-            <a href="{{ route('tasks.history') }}" class="sidebar-link {{ request()->routeIs('tasks.history') ? 'active' : '' }}">
-                <i class="bi bi-clock-history"></i>
-                {{ __('Task history') }}
+            <a href="{{ route('projects.index') }}" class="sidebar-link {{ request()->routeIs('projects.*', 'tasks.create', 'tasks.store', 'tasks.edit', 'tasks.update') ? 'active' : '' }}">
+                <i class="bi bi-folder2"></i>
+                {{ __('Projects') }}
             </a>
             @endif
             @endif
@@ -1140,7 +1135,13 @@
                 <div class="user-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</div>
                 <div class="overflow-hidden">
                     <div class="fw-semibold text-truncate">{{ auth()->user()->name }}</div>
-                    <div class="small text-muted">{{ auth()->user()->role->label() }}</div>
+                    <div class="small text-muted text-truncate">
+                        @if(auth()->user()->isAdmin())
+                            {{ auth()->user()->role->label() }}
+                        @else
+                            {{ auth()->user()->teamsSummary() }}
+                        @endif
+                    </div>
                 </div>
             </div>
             <form action="{{ route('logout') }}" method="POST">

@@ -17,7 +17,6 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamMemberController;
 use App\Http\Controllers\TeamTaskController;
 use App\Http\Middleware\EnsureAdmin;
-use App\Http\Middleware\EnsureMember;
 use App\Http\Middleware\EnsureNotAdmin;
 use App\Http\Middleware\EnsureTeamLead;
 use Illuminate\Support\Facades\Route;
@@ -66,13 +65,12 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
 
     Route::middleware(EnsureNotAdmin::class)->group(function () {
+        Route::get('/tasks', [MemberTaskController::class, 'index'])->name('tasks.index');
+        Route::redirect('/my-tasks', '/tasks');
+        Route::get('/tasks/history', [MemberTaskController::class, 'history'])->name('tasks.history');
+        Route::redirect('/my-tasks/history', '/tasks/history');
         Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
-
-        Route::middleware(EnsureMember::class)->group(function () {
-            Route::get('/my-tasks', [MemberTaskController::class, 'index'])->name('tasks.my');
-            Route::get('/my-tasks/history', [MemberTaskController::class, 'history'])->name('tasks.history');
-            Route::patch('/tasks/{task}/progress', [TaskController::class, 'updateProgress'])->name('tasks.update-progress');
-        });
+        Route::patch('/tasks/{task}/progress', [TaskController::class, 'updateProgress'])->name('tasks.update-progress');
     });
 
     Route::middleware(EnsureTeamLead::class)->group(function () {

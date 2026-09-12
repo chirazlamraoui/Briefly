@@ -117,7 +117,7 @@ class User extends Authenticatable
 
     public function managesTeam(?int $teamId): bool
     {
-        if ($teamId === null || ! $this->isTeamLead()) {
+        if ($teamId === null) {
             return false;
         }
 
@@ -136,7 +136,7 @@ class User extends Authenticatable
 
     public function isTeamLead(): bool
     {
-        return $this->role === UserRole::TeamLead;
+        return $this->teams()->wherePivot('is_team_lead', true)->exists();
     }
 
     public function isMember(): bool

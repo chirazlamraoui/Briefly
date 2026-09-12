@@ -6,6 +6,7 @@ use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskProgressRequest;
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\Team;
 use App\Models\User;
 use App\Services\TaskService;
 use Illuminate\Http\RedirectResponse;
@@ -25,6 +26,7 @@ class TaskController extends Controller
             'task' => $task,
             'canUpdateProgress' => auth()->user()->can('updateStatus', $task),
             'canEdit' => auth()->user()->can('update', $task),
+            'teamLabel' => $this->taskService->teamLabelForTask($task, auth()->user()),
         ]);
     }
 
@@ -41,13 +43,13 @@ class TaskController extends Controller
         $this->authorize('view', $project);
         $this->authorize('create', Task::class);
 
-        $team = auth()->user()->primaryTeam();
+        $contextTeam = $this->contextTeamForProject($project);
 
-        abort_if($team === null, 403);
+        abort_if($contextTeam === null, 403);
 
-        $members = $this->taskService->assignableMembers($team);
+        $members = $this->taskService->assignableMembers($contextTeam);
 
-        return view('tasks.create', compact('project', 'members'));
+        return view('tasks.create', compact('project', 'members', 'contextTeam'));
     }
 
     public function store(StoreTaskRequest $request, Project $project): RedirectResponse
@@ -55,14 +57,14 @@ class TaskController extends Controller
         $this->authorize('view', $project);
         $this->authorize('create', Task::class);
 
-        $team = auth()->user()->primaryTeam();
+        $contextTeam = $this->contextTeamForProject($project);
 
-        abort_if($team === null, 403);
+        abort_if($contextTeam === null, 403);
 
-        $this->taskService->ensureProjectAccessibleToTeam($project, $team);
+        $this->taskService->ensureProjectAccessibleToTeam($project, $contextTeam);
 
         $assignee = User::query()->findOrFail($request->validated('assigned_to'));
-        $this->taskService->ensureAssigneeOnTeam($assignee, $team);
+        $this->taskService->ensureAssigneeOnTeam($assignee, $contextTeam);
 
         $project->tasks()->create($request->validated());
 
@@ -75,29 +77,47 @@ class TaskController extends Controller
         $this->authorize('update', $task);
 
         $task->load(['project', 'assignee']);
-        $team = auth()->user()->primaryTeam();
+        $contextTeam = $this->contextTeamForTask($task);
 
-        abort_if($team === null, 403);
+        abort_if($contextTeam === null, 403);
 
-        $members = $this->taskService->assignableMembers($team);
+        $members = $this->taskService->assignableMembers($contextTeam);
 
-        return view('tasks.edit', compact('task', 'members'));
+        return view('tasks.edit', compact('task', 'members', 'contextTeam'));
     }
 
     public function update(StoreTaskRequest $request, Task $task): RedirectResponse
     {
         $this->authorize('update', $task);
 
-        $team = auth()->user()->primaryTeam();
+        $contextTeam = $this->contextTeamForTask($task);
 
-        abort_if($team === null, 403);
+        abort_if($contextTeam === null, 403);
 
         $assignee = User::query()->findOrFail($request->validated('assigned_to'));
-        $this->taskService->ensureAssigneeOnTeam($assignee, $team);
+        $this->taskService->ensureAssigneeOnTeam($assignee, $contextTeam);
 
         $task->update($request->validated());
 
         return redirect()->route('projects.show', $task->project_id)
             ->with('success', __('Task updated successfully.'));
+    }
+
+    private function contextTeamForProject(Project $project): ?Team
+    {
+        return Team::query()
+            ->whereIn('id', auth()->user()->managedTeamIds())
+            ->whereHas('projects', fn ($query) => $query->where('projects.id', $project->id))
+            ->orderBy('name')
+            ->first();
+    }
+
+    private function contextTeamForTask(Task $task): ?Team
+    {
+        return Team::query()
+            ->whereIn('id', auth()->user()->managedTeamIds())
+            ->whereHas('projects', fn ($query) => $query->where('projects.id', $task->project_id))
+            ->orderBy('name')
+            ->first();
     }
 }

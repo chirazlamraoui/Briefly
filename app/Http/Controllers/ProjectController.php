@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Models\Team;
 use App\Services\TaskService;
 use Illuminate\View\View;
 
@@ -14,26 +15,35 @@ class ProjectController extends Controller
     {
         $this->authorize('viewAny', Project::class);
 
-        $team = auth()->user()->primaryTeam();
+        $managedTeamIds = auth()->user()->managedTeamIds();
 
-        abort_if($team === null, 403);
+        $projects = Project::query()
+            ->whereHas('teams', fn ($query) => $query->whereIn('teams.id', $managedTeamIds))
+            ->with(['teams' => fn ($query) => $query->whereIn('teams.id', $managedTeamIds)])
+            ->withCount('tasks')
+            ->orderBy('name')
+            ->get();
 
-        $projects = $this->taskService->projectsForTeam($team)->loadCount('tasks');
-
-        return view('projects.index', compact('projects', 'team'));
+        return view('projects.index', compact('projects'));
     }
 
     public function show(Project $project): View
     {
         $this->authorize('view', $project);
 
-        $team = auth()->user()->primaryTeam();
+        $managedTeamIds = auth()->user()->managedTeamIds();
+        $contextTeams = Team::query()
+            ->whereIn('id', $managedTeamIds)
+            ->whereHas('projects', fn ($query) => $query->where('projects.id', $project->id))
+            ->orderBy('name')
+            ->get();
 
-        abort_if($team === null, 403);
+        abort_if($contextTeams->isEmpty(), 403);
 
-        $tasks = $this->taskService->teamTasksForProject($team, $project);
-        $members = $this->taskService->assignableMembers($team);
+        $contextTeam = $contextTeams->first();
+        $tasks = $this->taskService->teamTasksForProject($contextTeam, $project);
+        $members = $this->taskService->assignableMembers($contextTeam);
 
-        return view('projects.show', compact('project', 'tasks', 'members', 'team'));
+        return view('projects.show', compact('project', 'tasks', 'members', 'contextTeam', 'contextTeams'));
     }
 }

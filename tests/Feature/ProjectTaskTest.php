@@ -81,7 +81,7 @@ class ProjectTaskTest extends TestCase
         $task = $this->createTaskForMember($member);
 
         $this->actingAs($member)
-            ->get(route('tasks.my'))
+            ->get(route('tasks.index'))
             ->assertOk()
             ->assertSee($task->title)
             ->assertSee($task->project->name);
@@ -174,26 +174,30 @@ class ProjectTaskTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_team_lead_is_redirected_from_member_task_routes(): void
+    public function test_team_lead_can_access_personal_tasks_and_update_assigned_progress(): void
     {
         $team = Team::factory()->create();
         $lead = User::factory()->teamLead()->create(['team_id' => $team->id]);
         $member = User::factory()->create(['team_id' => $team->id]);
-        $task = $this->createTaskForMember($member);
+        $memberTask = $this->createTaskForMember($member);
+        $leadTask = $this->createTaskForMember($lead);
 
         $this->actingAs($lead)
-            ->get(route('tasks.my'))
-            ->assertRedirect(route('team.tasks'));
+            ->get(route('tasks.index'))
+            ->assertOk()
+            ->assertSee($leadTask->title)
+            ->assertDontSee($memberTask->title);
 
         $this->actingAs($lead)
             ->get(route('tasks.history'))
-            ->assertRedirect(route('team.tasks'));
+            ->assertOk();
 
         $this->actingAs($lead)
-            ->patch(route('tasks.update-progress', $task), [
+            ->patch(route('tasks.update-progress', $leadTask), [
                 'status' => TaskStatus::InProgress->value,
+                'progress_done' => 'Lead progress update',
             ])
-            ->assertRedirect(route('team.tasks'));
+            ->assertRedirect(route('tasks.show', $leadTask));
     }
 
     public function test_team_lead_can_view_task_details_without_progress_form(): void
@@ -222,6 +226,46 @@ class ProjectTaskTest extends TestCase
             ->assertOk()
             ->assertSee($task->title)
             ->assertSee($member->name);
+    }
+
+    public function test_team_lead_of_multiple_teams_sees_team_column_on_team_tasks(): void
+    {
+        $teamA = Team::factory()->create(['name' => 'Nova Engineering']);
+        $teamB = Team::factory()->create(['name' => 'Orion Design']);
+        $lead = User::factory()->teamLead()->create(['team_id' => $teamA->id]);
+        $lead->teams()->syncWithoutDetaching([
+            $teamA->id => ['is_team_lead' => true],
+            $teamB->id => ['is_team_lead' => true],
+        ]);
+
+        $memberA = User::factory()->create(['team_id' => $teamA->id, 'name' => 'Alice Lead']);
+        $memberB = User::factory()->create(['team_id' => $teamB->id, 'name' => 'Bob Lead']);
+
+        $projectA = Project::factory()->create(['name' => 'Platform Alpha']);
+        $projectA->teams()->attach($teamA->id);
+        Task::factory()->create([
+            'project_id' => $projectA->id,
+            'assigned_to' => $memberA->id,
+            'title' => 'Alpha task',
+        ]);
+
+        $projectB = Project::factory()->create(['name' => 'Platform Beta']);
+        $projectB->teams()->attach($teamB->id);
+        Task::factory()->create([
+            'project_id' => $projectB->id,
+            'assigned_to' => $memberB->id,
+            'title' => 'Beta task',
+        ]);
+
+        $this->actingAs($lead)
+            ->get(route('team.tasks'))
+            ->assertOk()
+            ->assertSee(__('Team'))
+            ->assertSee('Nova Engineering')
+            ->assertSee('Orion Design')
+            ->assertSee('Alpha task')
+            ->assertSee('Beta task')
+            ->assertDontSee(__('All teams'));
     }
 
     public function test_team_lead_dashboard_shows_member_and_project_progress(): void
@@ -275,7 +319,7 @@ class ProjectTaskTest extends TestCase
         $response = $this->actingAs($member)->get(route('dashboard'));
 
         $response->assertOk()
-            ->assertSee(__('Task progress'))
+            ->assertSee(__('My tasks'))
             ->assertSee(__('My completion rate'))
             ->assertSee('Done task')
             ->assertSee('In progress task')
@@ -367,6 +411,54 @@ class ProjectTaskTest extends TestCase
         $member = User::factory()->create(['team_id' => $team->id]);
 
         $this->actingAs($member)
+            ->get(route('projects.index'))
+            ->assertForbidden();
+    }
+
+    public function test_team_lead_can_access_projects_index(): void
+    {
+        $team = Team::factory()->create(['name' => 'Nova Engineering']);
+        $lead = User::factory()->teamLead()->create(['team_id' => $team->id]);
+        $project = Project::factory()->create(['name' => 'Mobile Experience Refresh']);
+        $project->teams()->attach($team->id);
+
+        $this->actingAs($lead)
+            ->get(route('projects.index'))
+            ->assertOk()
+            ->assertSee('Mobile Experience Refresh')
+            ->assertSee('Nova Engineering')
+            ->assertDontSee(__('Team Lead'));
+    }
+
+    public function test_team_lead_projects_index_lists_all_managed_teams_for_shared_project(): void
+    {
+        $teamA = Team::factory()->create(['name' => 'Nova Engineering']);
+        $teamB = Team::factory()->create(['name' => 'Orion Design']);
+        $lead = User::factory()->teamLead()->create(['team_id' => $teamA->id]);
+        $lead->teams()->syncWithoutDetaching([
+            $teamA->id => ['is_team_lead' => true],
+            $teamB->id => ['is_team_lead' => true],
+        ]);
+
+        $project = Project::factory()->create(['name' => 'Shared Platform']);
+        $project->teams()->attach([$teamA->id, $teamB->id]);
+
+        $this->actingAs($lead)
+            ->get(route('projects.index'))
+            ->assertOk()
+            ->assertSee('Shared Platform')
+            ->assertSee('Nova Engineering')
+            ->assertSee('Orion Design');
+    }
+
+    public function test_team_lead_role_without_pivot_cannot_access_projects(): void
+    {
+        $team = Team::factory()->create();
+        $lead = User::factory()->teamLead()->create(['team_id' => $team->id]);
+
+        $lead->teams()->updateExistingPivot($team->id, ['is_team_lead' => false]);
+
+        $this->actingAs($lead->fresh())
             ->get(route('projects.index'))
             ->assertForbidden();
     }

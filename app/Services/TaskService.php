@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\TaskStatus;
+use App\Enums\UserRole;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\TaskUpdate;
@@ -21,17 +22,41 @@ class TaskService
 
     public function assignableMembers(Team $team): Collection
     {
-        return $team->members()->orderBy('users.name')->get();
+        return $team->assignedUsers()
+            ->where('users.role', '!=', UserRole::Admin)
+            ->orderBy('users.name')
+            ->get();
     }
 
     public function assignedTasksFor(User $user): Collection
     {
         return Task::query()
-            ->with('project')
+            ->with(['project.teams', 'assignee'])
             ->where('assigned_to', $user->id)
             ->orderByRaw("CASE status WHEN 'BLOCKED' THEN 0 WHEN 'IN_PROGRESS' THEN 1 WHEN 'TODO' THEN 2 ELSE 3 END")
             ->orderBy('title')
             ->get();
+    }
+
+    public function teamLabelForTask(Task $task, User $user): string
+    {
+        $task->loadMissing('project.teams');
+        $user->loadMissing('teams');
+
+        $sharedTeams = $user->teams
+            ->whereIn('id', $task->project->teams->pluck('id'))
+            ->sortBy('name')
+            ->values();
+
+        if ($sharedTeams->isEmpty()) {
+            return $task->project->teams->sortBy('name')->first()?->name ?? '—';
+        }
+
+        if ($sharedTeams->count() === 1) {
+            return $sharedTeams->first()->name;
+        }
+
+        return $sharedTeams->pluck('name')->join(', ');
     }
 
     /**
@@ -75,7 +100,7 @@ class TaskService
 
     public function ensureAssigneeOnTeam(User $assignee, Team $team): void
     {
-        if (! $assignee->belongsToTeam($team->id) || ! $assignee->isMember()) {
+        if (! $assignee->belongsToTeam($team->id)) {
             throw ValidationException::withMessages([
                 'assigned_to' => __('The selected member is invalid.'),
             ]);
@@ -96,8 +121,31 @@ class TaskService
      */
     public function teamTaskStats(Team $team): array
     {
-        $tasks = $this->teamTasksQuery($team)->get();
+        return $this->completionStatsForTasks($this->teamTasksQuery($team)->get());
+    }
 
+    /**
+     * @return array{total: int, in_progress: int, blocked: int, done: int, done_this_week: int}
+     */
+    public function teamTaskStatsForManagedTeams(User $user, ?int $teamId = null): array
+    {
+        if ($teamId !== null) {
+            abort_unless(in_array($teamId, $user->managedTeamIds(), true), 403);
+
+            return $this->teamTaskStats(Team::query()->findOrFail($teamId));
+        }
+
+        $tasks = $this->tasksForManagedTeams($user)->pluck('task');
+
+        return $this->completionStatsForTasks($tasks);
+    }
+
+    /**
+     * @param  Collection<int, Task>  $tasks
+     * @return array{total: int, in_progress: int, blocked: int, done: int, done_this_week: int}
+     */
+    private function completionStatsForTasks(Collection $tasks): array
+    {
         return [
             'total' => $tasks->count(),
             'in_progress' => $tasks->where('status', TaskStatus::InProgress)->count(),
@@ -115,14 +163,49 @@ class TaskService
      */
     public function teamTasksQuery(Team $team)
     {
-        $memberIds = $team->members()->pluck('users.id');
+        $assigneeIds = $team->assignedUsers()->pluck('users.id');
 
         return Task::query()
             ->with(['project', 'assignee'])
-            ->whereIn('assigned_to', $memberIds)
+            ->whereIn('assigned_to', $assigneeIds)
             ->whereHas('project.teams', fn ($query) => $query->where('teams.id', $team->id))
             ->orderByRaw("CASE status WHEN 'BLOCKED' THEN 0 WHEN 'IN_PROGRESS' THEN 1 WHEN 'TODO' THEN 2 ELSE 3 END")
             ->orderBy('title');
+    }
+
+    /**
+     * @return Collection<int, array{task: Task, team: Team}>
+     */
+    public function tasksForManagedTeams(User $user, ?TaskStatus $status = null, ?int $teamId = null): Collection
+    {
+        $teamIds = $teamId !== null
+            ? [$teamId]
+            : $user->managedTeamIds();
+
+        if ($teamId !== null && ! in_array($teamId, $user->managedTeamIds(), true)) {
+            return collect();
+        }
+
+        $rows = collect();
+
+        foreach ($teamIds as $managedTeamId) {
+            $team = Team::query()->find($managedTeamId);
+
+            if ($team === null) {
+                continue;
+            }
+
+            $tasks = $this->teamTasksForLead($team, $status);
+
+            foreach ($tasks as $task) {
+                $rows->push([
+                    'task' => $task,
+                    'team' => $team,
+                ]);
+            }
+        }
+
+        return $rows->unique(fn (array $row) => $row['task']->id.'-'.$row['team']->id)->values();
     }
 
     /**

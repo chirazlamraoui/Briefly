@@ -54,7 +54,9 @@ class AdminTeamController extends Controller
         $selectedUserIds = $team->assignedUsers->pluck('id')->all();
 
         $selectedProjectIds = $team->projects->pluck('id')->all();
-        $selectedTeamLeadId = $team->teamLead?->id;
+        $selectedTeamLeadId = $team->assignedUsers
+            ->first(fn ($user) => (bool) $user->pivot->is_team_lead)
+            ?->id;
 
         return view('admin.teams.edit', compact(
             'team',
