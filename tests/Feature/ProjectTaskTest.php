@@ -174,6 +174,42 @@ class ProjectTaskTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_team_lead_is_redirected_from_member_task_routes(): void
+    {
+        $team = Team::factory()->create();
+        $lead = User::factory()->teamLead()->create(['team_id' => $team->id]);
+        $member = User::factory()->create(['team_id' => $team->id]);
+        $task = $this->createTaskForMember($member);
+
+        $this->actingAs($lead)
+            ->get(route('tasks.my'))
+            ->assertRedirect(route('team.tasks'));
+
+        $this->actingAs($lead)
+            ->get(route('tasks.history'))
+            ->assertRedirect(route('team.tasks'));
+
+        $this->actingAs($lead)
+            ->patch(route('tasks.update-progress', $task), [
+                'status' => TaskStatus::InProgress->value,
+            ])
+            ->assertRedirect(route('team.tasks'));
+    }
+
+    public function test_team_lead_can_view_task_details_without_progress_form(): void
+    {
+        $team = Team::factory()->create();
+        $lead = User::factory()->teamLead()->create(['team_id' => $team->id]);
+        $member = User::factory()->create(['team_id' => $team->id]);
+        $task = $this->createTaskForMember($member);
+
+        $this->actingAs($lead)
+            ->get(route('tasks.show', $task))
+            ->assertOk()
+            ->assertSee($task->title)
+            ->assertDontSee(__('Update progress'));
+    }
+
     public function test_team_lead_can_view_team_tasks_page(): void
     {
         $team = Team::factory()->create();

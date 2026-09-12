@@ -27,4 +27,19 @@ class Project extends Model
     {
         return $this->hasMany(Task::class);
     }
+
+    public function teamsSummary(): string
+    {
+        $teamsCount = (int) ($this->teams_count ?? $this->teams()->count());
+
+        if ($teamsCount === 0) {
+            return '—';
+        }
+
+        if ($teamsCount === 1) {
+            return $this->teams->first()?->name ?? '—';
+        }
+
+        return __(':count teams', ['count' => $teamsCount]);
+    }
 }

@@ -9,16 +9,18 @@ class ProjectPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->isTeamLead() && $user->primaryTeamId() !== null;
+        return $user->isTeamLead() && $user->managedTeamIds() !== [];
     }
 
     public function view(User $user, Project $project): bool
     {
-        $teamId = $user->primaryTeamId();
+        if (! $user->isTeamLead()) {
+            return false;
+        }
 
-        return $user->isTeamLead()
-            && $teamId !== null
-            && $project->teams()->where('teams.id', $teamId)->exists();
+        return $project->teams()
+            ->whereIn('teams.id', $user->managedTeamIds())
+            ->exists();
     }
 
     public function create(User $user): bool

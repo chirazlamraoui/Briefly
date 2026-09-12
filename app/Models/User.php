@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Collection;
 
 #[Fillable(['name', 'job_title', 'email', 'password', 'role', 'team_id'])]
 #[Hidden(['password', 'remember_token'])]
@@ -60,6 +59,27 @@ class User extends Authenticatable
         return $this->primaryTeam()?->name ?? __('No team');
     }
 
+    public function teamsSummary(): string
+    {
+        $teams = $this->relationLoaded('teams')
+            ? $this->teams->sortBy('name')->values()
+            : $this->teams()->orderBy('name')->get();
+
+        if ($teams->isEmpty() && $this->team) {
+            return $this->team->name;
+        }
+
+        if ($teams->isEmpty()) {
+            return '—';
+        }
+
+        if ($teams->count() === 1) {
+            return $teams->first()->name;
+        }
+
+        return __(':count teams', ['count' => $teams->count()]);
+    }
+
     public function primaryTeamId(): ?int
     {
         return $this->primaryTeam()?->id;
@@ -67,25 +87,41 @@ class User extends Authenticatable
 
     public function teams(): BelongsToMany
     {
-        return $this->belongsToMany(Team::class)->withTimestamps();
+        return $this->belongsToMany(Team::class)
+            ->using(TeamUser::class)
+            ->withPivot('is_team_lead')
+            ->withTimestamps();
     }
 
-    public function accessibleProjects(): Collection
+    public function isTeamLeadOf(Team|int $team): bool
     {
-        $teamIds = $this->teams()->pluck('teams.id');
+        $teamId = $team instanceof Team ? $team->id : $team;
 
-        if ($this->team_id && ! $teamIds->contains($this->team_id)) {
-            $teamIds->push($this->team_id);
+        return $this->teams()
+            ->where('teams.id', $teamId)
+            ->wherePivot('is_team_lead', true)
+            ->exists();
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function managedTeamIds(): array
+    {
+        return $this->teams()
+            ->wherePivot('is_team_lead', true)
+            ->pluck('teams.id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+    }
+
+    public function managesTeam(?int $teamId): bool
+    {
+        if ($teamId === null || ! $this->isTeamLead()) {
+            return false;
         }
 
-        if ($teamIds->isEmpty()) {
-            return collect();
-        }
-
-        return Project::query()
-            ->whereHas('teams', fn ($query) => $query->whereIn('teams.id', $teamIds))
-            ->orderBy('name')
-            ->get();
+        return $this->isTeamLeadOf($teamId);
     }
 
     public function assignedTasks(): HasMany
@@ -139,7 +175,11 @@ class User extends Authenticatable
         $toDetach = array_values(array_diff($currentIds, $teamIds));
 
         if ($toAttach !== []) {
-            $this->teams()->attach($toAttach);
+            $attachData = collect($toAttach)
+                ->mapWithKeys(fn (int $teamId) => [$teamId => ['is_team_lead' => false]])
+                ->all();
+
+            $this->teams()->attach($attachData);
         }
 
         if ($toDetach !== []) {

@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
-class StoreUserRequest extends FormRequest
+class AdminUpdateUserRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -20,8 +20,6 @@ class StoreUserRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'job_title' => ['nullable', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
             'team_ids' => ['required', 'array', 'min:1'],
             'team_ids.*' => ['integer', 'exists:teams,id'],
             'team_lead_ids' => ['nullable', 'array'],

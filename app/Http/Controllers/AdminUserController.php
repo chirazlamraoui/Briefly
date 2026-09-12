@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\UserRole;
+use App\Http\Requests\AdminUpdateUserRequest;
 use App\Http\Requests\StoreUserRequest;
-use App\Http\Requests\UpdateUserAssignmentRequest;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\AdminUserService;
@@ -19,10 +18,7 @@ class AdminUserController extends Controller
     {
         $users = $this->adminUserService->assignableUsers();
 
-        return view('admin.users.index', [
-            'users' => $users,
-            'adminUserService' => $this->adminUserService,
-        ]);
+        return view('admin.users.index', compact('users'));
     }
 
     public function create(): View
@@ -47,24 +43,31 @@ class AdminUserController extends Controller
         $user->load(['team', 'teams']);
         $teams = Team::query()->orderBy('name')->get();
         $selectedTeamIds = $user->teams->pluck('id')->all();
+
         if ($selectedTeamIds === [] && $user->team_id) {
             $selectedTeamIds = [$user->team_id];
         }
 
-        return view('admin.users.show', compact('user', 'teams', 'selectedTeamIds'));
+        $selectedTeamLeadIds = $user->teams()
+            ->wherePivot('is_team_lead', true)
+            ->pluck('teams.id')
+            ->all();
+
+        return view('admin.users.show', compact(
+            'user',
+            'teams',
+            'selectedTeamIds',
+            'selectedTeamLeadIds',
+        ));
     }
 
-    public function update(UpdateUserAssignmentRequest $request, User $user): RedirectResponse
+    public function update(AdminUpdateUserRequest $request, User $user): RedirectResponse
     {
         abort_if($user->isAdmin(), 404);
 
-        $this->adminUserService->syncTeamsAndRole(
-            $user,
-            $request->validated('team_ids'),
-            UserRole::from($request->validated('role')),
-        );
+        $this->adminUserService->updateUser($user, $request->validated());
 
         return redirect()->route('admin.users.show', $user)
-            ->with('success', __('User assignment updated successfully.'));
+            ->with('success', __('User updated successfully.'));
     }
 }

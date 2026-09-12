@@ -19,9 +19,9 @@
         @if($canEdit)
             <a href="{{ route('tasks.edit', $task) }}" class="btn btn-outline-primary btn-sm">{{ __('Edit task') }}</a>
         @endif
-        <a href="{{ auth()->user()->isTeamLead() ? route('projects.show', $task->project) : route('tasks.my') }}"
+        <a href="{{ auth()->user()->isTeamLead() ? route('team.tasks') : route('tasks.my') }}"
            class="btn btn-outline-secondary btn-sm">
-            {{ auth()->user()->isTeamLead() ? __('Back to projects') : __('Back to tasks') }}
+            {{ auth()->user()->isTeamLead() ? __('Back to team tasks') : __('Back to tasks') }}
         </a>
     </div>
 </div>

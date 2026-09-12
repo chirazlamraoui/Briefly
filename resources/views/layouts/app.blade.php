@@ -340,6 +340,45 @@
             color: #be123c;
         }
 
+        .briefly-toast-container {
+            position: fixed;
+            bottom: 1rem;
+            left: 1rem;
+            z-index: 1090;
+            max-width: min(24rem, calc(100vw - 2rem));
+            pointer-events: none;
+        }
+
+        .briefly-toast-container .toast {
+            pointer-events: auto;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .briefly-toast-container .toast.alert-success {
+            background: #ecfdf5;
+            color: #047857;
+        }
+
+        .briefly-toast-container .toast.alert-danger {
+            background: #fff1f2;
+            color: #be123c;
+        }
+
+        [data-theme="dark"] .briefly-toast-container .toast.alert-success {
+            background: #052e1c;
+            color: #6ee7b7;
+        }
+
+        [data-theme="dark"] .briefly-toast-container .toast.alert-danger {
+            background: #4c0519;
+            color: #fda4af;
+        }
+
+        [data-theme="dark"] .briefly-toast-container .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+
         .table {
             --bs-table-hover-bg: #fafafa;
         }
@@ -502,13 +541,6 @@
             letter-spacing: -0.02em;
         }
 
-        .team-badge {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
         .sidebar-overlay {
             display: none;
         }
@@ -631,6 +663,182 @@
             color: var(--text);
         }
 
+        .search-multi-select {
+            position: relative;
+        }
+
+        .search-multi-select__anchor {
+            position: relative;
+            margin-bottom: 0.75rem;
+        }
+
+        .search-multi-select__control {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem;
+            min-height: calc(2.5rem + 2px);
+            padding: 0.35rem 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            background: var(--surface);
+            cursor: text;
+        }
+
+        .search-multi-select__control:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 0.2rem rgba(232, 180, 188, 0.25);
+        }
+
+        .search-multi-select.is-invalid .search-multi-select__control {
+            border-color: var(--bs-form-invalid-border-color);
+        }
+
+        .search-multi-select__control--solo {
+            margin-bottom: 0;
+        }
+
+        .search-multi-select__input {
+            flex: 1 1 140px;
+            min-width: 120px;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: var(--text);
+            font-size: 0.9375rem;
+            padding: 0.15rem 0.25rem;
+        }
+
+        .search-multi-select__input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-multi-select__dropdown {
+            position: absolute;
+            top: calc(100% + 0.35rem);
+            left: 0;
+            right: 0;
+            z-index: 1050;
+            max-height: 240px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            background: var(--surface);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            padding: 0.35rem;
+        }
+
+        .search-multi-select__option {
+            display: block;
+            width: 100%;
+            border: 0;
+            background: transparent;
+            text-align: left;
+            padding: 0.55rem 0.75rem;
+            border-radius: 0.5rem;
+            color: var(--text);
+            font-size: 0.9375rem;
+        }
+
+        .search-multi-select__option:hover,
+        .search-multi-select__option:focus {
+            background: var(--accent-soft);
+            color: var(--text);
+        }
+
+        .search-multi-select__empty {
+            padding: 0.75rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            text-align: center;
+        }
+
+        .search-multi-select__table-wrap {
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            background: var(--surface);
+        }
+
+        .search-multi-select .table {
+            margin-bottom: 0;
+        }
+
+        .search-multi-select .table thead th {
+            background: var(--surface-muted, rgba(0, 0, 0, 0.03));
+            border-bottom-color: var(--border);
+            font-size: 0.8125rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--text-muted);
+        }
+
+        .search-multi-select__table-empty {
+            padding: 1.25rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            text-align: center;
+        }
+
+        .search-multi-select__lead-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.65rem;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.8125rem;
+            font-weight: 500;
+            line-height: 1.2;
+            cursor: pointer;
+            transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+        }
+
+        .search-multi-select__lead-pill:hover {
+            border-color: var(--primary);
+            color: var(--text);
+        }
+
+        .search-multi-select__lead-pill.is-active {
+            border-color: transparent;
+            background: var(--accent-soft);
+            color: var(--text);
+        }
+
+        .search-multi-select__lead-pill.is-active:hover {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .briefly-tabs {
+            border-bottom-color: var(--border);
+        }
+
+        .briefly-tabs .nav-link {
+            color: var(--text-muted);
+            border: none;
+            border-bottom: 2px solid transparent;
+            border-radius: 0;
+            padding: 0.75rem 1rem;
+        }
+
+        .briefly-tabs .nav-link:hover {
+            color: var(--text);
+            border-bottom-color: var(--border);
+        }
+
+        .briefly-tabs .nav-link.active {
+            color: var(--primary);
+            background: transparent;
+            border-bottom-color: var(--primary);
+            font-weight: 600;
+        }
+
+        .search-multi-select__option.is-active {
+            background: var(--accent-soft);
+        }
+
         .alert-warning {
             background: #fffbeb;
             color: #b45309;
@@ -723,9 +931,18 @@
 
         [data-theme="dark"] .table {
             --bs-table-hover-bg: var(--surface-elevated);
+            --bs-table-hover-color: var(--text);
             --bs-table-bg: transparent;
             --bs-table-color: var(--text);
             --bs-table-border-color: var(--border);
+        }
+
+        [data-theme="dark"] .table-hover > tbody > tr:hover > * {
+            color: var(--text);
+        }
+
+        [data-theme="dark"] .table-hover > tbody > tr:hover .text-muted {
+            color: var(--text-muted) !important;
         }
 
         [data-theme="dark"] .alert-success {
@@ -892,22 +1109,23 @@
                 <i class="bi bi-grid-1x2"></i>
                 {{ __('Dashboard') }}
             </a>
-            <a href="{{ route('tasks.my') }}" class="sidebar-link {{ request()->routeIs('tasks.my', 'tasks.show', 'tasks.update-progress') ? 'active' : '' }}">
+            @if(auth()->user()->isTeamLead())
+            <a href="{{ route('projects.index') }}" class="sidebar-link {{ request()->routeIs('projects.*', 'tasks.create', 'tasks.store', 'tasks.edit', 'tasks.update') ? 'active' : '' }}">
+                <i class="bi bi-folder2"></i>
+                {{ __('Projects') }}
+            </a>
+            <a href="{{ route('team.tasks') }}" class="sidebar-link {{ request()->routeIs('team.tasks', 'team.members.*', 'tasks.show') ? 'active' : '' }}">
+                <i class="bi bi-people"></i>
+                {{ __('Team Tasks') }}
+            </a>
+            @else
+            <a href="{{ route('tasks.my') }}" class="sidebar-link {{ request()->routeIs('tasks.my', 'tasks.update-progress') ? 'active' : '' }}">
                 <i class="bi bi-check2-square"></i>
                 {{ __('My Tasks') }}
             </a>
             <a href="{{ route('tasks.history') }}" class="sidebar-link {{ request()->routeIs('tasks.history') ? 'active' : '' }}">
                 <i class="bi bi-clock-history"></i>
                 {{ __('Task history') }}
-            </a>
-            @if(auth()->user()->isTeamLead())
-            <a href="{{ route('projects.index') }}" class="sidebar-link {{ request()->routeIs('projects.*', 'tasks.create', 'tasks.store', 'tasks.edit', 'tasks.update') ? 'active' : '' }}">
-                <i class="bi bi-folder2"></i>
-                {{ __('Projects') }}
-            </a>
-            <a href="{{ route('team.tasks') }}" class="sidebar-link {{ request()->routeIs('team.tasks', 'team.members.*') ? 'active' : '' }}">
-                <i class="bi bi-people"></i>
-                {{ __('Team Tasks') }}
             </a>
             @endif
             @endif
@@ -945,26 +1163,9 @@
                     <h1 class="h5 page-title mb-0">@yield('title', __('Dashboard'))</h1>
                 </div>
             </div>
-            <span class="badge rounded-pill team-badge">
-                <i class="bi bi-building me-1"></i>
-                {{ auth()->user()->teamLabel() }}
-            </span>
         </header>
 
         <main class="page-content">
-            @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-            @if(session('error'))
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="bi bi-exclamation-circle-fill me-2"></i>{{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
             @yield('content')
         </main>
     </div>
@@ -974,7 +1175,43 @@
     </div>
     @endauth
 
+    @if(session('success') || session('error'))
+        <div class="toast-container briefly-toast-container">
+            @if(session('success'))
+                <div class="toast briefly-flash-toast alert alert-success border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex align-items-center">
+                        <div class="toast-body d-flex align-items-center py-2">
+                            <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
+                        </div>
+                        <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
+                    </div>
+                </div>
+            @endif
+            @if(session('error'))
+                <div class="toast briefly-flash-toast alert alert-danger border-0 mb-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex align-items-center">
+                        <div class="toast-body d-flex align-items-center py-2">
+                            <i class="bi bi-exclamation-circle-fill me-2"></i>{{ session('error') }}
+                        </div>
+                        <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ __('Close') }}"></button>
+                    </div>
+                </div>
+            @endif
+        </div>
+    @endif
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function () {
+            document.querySelectorAll('.briefly-flash-toast').forEach(function (element) {
+                const toast = bootstrap.Toast.getOrCreateInstance(element, {
+                    autohide: true,
+                    delay: 3000,
+                });
+                toast.show();
+            });
+        })();
+    </script>
     <script>
         (function () {
             const root = document.documentElement;
@@ -1000,6 +1237,24 @@
                 setTheme(next);
             });
         })();
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('[data-briefly-tabs]').forEach(function (group) {
+                const hash = window.location.hash.replace('#', '');
+                const tabTrigger = hash ? document.getElementById(hash + '-tab') : null;
+
+                if (tabTrigger && group.contains(tabTrigger)) {
+                    bootstrap.Tab.getOrCreateInstance(tabTrigger).show();
+                }
+
+                group.querySelectorAll('button[data-bs-toggle="tab"]').forEach(function (button) {
+                    button.addEventListener('shown.bs.tab', function () {
+                        window.location.hash = button.id.replace('-tab', '');
+                    });
+                });
+            });
+        });
     </script>
     @stack('scripts')
     @auth

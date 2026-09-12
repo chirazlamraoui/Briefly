@@ -18,35 +18,43 @@ class TaskPolicy
             return true;
         }
 
-        $teamId = $user->primaryTeamId();
+        if (! $user->isTeamLead()) {
+            return false;
+        }
 
-        return $user->isTeamLead()
-            && $teamId !== null
-            && $task->assignee->belongsToTeam($teamId)
-            && $task->project->teams()->where('teams.id', $teamId)->exists();
+        foreach ($user->managedTeamIds() as $teamId) {
+            if ($task->assignee->belongsToTeam($teamId)
+                && $task->project->teams()->where('teams.id', $teamId)->exists()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function create(User $user): bool
     {
-        return $user->isTeamLead() && $user->primaryTeamId() !== null;
+        return $user->isTeamLead() && $user->managedTeamIds() !== [];
     }
 
     public function update(User $user, Task $task): bool
     {
-        $teamId = $user->primaryTeamId();
+        if (! $user->isTeamLead()) {
+            return false;
+        }
 
-        return $user->isTeamLead()
-            && $teamId !== null
-            && $task->assignee->belongsToTeam($teamId)
-            && $task->project->teams()->where('teams.id', $teamId)->exists();
+        foreach ($user->managedTeamIds() as $teamId) {
+            if ($task->assignee->belongsToTeam($teamId)
+                && $task->project->teams()->where('teams.id', $teamId)->exists()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function updateStatus(User $user, Task $task): bool
     {
-        if ($task->assigned_to === $user->id) {
-            return true;
-        }
-
-        return $this->update($user, $task);
+        return $task->assigned_to === $user->id;
     }
 }

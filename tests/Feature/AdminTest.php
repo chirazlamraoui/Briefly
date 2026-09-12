@@ -67,7 +67,7 @@ class AdminTest extends TestCase
                 'description' => 'Updated description.',
                 'team_ids' => [$teamA->id],
             ])
-            ->assertRedirect(route('admin.projects.index'));
+            ->assertRedirect(route('admin.projects.edit', $project));
 
         $this->assertEqualsCanonicalizing([$teamA->id], $project->fresh()->teams()->pluck('teams.id')->all());
     }
@@ -109,8 +109,8 @@ class AdminTest extends TestCase
 
         $this->actingAs($admin)
             ->put(route('admin.users.update', $member), [
+                'name' => $member->name,
                 'team_ids' => [$teamA->id, $teamB->id],
-                'role' => UserRole::TeamLead->value,
             ])
             ->assertRedirect(route('admin.users.show', $member));
 
@@ -120,27 +120,42 @@ class AdminTest extends TestCase
             [$teamA->id, $teamB->id],
             $member->teams()->pluck('teams.id')->all()
         );
-        $this->assertSame(UserRole::TeamLead, $member->role);
+        $this->assertSame(UserRole::Member, $member->role);
     }
 
-    public function test_admin_can_view_team_detail_and_sync_users(): void
+    public function test_admin_can_edit_team_and_sync_members_and_projects(): void
     {
         $admin = User::factory()->admin()->create();
         $team = Team::factory()->create(['name' => 'Platform Team']);
         $member = User::factory()->create(['team_id' => $team->id, 'name' => 'Emma Nguyen']);
+        $project = Project::factory()->create(['name' => 'Metrics Dashboard']);
+
+        $this->actingAs($admin)
+            ->get(route('admin.teams.edit', $team))
+            ->assertOk()
+            ->assertSee('Platform Team')
+            ->assertSee(__('Team members'));
+
+        $this->actingAs($admin)
+            ->put(route('admin.teams.update', $team), [
+                'name' => 'Platform Team',
+                'user_ids' => [$member->id],
+                'project_ids' => [$project->id],
+            ])
+            ->assertRedirect(route('admin.teams.edit', $team));
+
+        $this->assertTrue($member->fresh()->teams()->where('teams.id', $team->id)->exists());
+        $this->assertTrue($team->fresh()->projects()->where('projects.id', $project->id)->exists());
+    }
+
+    public function test_admin_team_show_url_redirects_to_edit(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $team = Team::factory()->create(['name' => 'Platform Team']);
 
         $this->actingAs($admin)
             ->get(route('admin.teams.show', $team))
-            ->assertOk()
-            ->assertSee('Platform Team');
-
-        $this->actingAs($admin)
-            ->put(route('admin.teams.update-users', $team), [
-                'user_ids' => [$member->id],
-            ])
-            ->assertRedirect(route('admin.teams.show', $team));
-
-        $this->assertTrue($member->fresh()->teams()->where('teams.id', $team->id)->exists());
+            ->assertRedirect(route('admin.teams.edit', $team));
     }
 
     public function test_admin_can_create_team(): void
@@ -159,7 +174,7 @@ class AdminTest extends TestCase
     public function test_admin_can_create_team_with_team_lead_and_members(): void
     {
         $admin = User::factory()->admin()->create();
-        $lead = User::factory()->teamLead()->create(['name' => 'Sophie Laurent']);
+        $lead = User::factory()->create(['name' => 'Sophie Laurent']);
         $member = User::factory()->create(['name' => 'Emma Nguyen']);
 
         $this->actingAs($admin)
@@ -175,6 +190,17 @@ class AdminTest extends TestCase
         $this->assertSame(UserRole::TeamLead, $lead->fresh()->role);
         $this->assertSame($team->id, $lead->fresh()->team_id);
         $this->assertTrue($member->fresh()->teams()->where('teams.id', $team->id)->exists());
+        $this->assertTrue($lead->fresh()->isTeamLeadOf($team));
+        $this->assertDatabaseHas('team_user', [
+            'team_id' => $team->id,
+            'user_id' => $lead->id,
+            'is_team_lead' => true,
+        ]);
+        $this->assertDatabaseHas('team_user', [
+            'team_id' => $team->id,
+            'user_id' => $member->id,
+            'is_team_lead' => false,
+        ]);
     }
 
     public function test_admin_can_create_user_with_multiple_teams(): void
@@ -190,7 +216,6 @@ class AdminTest extends TestCase
                 'password' => 'password123',
                 'password_confirmation' => 'password123',
                 'team_ids' => [$teamA->id, $teamB->id],
-                'role' => UserRole::Member->value,
             ])
             ->assertRedirect(route('admin.users.index'));
 
@@ -214,7 +239,6 @@ class AdminTest extends TestCase
                 'password' => 'password123',
                 'password_confirmation' => 'password123',
                 'team_ids' => [$team->id],
-                'role' => UserRole::Member->value,
             ])
             ->assertForbidden();
     }
@@ -226,7 +250,8 @@ class AdminTest extends TestCase
         $lead = User::factory()->teamLead()->create(['team_id' => $team->id]);
 
         $this->actingAs($admin)
-            ->put(route('admin.teams.update-users', $team), [
+            ->put(route('admin.teams.update', $team), [
+                'name' => 'Platform Team',
                 'user_ids' => [],
             ])
             ->assertSessionHasErrors('user_ids');
@@ -235,7 +260,7 @@ class AdminTest extends TestCase
         $this->assertSame(UserRole::TeamLead, $lead->fresh()->role);
     }
 
-    public function test_admin_assigning_team_lead_role_sets_primary_team(): void
+    public function test_admin_can_assign_user_as_team_lead_of_multiple_teams(): void
     {
         $admin = User::factory()->admin()->create();
         $teamA = Team::factory()->create(['name' => 'Alpha Team']);
@@ -244,18 +269,21 @@ class AdminTest extends TestCase
             'team_id' => null,
             'role' => UserRole::Member,
         ]);
-        $user->teams()->sync([$teamB->id]);
+        $user->teams()->sync([$teamB->id => ['is_team_lead' => false]]);
 
         $this->actingAs($admin)
             ->put(route('admin.users.update', $user), [
+                'name' => $user->name,
                 'team_ids' => [$teamA->id, $teamB->id],
-                'role' => UserRole::TeamLead->value,
+                'team_lead_ids' => [$teamA->id, $teamB->id],
             ])
             ->assertRedirect(route('admin.users.show', $user));
 
         $user->refresh();
 
         $this->assertSame(UserRole::TeamLead, $user->role);
-        $this->assertContains($user->team_id, [$teamA->id, $teamB->id]);
+        $this->assertEqualsCanonicalizing([$teamA->id, $teamB->id], $user->teams()->pluck('teams.id')->all());
+        $this->assertTrue($user->isTeamLeadOf($teamA));
+        $this->assertTrue($user->isTeamLeadOf($teamB));
     }
 }

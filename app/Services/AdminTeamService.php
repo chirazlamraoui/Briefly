@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\UserRole;
+use App\Models\Project;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Support\Collection;
@@ -49,6 +50,44 @@ class AdminTeamService
         return $team;
     }
 
+    /**
+     * @param  array{
+     *     name: string,
+     *     team_lead_id?: int|null,
+     *     user_ids?: list<int>,
+     *     project_ids?: list<int>
+     * }  $data
+     */
+    public function updateTeam(Team $team, array $data): Team
+    {
+        $team->update(['name' => $data['name']]);
+
+        $teamLeadId = isset($data['team_lead_id']) && $data['team_lead_id']
+            ? (int) $data['team_lead_id']
+            : null;
+
+        $userIds = collect($data['user_ids'] ?? [])
+            ->when($teamLeadId, fn ($ids) => $ids->push($teamLeadId))
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($teamLeadId) {
+            $this->adminUserService->assignTeamLead($team, User::query()->findOrFail($teamLeadId));
+        } else {
+            $currentLead = $team->teamLead;
+
+            if ($currentLead !== null && in_array($currentLead->id, $userIds, true)) {
+                $this->adminUserService->clearTeamLeadForTeam($team, $currentLead);
+            }
+        }
+
+        $this->adminUserService->syncTeamUsers($team, $userIds);
+        $team->projects()->sync($data['project_ids'] ?? []);
+
+        return $this->teamDetail($team->fresh());
+    }
+
     public function teamDetail(Team $team): Team
     {
         return $team->load([
@@ -67,5 +106,13 @@ class AdminTeamService
             ->where('role', '!=', UserRole::Admin)
             ->orderBy('name')
             ->get();
+    }
+
+    /**
+     * @return Collection<int, Project>
+     */
+    public function assignableProjects(): Collection
+    {
+        return Project::query()->orderBy('name')->get();
     }
 }

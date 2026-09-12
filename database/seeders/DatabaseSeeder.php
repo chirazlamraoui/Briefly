@@ -118,12 +118,16 @@ class DatabaseSeeder extends Seeder
     private const PROJECTS = [
         ['Employee Onboarding', 'Streamline the first weeks for new hires.', ['atlas', 'harbor']],
         ['Metrics Dashboard', 'Unified KPIs and reporting for leadership.', ['pulse', 'atlas']],
-        ['Customer Billing Revamp', 'Modernize invoicing and payment flows.', ['nova', 'harbor']],
-        ['Internal Tools Platform', 'Shared tooling for operational teams.', ['nova', 'pulse']],
         ['Mobile Experience Refresh', 'Improve core journeys on iOS and Android.', ['nova', 'summit']],
-        ['API Reliability Program', 'Stabilize and document critical endpoints.', ['nova', 'pulse', 'harbor']],
-        ['Design System Refresh', 'Update shared UI components and guidelines.', ['atlas', 'summit']],
-        ['Quality Automation Suite', 'Expand end-to-end coverage in CI.', ['summit', 'pulse']],
+    ];
+
+    /** @var list<string> */
+    private const LEGACY_DEMO_PROJECT_NAMES = [
+        'Customer Billing Revamp',
+        'Internal Tools Platform',
+        'API Reliability Program',
+        'Design System Refresh',
+        'Quality Automation Suite',
     ];
 
     /** @var list<string> */
@@ -151,6 +155,7 @@ class DatabaseSeeder extends Seeder
         $password = Hash::make(self::DEMO_PASSWORD);
 
         $this->cleanupLegacySeedData();
+        $this->cleanupRemovedDemoProjects();
 
         User::firstOrCreate(
             ['email' => 'admin@briefly.test'],
@@ -209,7 +214,9 @@ class DatabaseSeeder extends Seeder
                 'team_id' => $team->id,
                 'role' => UserRole::TeamLead,
             ]);
-            $lead->teams()->syncWithoutDetaching([$team->id]);
+            $lead->teams()->syncWithoutDetaching([
+                $team->id => ['is_team_lead' => true],
+            ]);
 
             $members = collect(self::TEAM_MEMBER_EMAILS[$slug] ?? [])->map(function (string $memberSlug) use ($team, $usersByEmail) {
                 $user = $usersByEmail[$memberSlug];
@@ -238,7 +245,7 @@ class DatabaseSeeder extends Seeder
                 ->map(fn (string $slug) => $teamsBySlug[$slug]['team']->id)
                 ->all();
 
-            $project->teams()->syncWithoutDetaching($teamIds);
+            $project->teams()->sync($teamIds);
 
             return $project;
         });
@@ -264,66 +271,76 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
+        Task::query()
+            ->whereIn('assigned_to', $members->pluck('id'))
+            ->whereIn('project_id', $teamProjects->pluck('id'))
+            ->delete();
+
         foreach ($members as $memberIndex => $member) {
-            foreach (range(0, 2) as $taskOffset) {
-                $project = $teamProjects[($memberIndex + $taskOffset) % $teamProjects->count()];
-                $title = self::TASK_TITLES[($memberIndex + $taskOffset) % count(self::TASK_TITLES)];
-                $statusIndex = ($memberIndex + $taskOffset) % 4;
+            $project = $teamProjects[$memberIndex % $teamProjects->count()];
+            $title = self::TASK_TITLES[$memberIndex % count(self::TASK_TITLES)];
+            $statusIndex = $memberIndex % 4;
 
-                $status = match ($statusIndex) {
-                    0 => TaskStatus::Todo,
-                    1 => TaskStatus::InProgress,
-                    2 => TaskStatus::Blocked,
-                    default => TaskStatus::Done,
-                };
+            $status = match ($statusIndex) {
+                0 => TaskStatus::Todo,
+                1 => TaskStatus::InProgress,
+                2 => TaskStatus::Blocked,
+                default => TaskStatus::Done,
+            };
 
-                $progressDone = "Completed initial work on {$title}.";
-                $progressNext = $status === TaskStatus::Done ? null : 'Continue implementation and testing.';
-                $blockerNote = $status === TaskStatus::Blocked
-                    ? self::BLOCKER_NOTES[($memberIndex + $taskOffset) % count(self::BLOCKER_NOTES)]
-                    : null;
-                $completedAt = $status === TaskStatus::Done ? now()->subDays($taskOffset + 1) : null;
+            $progressDone = "Completed initial work on {$title}.";
+            $progressNext = $status === TaskStatus::Done ? null : 'Continue implementation and testing.';
+            $blockerNote = $status === TaskStatus::Blocked
+                ? self::BLOCKER_NOTES[$memberIndex % count(self::BLOCKER_NOTES)]
+                : null;
+            $completedAt = $status === TaskStatus::Done ? now()->subDay() : null;
 
-                $task = Task::updateOrCreate(
-                    [
-                        'project_id' => $project->id,
-                        'assigned_to' => $member->id,
-                        'title' => $title,
-                    ],
-                    [
-                        'description' => "Work on {$title} for {$teamName}.",
-                        'status' => $status,
-                        'progress_done' => $progressDone,
-                        'progress_next' => $progressNext,
-                        'blocker_note' => $blockerNote,
-                        'completed_at' => $completedAt,
-                    ]
-                );
+            $task = Task::updateOrCreate(
+                [
+                    'project_id' => $project->id,
+                    'assigned_to' => $member->id,
+                    'title' => $title,
+                ],
+                [
+                    'description' => "Work on {$title} for {$teamName}.",
+                    'status' => $status,
+                    'progress_done' => $progressDone,
+                    'progress_next' => $progressNext,
+                    'blocker_note' => $blockerNote,
+                    'completed_at' => $completedAt,
+                ]
+            );
 
-                if ($task->updates()->count() < 2) {
-                    TaskUpdate::create([
-                        'task_id' => $task->id,
-                        'user_id' => $member->id,
-                        'status' => TaskStatus::InProgress,
-                        'progress_done' => 'Started the task.',
-                        'progress_next' => 'Building core functionality.',
-                        'created_at' => now()->subDays($taskOffset + 3),
-                        'updated_at' => now()->subDays($taskOffset + 3),
-                    ]);
+            $task->updates()->delete();
 
-                    TaskUpdate::create([
-                        'task_id' => $task->id,
-                        'user_id' => $member->id,
-                        'status' => $status,
-                        'progress_done' => $progressDone,
-                        'progress_next' => $progressNext,
-                        'blocker_note' => $blockerNote,
-                        'created_at' => $completedAt ?? now()->subDays($taskOffset),
-                        'updated_at' => $completedAt ?? now()->subDays($taskOffset),
-                    ]);
-                }
-            }
+            TaskUpdate::create([
+                'task_id' => $task->id,
+                'user_id' => $member->id,
+                'status' => TaskStatus::InProgress,
+                'progress_done' => 'Started the task.',
+                'progress_next' => 'Building core functionality.',
+                'created_at' => now()->subDays(3),
+                'updated_at' => now()->subDays(3),
+            ]);
+
+            TaskUpdate::create([
+                'task_id' => $task->id,
+                'user_id' => $member->id,
+                'status' => $status,
+                'progress_done' => $progressDone,
+                'progress_next' => $progressNext,
+                'blocker_note' => $blockerNote,
+                'created_at' => $completedAt ?? now()->subDay(),
+                'updated_at' => $completedAt ?? now()->subDay(),
+            ]);
         }
+    }
+
+    private function cleanupRemovedDemoProjects(): void
+    {
+        Project::query()
+            ->whereIn('name', self::LEGACY_DEMO_PROJECT_NAMES)
+            ->delete();
     }
 
     private function cleanupLegacySeedData(): void

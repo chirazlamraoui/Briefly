@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminDashboardController;
+use App\Models\Team;
 use App\Http\Controllers\AdminProjectController;
 use App\Http\Controllers\AdminTeamController;
 use App\Http\Controllers\AdminUserController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamMemberController;
 use App\Http\Controllers\TeamTaskController;
 use App\Http\Middleware\EnsureAdmin;
+use App\Http\Middleware\EnsureMember;
 use App\Http\Middleware\EnsureNotAdmin;
 use App\Http\Middleware\EnsureTeamLead;
 use Illuminate\Support\Facades\Route;
@@ -49,8 +51,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/teams', [AdminTeamController::class, 'index'])->name('teams.index');
         Route::get('/teams/create', [AdminTeamController::class, 'create'])->name('teams.create');
         Route::post('/teams', [AdminTeamController::class, 'store'])->name('teams.store');
-        Route::get('/teams/{team}', [AdminTeamController::class, 'show'])->name('teams.show');
-        Route::put('/teams/{team}/users', [AdminTeamController::class, 'updateUsers'])->name('teams.update-users');
+        Route::get('/teams/{team}/edit', [AdminTeamController::class, 'edit'])->name('teams.edit');
+        Route::get('/teams/{team}', fn (Team $team) => redirect()->route('admin.teams.edit', $team))->name('teams.show');
+        Route::put('/teams/{team}', [AdminTeamController::class, 'update'])->name('teams.update');
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
         Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');
         Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
@@ -63,10 +66,13 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
 
     Route::middleware(EnsureNotAdmin::class)->group(function () {
-        Route::get('/my-tasks', [MemberTaskController::class, 'index'])->name('tasks.my');
-        Route::get('/my-tasks/history', [MemberTaskController::class, 'history'])->name('tasks.history');
         Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
-        Route::patch('/tasks/{task}/progress', [TaskController::class, 'updateProgress'])->name('tasks.update-progress');
+
+        Route::middleware(EnsureMember::class)->group(function () {
+            Route::get('/my-tasks', [MemberTaskController::class, 'index'])->name('tasks.my');
+            Route::get('/my-tasks/history', [MemberTaskController::class, 'history'])->name('tasks.history');
+            Route::patch('/tasks/{task}/progress', [TaskController::class, 'updateProgress'])->name('tasks.update-progress');
+        });
     });
 
     Route::middleware(EnsureTeamLead::class)->group(function () {

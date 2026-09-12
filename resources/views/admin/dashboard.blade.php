@@ -4,7 +4,6 @@
 @section('breadcrumb', __('Administration'))
 
 @section('content')
-@include('admin.partials.nav')
 
 <div class="row g-3 mb-4">
     <div class="col-xl-3 col-md-6">
@@ -77,27 +76,18 @@
                 <span class="badge text-bg-light border">{{ $completion['overall_rate'] }}% {{ __('Done') }}</span>
             </div>
             <div class="card-body">
-                <div class="row align-items-center g-4">
-                    <div class="col-lg-4 d-flex justify-content-center">
-                        <div class="completion-ring completion-ring--lg" style="--completion-rate: {{ $completion['overall_rate'] }};">
-                            <div class="completion-ring__value">{{ $completion['overall_rate'] }}%</div>
+                <div class="row g-3 mb-4">
+                    @foreach(\App\Enums\TaskStatus::cases() as $status)
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="stat-card p-3 h-100">
+                                <div class="small text-muted mb-1">{{ $status->label() }}</div>
+                                <div class="h4 mb-0 fw-bold">{{ $stats['task_status_counts'][$status->value] }}</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-lg-8">
-                        <div class="row g-3 mb-4">
-                            @foreach(\App\Enums\TaskStatus::cases() as $status)
-                                <div class="col-sm-6 col-xl-3">
-                                    <div class="stat-card p-3 h-100">
-                                        <div class="small text-muted mb-1">{{ $status->label() }}</div>
-                                        <div class="h4 mb-0 fw-bold">{{ $stats['task_status_counts'][$status->value] }}</div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                        <div style="max-width: 420px; margin: 0 auto;">
-                            <canvas id="task-status-chart" height="240" aria-label="{{ __('Task distribution') }}"></canvas>
-                        </div>
-                    </div>
+                    @endforeach
+                </div>
+                <div style="max-width: 420px; margin: 0 auto;">
+                    <canvas id="task-status-chart" height="240" aria-label="{{ __('Task distribution') }}"></canvas>
                 </div>
             </div>
         </div>
@@ -124,7 +114,7 @@
                             @forelse($teams->take(5) as $team)
                                 <tr>
                                     <td class="fw-semibold">
-                                        <a href="{{ route('admin.teams.show', $team) }}" class="table-link">{{ $team->name }}</a>
+                                        <a href="{{ route('admin.teams.edit', $team) }}" class="table-link">{{ $team->name }}</a>
                                     </td>
                                     <td>{{ $team->member_count }}</td>
                                 </tr>

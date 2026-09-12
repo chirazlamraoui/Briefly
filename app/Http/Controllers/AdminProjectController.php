@@ -49,7 +49,7 @@ class AdminProjectController extends Controller
     {
         $this->adminProjectService->updateProject($project, $request->validated());
 
-        return redirect()->route('admin.projects.index')
+        return redirect()->route('admin.projects.edit', $project)
             ->with('success', __('Project updated successfully.'));
     }
 }

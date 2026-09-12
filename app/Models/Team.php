@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use App\Enums\UserRole;
 use Database\Factories\TeamFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 class Team extends Model
 {
@@ -24,17 +23,27 @@ class Team extends Model
 
     public function assignedUsers(): BelongsToMany
     {
-        return $this->belongsToMany(User::class)->withTimestamps();
+        return $this->belongsToMany(User::class)
+            ->using(TeamUser::class)
+            ->withPivot('is_team_lead')
+            ->withTimestamps();
     }
 
     public function members(): BelongsToMany
     {
-        return $this->assignedUsers()->where('users.role', UserRole::Member);
+        return $this->assignedUsers()->wherePivot('is_team_lead', false);
     }
 
-    public function teamLead(): HasOne
+    public function teamLead(): HasOneThrough
     {
-        return $this->hasOne(User::class)->where('role', UserRole::TeamLead);
+        return $this->hasOneThrough(
+            User::class,
+            TeamUser::class,
+            'team_id',
+            'id',
+            'id',
+            'user_id',
+        )->where('team_user.is_team_lead', true);
     }
 
     public function projects(): BelongsToMany

@@ -20,7 +20,9 @@ class UserFactory extends Factory
     {
         return $this->afterCreating(function (User $user) {
             if ($user->team_id) {
-                $user->teams()->syncWithoutDetaching([$user->team_id]);
+                $user->teams()->syncWithoutDetaching([
+                    $user->team_id => ['is_team_lead' => $user->isTeamLead()],
+                ]);
             }
         });
     }

@@ -1,0 +1,17 @@
+@include('partials.searchable-multi-select', [
+    'name' => 'user_ids[]',
+    'field' => 'user_ids',
+    'inputId' => 'team_members_picker',
+    'options' => $users,
+    'selected' => $selectedUserIds,
+    'tableType' => 'members',
+    'optionLabel' => 'name',
+    'optionMeta' => 'job_title',
+    'optionRole' => 'role',
+    'addableRole' => \App\Enums\UserRole::Member->value,
+    'teamLeadField' => 'team_lead_id',
+    'teamLeadSelected' => $teamLeadSelected,
+    'placeholder' => __('Search members to add...'),
+    'empty' => __('No users found.'),
+    'listEmpty' => __('No members added yet.'),
+])
