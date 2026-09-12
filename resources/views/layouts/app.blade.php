@@ -218,6 +218,52 @@
             background: var(--surface);
         }
 
+        .admin-stat-card {
+            height: 100%;
+            padding: 1.25rem 1.35rem;
+        }
+
+        .admin-stat-card__icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            background: var(--accent-soft);
+            color: var(--accent-muted);
+        }
+
+        .admin-stat-card__value {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -0.03em;
+        }
+
+        .admin-stat-card__label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-top: 0.35rem;
+        }
+
+        .admin-stat-card__meta {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .admin-stat-card--accent .admin-stat-card__icon {
+            background: #ecfdf5;
+            color: #16a34a;
+        }
+
+        [data-theme="dark"] .admin-stat-card--accent .admin-stat-card__icon {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+        }
+
         .stat-icon {
             width: 36px;
             height: 36px;
@@ -247,6 +293,15 @@
             font-size: 1.5rem;
             font-weight: 700;
             letter-spacing: -0.03em;
+        }
+
+        .completion-ring--lg {
+            width: 168px;
+            height: 168px;
+        }
+
+        .completion-ring--lg .completion-ring__value {
+            font-size: 2rem;
         }
 
         .completion-progress {

@@ -15,13 +15,6 @@
     </div>
 </div>
 
-@include('partials.completion-summary-card', [
-    'rate' => $progress['overall_rate'],
-    'done' => $progress['done_count'],
-    'total' => $progress['total_count'],
-    'label' => __('Team completion rate'),
-])
-
 <div class="row g-3 mb-4">
     <div class="col-md-3 col-6">
         <div class="stat-card text-center p-4">
@@ -48,6 +41,15 @@
         </div>
     </div>
 </div>
+
+@include('partials.completion-summary-card', [
+    'rate' => $progress['overall_rate'],
+    'done' => $progress['done_count'],
+    'total' => $progress['total_count'],
+    'label' => __('Team completion rate'),
+    'showBadge' => false,
+    'centered' => true,
+])
 
 <div class="row g-4 mb-4">
     <div class="col-lg-6">
