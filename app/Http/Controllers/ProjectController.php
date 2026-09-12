@@ -55,12 +55,7 @@ class ProjectController extends Controller
 
         abort_if($team === null, 403);
 
-        $tasks = $project->tasks()
-            ->with('assignee')
-            ->whereHas('assignee', fn ($query) => $query->where('team_id', $team->id))
-            ->orderBy('status')
-            ->orderBy('title')
-            ->get();
+        $tasks = $this->taskService->teamTasksForProject($team, $project);
         $members = $this->taskService->assignableMembers($team);
 
         return view('projects.show', compact('project', 'tasks', 'members', 'team'));

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\TaskStatus;
 use App\Models\Project;
+use App\Models\Task;
 use App\Models\TaskUpdate;
 use App\Models\Team;
 use App\Models\User;
@@ -187,6 +188,34 @@ class ProjectTaskTest extends TestCase
             ->assertOk()
             ->assertSee($task->title)
             ->assertSee($member->name);
+    }
+
+    public function test_project_show_lists_tasks_for_members_on_team_pivot_even_when_primary_team_differs(): void
+    {
+        $teamA = Team::factory()->create(['name' => 'Alpha Team']);
+        $teamB = Team::factory()->create(['name' => 'Beta Team']);
+        $lead = User::factory()->teamLead()->create(['team_id' => $teamB->id]);
+        $member = User::factory()->create(['team_id' => $teamA->id]);
+        $member->teams()->syncWithoutDetaching([$teamB->id]);
+
+        $project = Project::factory()->create(['name' => 'Shared Platform']);
+        $project->teams()->attach($teamB->id);
+
+        $task = Task::factory()->create([
+            'project_id' => $project->id,
+            'assigned_to' => $member->id,
+            'title' => 'Cross-team task',
+        ]);
+
+        $this->actingAs($lead)
+            ->get(route('projects.show', $project))
+            ->assertOk()
+            ->assertSee('Cross-team task');
+
+        $this->actingAs($lead)
+            ->get(route('team.tasks'))
+            ->assertOk()
+            ->assertSee('Cross-team task');
     }
 
     public function test_member_can_view_task_history(): void

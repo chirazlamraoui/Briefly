@@ -169,5 +169,6 @@
     "Back to users": "Retour aux utilisateurs",
     "Select at least one team.": "Sélectionnez au moins une équipe.",
     "Choose a team lead": "Choisir un responsable d'équipe",
-    "The selected team lead is invalid.": "Le responsable d'équipe sélectionné est invalide."
+    "The selected team lead is invalid.": "Le responsable d'équipe sélectionné est invalide.",
+    "Team leads must remain assigned to at least one team.": "Les responsables d'équipe doivent rester assignés à au moins une équipe."
 }

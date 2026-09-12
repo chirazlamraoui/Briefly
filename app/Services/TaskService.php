@@ -128,6 +128,16 @@ class TaskService
     /**
      * @return Collection<int, Task>
      */
+    public function teamTasksForProject(Team $team, Project $project): Collection
+    {
+        return $this->teamTasksQuery($team)
+            ->where('project_id', $project->id)
+            ->get();
+    }
+
+    /**
+     * @return Collection<int, Task>
+     */
     public function teamTasksForLead(Team $team, ?TaskStatus $status = null): Collection
     {
         $query = $this->teamTasksQuery($team);

@@ -80,6 +80,7 @@ class AdminUserService
         }
 
         $user->syncTeams($teamIds);
+        $this->ensurePrimaryTeamForTeamLead($user, $teamIds, $role);
 
         if ($role === UserRole::TeamLead) {
             User::query()
@@ -168,8 +169,31 @@ class AdminUserService
 
             if ((int) $user->team_id === (int) $team->id) {
                 $nextTeamId = $user->teams()->value('teams.id');
+
+                if ($nextTeamId === null && $user->isTeamLead()) {
+                    throw ValidationException::withMessages([
+                        'user_ids' => __('Team leads must remain assigned to at least one team.'),
+                    ]);
+                }
+
                 $user->update(['team_id' => $nextTeamId]);
             }
+        }
+    }
+
+    /**
+     * @param  list<int>  $teamIds
+     */
+    private function ensurePrimaryTeamForTeamLead(User $user, array $teamIds, UserRole $role): void
+    {
+        if ($role !== UserRole::TeamLead) {
+            return;
+        }
+
+        $teamIds = array_map('intval', $teamIds);
+
+        if ($user->team_id === null || ! in_array((int) $user->team_id, $teamIds, true)) {
+            $user->update(['team_id' => $teamIds[0]]);
         }
     }
 }

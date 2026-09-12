@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureCanonicalAppUrl;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -19,6 +20,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 ? route('admin.dashboard')
                 : route('dashboard');
         });
+        $middleware->web(prepend: [
+            EnsureCanonicalAppUrl::class,
+        ]);
         $middleware->web(append: [
             SetLocale::class,
         ]);

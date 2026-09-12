@@ -215,4 +215,44 @@ class AdminTest extends TestCase
             ])
             ->assertForbidden();
     }
+
+    public function test_admin_cannot_remove_team_lead_from_their_last_team(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $team = Team::factory()->create(['name' => 'Platform Team']);
+        $lead = User::factory()->teamLead()->create(['team_id' => $team->id]);
+
+        $this->actingAs($admin)
+            ->put(route('admin.teams.update-users', $team), [
+                'user_ids' => [],
+            ])
+            ->assertSessionHasErrors('user_ids');
+
+        $this->assertSame($team->id, $lead->fresh()->team_id);
+        $this->assertSame(UserRole::TeamLead, $lead->fresh()->role);
+    }
+
+    public function test_admin_assigning_team_lead_role_sets_primary_team(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $teamA = Team::factory()->create(['name' => 'Alpha Team']);
+        $teamB = Team::factory()->create(['name' => 'Beta Team']);
+        $user = User::factory()->create([
+            'team_id' => null,
+            'role' => UserRole::Member,
+        ]);
+        $user->teams()->sync([$teamB->id]);
+
+        $this->actingAs($admin)
+            ->put(route('admin.users.update', $user), [
+                'team_ids' => [$teamA->id, $teamB->id],
+                'role' => UserRole::TeamLead->value,
+            ])
+            ->assertRedirect(route('admin.users.show', $user));
+
+        $user->refresh();
+
+        $this->assertSame(UserRole::TeamLead, $user->role);
+        $this->assertContains($user->team_id, [$teamA->id, $teamB->id]);
+    }
 }
