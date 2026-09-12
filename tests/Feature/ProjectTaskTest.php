@@ -15,22 +15,20 @@ class ProjectTaskTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_team_lead_can_create_project(): void
+    public function test_team_lead_cannot_create_project(): void
     {
         $team = Team::factory()->create();
         $lead = User::factory()->teamLead()->create(['team_id' => $team->id]);
 
         $this->actingAs($lead)
-            ->post(route('projects.store'), [
+            ->post(route('admin.projects.store'), [
                 'name' => 'Website Redesign',
                 'description' => 'Main product website refresh.',
+                'team_ids' => [$team->id],
             ])
-            ->assertRedirect();
+            ->assertForbidden();
 
-        $this->assertDatabaseHas('projects', ['name' => 'Website Redesign']);
-        $this->assertDatabaseHas('project_team', [
-            'team_id' => $team->id,
-        ]);
+        $this->assertDatabaseMissing('projects', ['name' => 'Website Redesign']);
     }
 
     public function test_team_lead_can_create_task_for_team_member(): void

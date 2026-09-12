@@ -23,6 +23,6 @@ class ProjectPolicy
 
     public function create(User $user): bool
     {
-        return $user->isTeamLead() && $user->primaryTeamId() !== null;
+        return false;
     }
 }

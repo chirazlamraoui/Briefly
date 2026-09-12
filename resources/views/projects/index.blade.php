@@ -6,7 +6,6 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
     <p class="text-muted mb-0">{{ $team->name }}</p>
-    <a href="{{ route('projects.create') }}" class="btn btn-primary">{{ __('New project') }}</a>
 </div>
 
 <div class="card">

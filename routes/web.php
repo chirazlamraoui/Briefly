@@ -71,8 +71,6 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware(EnsureTeamLead::class)->group(function () {
         Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
-        Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
-        Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
         Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
         Route::get('/projects/{project}/tasks/create', [TaskController::class, 'create'])->name('tasks.create');
         Route::post('/projects/{project}/tasks', [TaskController::class, 'store'])->name('tasks.store');
