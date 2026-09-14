@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\AdminDashboardController;
-use App\Models\Team;
 use App\Http\Controllers\AdminProjectController;
 use App\Http\Controllers\AdminTeamController;
 use App\Http\Controllers\AdminUserController;
@@ -19,6 +18,7 @@ use App\Http\Controllers\TeamTaskController;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureNotAdmin;
 use App\Http\Middleware\EnsureTeamLead;
+use App\Models\Team;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route('login'));
@@ -36,7 +36,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.update');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware('auth:web,sanctum')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 

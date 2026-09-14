@@ -10,6 +10,10 @@ class EnsureCanonicalAppUrl
 {
     public function handle(Request $request, Closure $next): Response
     {
+        if ($request->expectsJson() || $request->bearerToken()) {
+            return $next($request);
+        }
+
         $parts = parse_url((string) config('app.url'));
 
         if (! is_array($parts) || empty($parts['host'])) {

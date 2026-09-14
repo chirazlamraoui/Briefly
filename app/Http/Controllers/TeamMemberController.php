@@ -2,15 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\TaskResource;
+use App\Http\Resources\TaskUpdateResource;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\TaskService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class TeamMemberController extends Controller
 {
     public function __construct(private TaskService $taskService) {}
 
-    public function show(User $user): View
+    public function show(Request $request, User $user): View|JsonResponse
     {
         abort_if($user->isAdmin(), 404);
 
@@ -24,7 +29,18 @@ class TeamMemberController extends Controller
 
         $tasks = $this->taskService->assignedTasksFor($user);
         $updates = $user->taskUpdates()->with(['task.project'])->latest()->paginate(15);
+        $user->load('teams');
 
-        return view('team.member', compact('user', 'tasks', 'updates'));
+        return $this->respond($request, view('team.member', compact('user', 'tasks', 'updates')), [
+            'user' => (new UserResource($user))->resolve(),
+            'tasks' => TaskResource::collection($tasks)->resolve(),
+            'updates' => TaskUpdateResource::collection($updates)->resolve(),
+            'meta' => [
+                'current_page' => $updates->currentPage(),
+                'last_page' => $updates->lastPage(),
+                'per_page' => $updates->perPage(),
+                'total' => $updates->total(),
+            ],
+        ]);
     }
 }

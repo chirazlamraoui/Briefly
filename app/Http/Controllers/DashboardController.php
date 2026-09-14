@@ -3,15 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Enums\TaskStatus;
+use App\Http\Resources\TaskResource;
+use App\Http\Resources\TeamResource;
 use App\Models\Team;
 use App\Services\TaskService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
     public function __construct(private TaskService $taskService) {}
 
-    public function index(): View
+    public function index(Request $request): View|JsonResponse
     {
         $user = auth()->user();
         $today = today();
@@ -32,6 +36,23 @@ class DashboardController extends Controller
                 ]);
         }
 
-        return view('dashboard.home', compact('user', 'today', 'personalProgress', 'ledTeams'));
+        return $this->respond($request, view('dashboard.home', compact('user', 'today', 'personalProgress', 'ledTeams')), [
+            'today' => $today->toDateString(),
+            'personal_progress' => [
+                'overall_rate' => $personalProgress['overall_rate'],
+                'done_count' => $personalProgress['done_count'],
+                'total_count' => $personalProgress['total_count'],
+                'tasks' => $personalProgress['tasks']->map(fn (array $row) => [
+                    'rate' => $row['rate'],
+                    'task' => (new TaskResource($row['task']))->resolve(),
+                ])->all(),
+            ],
+            'led_teams' => $ledTeams->map(fn (array $row) => [
+                'team' => (new TeamResource($row['team']))->resolve(),
+                'stats' => $row['stats'],
+                'progress' => $row['progress'],
+                'blocked_tasks' => TaskResource::collection($row['blockedTasks'])->resolve(),
+            ])->values()->all(),
+        ]);
     }
 }

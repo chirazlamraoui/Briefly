@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Enums\TaskStatus;
+use App\Http\Resources\TaskResource;
+use App\Http\Resources\TeamResource;
 use App\Models\Team;
 use App\Services\TaskService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -12,7 +15,7 @@ class TeamTaskController extends Controller
 {
     public function __construct(private TaskService $taskService) {}
 
-    public function index(Request $request): View
+    public function index(Request $request): View|JsonResponse
     {
         $user = auth()->user();
         $managedTeams = Team::query()
@@ -27,11 +30,23 @@ class TeamTaskController extends Controller
         $taskRows = $this->taskService->tasksForManagedTeams($user, $status);
         $stats = $this->taskService->teamTaskStatsForManagedTeams($user);
 
-        return view('team.tasks', [
+        return $this->respond($request, view('team.tasks', [
             'taskRows' => $taskRows,
             'status' => $status,
             'stats' => $stats,
             'managedTeams' => $managedTeams,
+        ]), [
+            'stats' => $stats,
+            'status' => $status?->value,
+            'managed_teams' => TeamResource::collection($managedTeams)->resolve(),
+            'tasks' => $taskRows->map(function (array $row) {
+                $row['task']->setAttribute('team_label', $row['team']->name);
+
+                return [
+                    'task' => (new TaskResource($row['task']))->resolve(),
+                    'team' => (new TeamResource($row['team']))->resolve(),
+                ];
+            })->values()->all(),
         ]);
     }
 }

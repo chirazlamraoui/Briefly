@@ -4,39 +4,48 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AdminUpdateUserRequest;
 use App\Http\Requests\StoreUserRequest;
+use App\Http\Resources\TeamResource;
+use App\Http\Resources\UserResource;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\AdminUserService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class AdminUserController extends Controller
 {
     public function __construct(private AdminUserService $adminUserService) {}
 
-    public function index(): View
+    public function index(Request $request): View|JsonResponse
     {
         $users = $this->adminUserService->assignableUsers();
 
-        return view('admin.users.index', compact('users'));
+        $users->load('teams');
+
+        return $this->respond($request, view('admin.users.index', compact('users')), UserResource::collection($users));
     }
 
-    public function create(): View
+    public function create(Request $request): View|JsonResponse
     {
         $teams = Team::query()->orderBy('name')->get();
 
-        return view('admin.users.create', compact('teams'));
+        return $this->respond($request, view('admin.users.create', compact('teams')), [
+            'teams' => TeamResource::collection($teams)->resolve(),
+        ]);
     }
 
-    public function store(StoreUserRequest $request): RedirectResponse
+    public function store(StoreUserRequest $request): RedirectResponse|JsonResponse
     {
-        $this->adminUserService->createUser($request->validated());
+        $user = $this->adminUserService->createUser($request->validated());
+        $user->load('teams');
 
-        return redirect()->route('admin.users.index')
-            ->with('success', __('User created successfully.'));
+        return $this->respond($request, redirect()->route('admin.users.index')
+            ->with('success', __('User created successfully.')), new UserResource($user), 201);
     }
 
-    public function show(User $user): View
+    public function show(Request $request, User $user): View|JsonResponse
     {
         abort_if($user->isAdmin(), 404);
 
@@ -53,21 +62,30 @@ class AdminUserController extends Controller
             ->pluck('teams.id')
             ->all();
 
-        return view('admin.users.show', compact(
+        return $this->respond($request, view('admin.users.show', compact(
             'user',
             'teams',
             'selectedTeamIds',
             'selectedTeamLeadIds',
-        ));
+        )), [
+            'user' => (new UserResource($user))->resolve(),
+            'teams' => TeamResource::collection($teams)->resolve(),
+            'selected_team_ids' => $selectedTeamIds,
+            'selected_team_lead_ids' => $selectedTeamLeadIds,
+        ]);
     }
 
-    public function update(AdminUpdateUserRequest $request, User $user): RedirectResponse
+    public function update(AdminUpdateUserRequest $request, User $user): RedirectResponse|JsonResponse
     {
         abort_if($user->isAdmin(), 404);
 
         $this->adminUserService->updateUser($user, $request->validated());
+        $user->refresh()->load(['team', 'teams']);
 
-        return redirect()->route('admin.users.show', $user)
-            ->with('success', __('User updated successfully.'));
+        return $this->respond($request, redirect()->route('admin.users.show', $user)
+            ->with('success', __('User updated successfully.')), [
+                'user' => (new UserResource($user))->resolve(),
+                'message' => __('User updated successfully.'),
+            ]);
     }
 }
