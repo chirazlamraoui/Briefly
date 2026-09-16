@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/models.dart';
 import '../../providers/providers.dart';
+import '../../theme/briefly_theme.dart';
 import '../../widgets/widgets.dart';
 import '../tasks/task_screens.dart';
 
@@ -46,38 +47,51 @@ class _TeamTasksScreenState extends ConsumerState<TeamTasksScreen> {
             onRetry: _reload,
             builder: (data) {
               return ListView(
-                padding: const EdgeInsets.all(16),
+                padding: BrieflySpacing.page,
                 children: [
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      ChoiceChip(label: Text(l10n.all), selected: _status == null, onSelected: (_) => _reload()),
-                      for (final status in taskStatuses)
-                        ChoiceChip(
-                          label: Text(statusLabel(l10n, status)),
-                          selected: _status == status,
-                          onSelected: (_) => _reload(status),
+                  BrieflyCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            ChoiceChip(label: Text(l10n.all), selected: _status == null, onSelected: (_) => _reload()),
+                            for (final status in taskStatuses)
+                              ChoiceChip(
+                                label: Text(statusLabel(l10n, status)),
+                                selected: _status == status,
+                                onSelected: (_) => _reload(status),
+                              ),
+                          ],
                         ),
-                    ],
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            StatChip(label: l10n.inProgress, value: data.stats['in_progress'] ?? 0),
+                            StatChip(label: l10n.blocked, value: data.stats['blocked'] ?? 0),
+                            StatChip(label: l10n.statusDone, value: data.stats['done'] ?? 0),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      Chip(label: Text('${l10n.inProgress} ${data.stats['in_progress'] ?? 0}')),
-                      Chip(label: Text('${l10n.blocked} ${data.stats['blocked'] ?? 0}')),
-                      Chip(label: Text('${l10n.statusDone} ${data.stats['done'] ?? 0}')),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  if (data.tasks.isEmpty) EmptyState(message: l10n.emptyTasks),
-                  for (final row in data.tasks)
-                    ListTile(
-                      title: Text(row.task.title),
-                      subtitle: Text('${row.team.name} · ${row.task.assignee?.name ?? ''}'),
-                      trailing: StatusPill(status: row.task.status),
-                      onTap: () => context.push('/tasks/${row.task.id}'),
-                    ),
+                  if (data.tasks.isEmpty)
+                    BrieflyCard(
+                      child: EmptyState(message: l10n.emptyTasks, icon: Icons.groups_outlined, compact: true),
+                    )
+                  else
+                    for (final row in data.tasks)
+                      TaskListTile(
+                        title: row.task.title,
+                        subtitle: [row.team.name, row.task.assignee?.name].whereType<String>().join(' · '),
+                        status: row.task.status,
+                        onTap: () => context.push('/tasks/${row.task.id}'),
+                      ),
                 ],
               );
             },
@@ -109,6 +123,7 @@ class _TeamMemberScreenState extends ConsumerState<TeamMemberScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
 
     return FutureBuilder(
       future: _future,
@@ -120,24 +135,67 @@ class _TeamMemberScreenState extends ConsumerState<TeamMemberScreen> {
             return Scaffold(
               appBar: AppBar(title: Text(data.user.name)),
               body: ListView(
-                padding: const EdgeInsets.all(16),
+                padding: BrieflySpacing.page,
                 children: [
-                  if (data.user.jobTitle != null) Text(data.user.jobTitle!),
-                  const SizedBox(height: 16),
-                  Text(l10n.tasks, style: Theme.of(context).textTheme.titleMedium),
-                  for (final task in data.tasks)
-                    ListTile(
-                      title: Text(task.title),
-                      trailing: StatusPill(status: task.status),
-                      onTap: () => context.push('/tasks/${task.id}'),
+                  BrieflyCard(
+                    child: Row(
+                      children: [
+                        InitialAvatar(name: data.user.name, radius: 28),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                data.user.name,
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                              ),
+                              if (data.user.jobTitle != null)
+                                Text(
+                                  data.user.jobTitle!,
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  const SizedBox(height: 16),
-                  Text(l10n.history, style: Theme.of(context).textTheme.titleMedium),
-                  for (final update in data.updates.items)
-                    ListTile(
-                      title: Text(update.task?.title ?? ''),
-                      subtitle: Text(update.progressDone ?? ''),
-                      trailing: StatusPill(status: update.status),
+                  ),
+                  const SizedBox(height: 8),
+                  SectionHeader(title: l10n.tasks),
+                  if (data.tasks.isEmpty)
+                    BrieflyCard(
+                      child: EmptyState(message: l10n.emptyTasks, icon: Icons.checklist_outlined, compact: true),
+                    )
+                  else
+                    GroupedCard(
+                      children: [
+                        for (final task in data.tasks)
+                          TaskListTile(
+                            title: task.title,
+                            status: task.status,
+                            grouped: true,
+                            onTap: () => context.push('/tasks/${task.id}'),
+                          ),
+                      ],
+                    ),
+                  const SizedBox(height: 8),
+                  SectionHeader(title: l10n.history),
+                  if (data.updates.items.isEmpty)
+                    BrieflyCard(
+                      child: EmptyState(message: l10n.emptyHistory, icon: Icons.history, compact: true),
+                    )
+                  else
+                    GroupedCard(
+                      children: [
+                        for (final update in data.updates.items)
+                          TaskListTile(
+                            title: update.task?.title ?? '',
+                            subtitle: update.progressDone,
+                            status: update.status,
+                            grouped: true,
+                          ),
+                      ],
                     ),
                 ],
               ),

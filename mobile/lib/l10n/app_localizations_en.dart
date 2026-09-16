@@ -285,4 +285,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get none => 'None';
+
+  @override
+  String get signInHint => 'Sign in to continue to your workspace.';
+
+  @override
+  String get profileSaved => 'Profile saved.';
+
+  @override
+  String get passwordChanged => 'Password updated.';
+
+  @override
+  String get somethingWentWrong => 'Something went wrong.';
+
+  @override
+  String get editUser => 'Edit user';
+
+  @override
+  String get editTeam => 'Edit team';
+
+  @override
+  String get editProject => 'Edit project';
+
+  @override
+  String get account => 'Account';
+
+  @override
+  String get security => 'Security';
+
+  @override
+  String get preferences => 'Preferences';
 }

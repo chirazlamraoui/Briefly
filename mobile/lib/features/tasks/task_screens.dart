@@ -6,6 +6,7 @@ import '../../core/api_exception.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/models.dart';
 import '../../providers/providers.dart';
+import '../../theme/briefly_theme.dart';
 import '../../widgets/widgets.dart';
 
 const taskStatuses = ['TODO', 'IN_PROGRESS', 'BLOCKED', 'DONE'];
@@ -54,18 +55,18 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen> {
             onRetry: () => setState(() => _future = ref.read(apiClientProvider).tasks()),
             builder: (tasks) {
               if (tasks.isEmpty) {
-                return EmptyState(message: l10n.emptyTasks);
+                return EmptyState(message: l10n.emptyTasks, icon: Icons.checklist_outlined);
               }
 
-              return ListView.separated(
+              return ListView.builder(
+                padding: BrieflySpacing.page,
                 itemCount: tasks.length,
-                separatorBuilder: (_, _) => const Divider(height: 1),
                 itemBuilder: (context, index) {
                   final task = tasks[index];
-                  return ListTile(
-                    title: Text(task.title),
-                    subtitle: Text([task.teamLabel, task.project?.name].whereType<String>().join(' · ')),
-                    trailing: StatusPill(status: task.status),
+                  return TaskListTile(
+                    title: task.title,
+                    subtitle: [task.teamLabel, task.project?.name].whereType<String>().join(' · '),
+                    status: task.status,
                     onTap: () => context.push('/tasks/${task.id}'),
                   );
                 },
@@ -108,16 +109,17 @@ class _TaskHistoryScreenState extends ConsumerState<TaskHistoryScreen> {
             onRetry: () => setState(() => _future = ref.read(apiClientProvider).taskHistory()),
             builder: (page) {
               if (page.items.isEmpty) {
-                return EmptyState(message: l10n.emptyHistory);
+                return EmptyState(message: l10n.emptyHistory, icon: Icons.history);
               }
 
               return ListView(
+                padding: BrieflySpacing.page,
                 children: [
                   for (final update in page.items)
-                    ListTile(
-                      title: Text(update.task?.title ?? ''),
-                      subtitle: Text(update.progressDone ?? update.createdAt ?? ''),
-                      trailing: StatusPill(status: update.status),
+                    TaskListTile(
+                      title: update.task?.title ?? '',
+                      subtitle: update.progressDone ?? update.createdAt,
+                      status: update.status,
                     ),
                 ],
               );
@@ -242,58 +244,76 @@ class _TaskDetailBodyState extends ConsumerState<_TaskDetailBody> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final task = widget.data.task;
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(task.title),
         actions: [
           if (widget.data.canEdit)
-            IconButton(onPressed: () => context.push('/tasks/${task.id}/edit'), icon: const Icon(Icons.edit)),
+            IconButton(onPressed: () => context.push('/tasks/${task.id}/edit'), icon: const Icon(Icons.edit_outlined)),
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: BrieflySpacing.page,
         children: [
-          if (task.description != null && task.description!.isNotEmpty) Text(task.description!),
-          const SizedBox(height: 8),
-          Text(task.project?.name ?? ''),
-          if (task.teamLabel != null) Text(task.teamLabel!),
-          const SizedBox(height: 8),
-          StatusPill(status: task.status),
-          if (widget.data.canUpdateProgress) ...[
-            const SizedBox(height: 24),
-            Text(l10n.updateProgress, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              initialValue: _status,
-              items: [
-                for (final status in taskStatuses)
-                  DropdownMenuItem(value: status, child: Text(statusLabel(l10n, status))),
+          BrieflyCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                StatusPill(status: task.status),
+                if (task.description != null && task.description!.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Text(task.description!),
+                ],
+                const SizedBox(height: 12),
+                if (task.project?.name != null)
+                  Text(task.project!.name, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant)),
+                if (task.teamLabel != null)
+                  Text(task.teamLabel!, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant)),
               ],
-              onChanged: (value) => setState(() => _status = value ?? _status),
-              decoration: InputDecoration(labelText: l10n.status),
             ),
-            const SizedBox(height: 12),
-            TextField(controller: _done, maxLines: 3, decoration: InputDecoration(labelText: l10n.progressDone)),
-            const SizedBox(height: 12),
-            TextField(controller: _next, maxLines: 3, decoration: InputDecoration(labelText: l10n.progressNext)),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _blocker,
-              maxLines: 3,
-              decoration: InputDecoration(labelText: l10n.blockerNote, errorText: _blockerError),
+          ),
+          if (widget.data.canUpdateProgress) ...[
+            const SizedBox(height: 8),
+            FormSection(
+              title: l10n.updateProgress,
+              children: [
+                DropdownButtonFormField<String>(
+                  initialValue: _status,
+                  items: [
+                    for (final status in taskStatuses)
+                      DropdownMenuItem(value: status, child: Text(statusLabel(l10n, status))),
+                  ],
+                  onChanged: (value) => setState(() => _status = value ?? _status),
+                  decoration: InputDecoration(labelText: l10n.status),
+                ),
+                TextField(controller: _done, maxLines: 3, decoration: InputDecoration(labelText: l10n.progressDone)),
+                TextField(controller: _next, maxLines: 3, decoration: InputDecoration(labelText: l10n.progressNext)),
+                TextField(
+                  controller: _blocker,
+                  maxLines: 3,
+                  decoration: InputDecoration(labelText: l10n.blockerNote, errorText: _blockerError),
+                ),
+                LoadingFilledButton(onPressed: _save, label: l10n.saveProgress, loading: _saving),
+              ],
             ),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: _saving ? null : _save, child: Text(l10n.saveProgress)),
           ],
-          const SizedBox(height: 24),
-          Text(l10n.history, style: Theme.of(context).textTheme.titleMedium),
-          for (final update in task.updates)
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(update.user?.name ?? statusLabel(l10n, update.status)),
-              subtitle: Text(update.progressDone ?? update.createdAt ?? ''),
-              trailing: StatusPill(status: update.status),
+          const SizedBox(height: 8),
+          SectionHeader(title: l10n.history),
+          if (task.updates.isEmpty)
+            BrieflyCard(child: EmptyState(message: l10n.emptyHistory, icon: Icons.history, compact: true))
+          else
+            GroupedCard(
+              children: [
+                for (final update in task.updates)
+                  TaskListTile(
+                    title: update.user?.name ?? statusLabel(l10n, update.status),
+                    subtitle: update.progressDone ?? update.createdAt,
+                    status: update.status,
+                    grouped: true,
+                  ),
+              ],
             ),
         ],
       ),
@@ -412,36 +432,41 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
-              padding: const EdgeInsets.all(16),
+              padding: BrieflySpacing.page,
               children: [
-                TextField(controller: _title, decoration: InputDecoration(labelText: l10n.title)),
-                const SizedBox(height: 12),
-                TextField(controller: _description, maxLines: 4, decoration: InputDecoration(labelText: l10n.description)),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<int>(
-                  initialValue: _assigneeId,
-                  items: [
-                    for (final member in _members) DropdownMenuItem(value: member.id, child: Text(member.name)),
+                FormSection(
+                  children: [
+                    TextField(controller: _title, decoration: InputDecoration(labelText: l10n.title)),
+                    TextField(
+                      controller: _description,
+                      maxLines: 4,
+                      decoration: InputDecoration(labelText: l10n.description),
+                    ),
+                    DropdownButtonFormField<int>(
+                      initialValue: _assigneeId,
+                      items: [
+                        for (final member in _members) DropdownMenuItem(value: member.id, child: Text(member.name)),
+                      ],
+                      onChanged: (value) => setState(() => _assigneeId = value),
+                      decoration: InputDecoration(labelText: l10n.assignee),
+                    ),
+                    DropdownButtonFormField<String>(
+                      initialValue: _status,
+                      items: [
+                        for (final status in taskStatuses)
+                          DropdownMenuItem(value: status, child: Text(statusLabel(l10n, status))),
+                      ],
+                      onChanged: (value) => setState(() => _status = value ?? _status),
+                      decoration: InputDecoration(labelText: l10n.status),
+                    ),
+                    if (_error != null) FormBanner.error(_error!),
+                    LoadingFilledButton(
+                      onPressed: _save,
+                      label: widget.taskId == null ? l10n.create : l10n.save,
+                      loading: _saving,
+                    ),
                   ],
-                  onChanged: (value) => setState(() => _assigneeId = value),
-                  decoration: InputDecoration(labelText: l10n.assignee),
                 ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: _status,
-                  items: [
-                    for (final status in taskStatuses)
-                      DropdownMenuItem(value: status, child: Text(statusLabel(l10n, status))),
-                  ],
-                  onChanged: (value) => setState(() => _status = value ?? _status),
-                  decoration: InputDecoration(labelText: l10n.status),
-                ),
-                if (_error != null) ...[
-                  const SizedBox(height: 12),
-                  Text(_error!, style: const TextStyle(color: Colors.red)),
-                ],
-                const SizedBox(height: 16),
-                FilledButton(onPressed: _saving ? null : _save, child: Text(widget.taskId == null ? l10n.create : l10n.save)),
               ],
             ),
     );

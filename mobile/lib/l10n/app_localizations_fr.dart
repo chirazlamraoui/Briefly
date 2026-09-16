@@ -285,4 +285,34 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get none => 'Aucun';
+
+  @override
+  String get signInHint => 'Connectez-vous pour accéder à votre espace.';
+
+  @override
+  String get profileSaved => 'Profil enregistré.';
+
+  @override
+  String get passwordChanged => 'Mot de passe mis à jour.';
+
+  @override
+  String get somethingWentWrong => 'Une erreur s\'est produite.';
+
+  @override
+  String get editUser => 'Modifier l\'utilisateur';
+
+  @override
+  String get editTeam => 'Modifier l\'équipe';
+
+  @override
+  String get editProject => 'Modifier le projet';
+
+  @override
+  String get account => 'Compte';
+
+  @override
+  String get security => 'Sécurité';
+
+  @override
+  String get preferences => 'Préférences';
 }

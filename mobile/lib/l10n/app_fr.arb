@@ -91,5 +91,15 @@
   "project": "Projet",
   "resetLinkSent": "Si cet e-mail existe, un lien a été envoyé.",
   "backToSignIn": "Retour à la connexion",
-  "none": "Aucun"
+  "none": "Aucun",
+  "signInHint": "Connectez-vous pour accéder à votre espace.",
+  "profileSaved": "Profil enregistré.",
+  "passwordChanged": "Mot de passe mis à jour.",
+  "somethingWentWrong": "Une erreur s'est produite.",
+  "editUser": "Modifier l'utilisateur",
+  "editTeam": "Modifier l'équipe",
+  "editProject": "Modifier le projet",
+  "account": "Compte",
+  "security": "Sécurité",
+  "preferences": "Préférences"
 }

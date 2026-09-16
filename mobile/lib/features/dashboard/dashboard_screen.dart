@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/models.dart';
 import '../../providers/providers.dart';
+import '../../theme/briefly_theme.dart';
 import '../../widgets/widgets.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
@@ -30,6 +31,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.dashboard)),
@@ -41,74 +43,101 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             onRetry: _reload,
             builder: (data) {
               return ListView(
-                padding: const EdgeInsets.all(16),
+                padding: BrieflySpacing.page,
                 children: [
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          CompletionRing(rate: data.overallRate),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(l10n.myCompletionRate, style: Theme.of(context).textTheme.titleMedium),
-                                Text('${data.doneCount}/${data.totalCount}'),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(l10n.myTasks, style: Theme.of(context).textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  if (data.tasks.isEmpty) EmptyState(message: l10n.emptyTasks),
-                  for (final row in data.tasks.take(5))
-                    ListTile(
-                      title: Text(row.task.title),
-                      subtitle: Text(row.task.project?.name ?? ''),
-                      trailing: StatusPill(status: row.task.status),
-                      onTap: () => context.push('/tasks/${row.task.id}'),
-                    ),
-                  for (final section in data.ledTeams) ...[
-                    const SizedBox(height: 24),
-                    Text(section.team.name, style: Theme.of(context).textTheme.titleLarge),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
+                  BrieflyCard(
+                    child: Row(
                       children: [
-                        _statChip(l10n.inProgress, section.stats['in_progress'] ?? 0),
-                        _statChip(l10n.blocked, section.stats['blocked'] ?? 0),
-                        _statChip(l10n.statusDone, section.stats['done'] ?? 0),
+                        CompletionRing(rate: data.overallRate),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                l10n.myCompletionRate,
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${data.doneCount}/${data.totalCount}',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    Text(l10n.memberProgress, style: Theme.of(context).textTheme.titleMedium),
-                    for (final row in section.memberRates.take(5))
-                      ListTile(
-                        title: Text(row.name),
-                        trailing: Text('${row.rate}%'),
-                        onTap: row.id == null ? null : () => context.push('/team/members/${row.id}'),
-                      ),
-                    Text(l10n.projectProgress, style: Theme.of(context).textTheme.titleMedium),
-                    for (final row in section.projectRates.take(5))
-                      ListTile(
-                        title: Text(row.name),
-                        trailing: Text('${row.rate}%'),
-                        onTap: row.id == null ? null : () => context.push('/projects/${row.id}'),
-                      ),
+                  ),
+                  const SizedBox(height: 8),
+                  SectionHeader(title: l10n.myTasks),
+                  if (data.tasks.isEmpty)
+                    BrieflyCard(
+                      child: EmptyState(message: l10n.emptyTasks, icon: Icons.checklist_outlined, compact: true),
+                    )
+                  else
+                    GroupedCard(
+                      children: [
+                        for (final row in data.tasks.take(5))
+                          TaskListTile(
+                            title: row.task.title,
+                            subtitle: row.task.project?.name,
+                            status: row.task.status,
+                            onTap: () => context.push('/tasks/${row.task.id}'),
+                            grouped: true,
+                          ),
+                      ],
+                    ),
+                  for (final section in data.ledTeams) ...[
+                    const SizedBox(height: 16),
+                    SectionHeader(title: section.team.name),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        StatChip(label: l10n.inProgress, value: section.stats['in_progress'] ?? 0),
+                        StatChip(label: l10n.blocked, value: section.stats['blocked'] ?? 0),
+                        StatChip(label: l10n.statusDone, value: section.stats['done'] ?? 0),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    SectionHeader(title: l10n.memberProgress),
+                    GroupedCard(
+                      children: [
+                        for (final row in section.memberRates.take(5))
+                          RateListTile(
+                            name: row.name,
+                            rate: row.rate,
+                            grouped: true,
+                            onTap: row.id == null ? null : () => context.push('/team/members/${row.id}'),
+                          ),
+                      ],
+                    ),
+                    SectionHeader(title: l10n.projectProgress),
+                    GroupedCard(
+                      children: [
+                        for (final row in section.projectRates.take(5))
+                          RateListTile(
+                            name: row.name,
+                            rate: row.rate,
+                            grouped: true,
+                            onTap: row.id == null ? null : () => context.push('/projects/${row.id}'),
+                          ),
+                      ],
+                    ),
                     if (section.blockedTasks.isNotEmpty) ...[
-                      Text(l10n.blockedTasks, style: Theme.of(context).textTheme.titleMedium),
-                      for (final task in section.blockedTasks)
-                        ListTile(
-                          title: Text(task.title),
-                          trailing: const StatusPill(status: 'BLOCKED'),
-                          onTap: () => context.push('/tasks/${task.id}'),
-                        ),
+                      SectionHeader(title: l10n.blockedTasks),
+                      GroupedCard(
+                        children: [
+                          for (final task in section.blockedTasks)
+                            TaskListTile(
+                              title: task.title,
+                              status: 'BLOCKED',
+                              grouped: true,
+                              onTap: () => context.push('/tasks/${task.id}'),
+                            ),
+                        ],
+                      ),
                     ],
                   ],
                 ],
@@ -118,9 +147,5 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         },
       ),
     );
-  }
-
-  Widget _statChip(String label, int value) {
-    return Chip(label: Text('$label · $value'));
   }
 }

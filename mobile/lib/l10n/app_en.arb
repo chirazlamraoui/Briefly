@@ -91,5 +91,15 @@
   "project": "Project",
   "resetLinkSent": "If that email exists, a reset link was sent.",
   "backToSignIn": "Back to sign in",
-  "none": "None"
+  "none": "None",
+  "signInHint": "Sign in to continue to your workspace.",
+  "profileSaved": "Profile saved.",
+  "passwordChanged": "Password updated.",
+  "somethingWentWrong": "Something went wrong.",
+  "editUser": "Edit user",
+  "editTeam": "Edit team",
+  "editProject": "Edit project",
+  "account": "Account",
+  "security": "Security",
+  "preferences": "Preferences"
 }

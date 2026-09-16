@@ -17,6 +17,7 @@ class BrieflyApp extends ConsumerWidget {
       return MaterialApp(
         theme: BrieflyTheme.light(),
         darkTheme: BrieflyTheme.dark(),
+        themeMode: ref.watch(themeModeProvider),
         home: const Scaffold(body: Center(child: CircularProgressIndicator())),
       );
     }
