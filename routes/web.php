@@ -66,9 +66,7 @@ Route::middleware('auth:web,sanctum')->group(function () {
 
     Route::middleware(EnsureNotAdmin::class)->group(function () {
         Route::get('/tasks', [MemberTaskController::class, 'index'])->name('tasks.index');
-        Route::redirect('/my-tasks', '/tasks');
         Route::get('/tasks/history', [MemberTaskController::class, 'history'])->name('tasks.history');
-        Route::redirect('/my-tasks/history', '/tasks/history');
         Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
         Route::patch('/tasks/{task}/progress', [TaskController::class, 'updateProgress'])->name('tasks.update-progress');
     });

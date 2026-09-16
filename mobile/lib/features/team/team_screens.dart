@@ -7,7 +7,6 @@ import '../../models/models.dart';
 import '../../providers/providers.dart';
 import '../../theme/briefly_theme.dart';
 import '../../widgets/widgets.dart';
-import '../tasks/task_screens.dart';
 
 class TeamTasksScreen extends ConsumerStatefulWidget {
   const TeamTasksScreen({super.key});

@@ -22,9 +22,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get password => 'Mot de passe';
 
   @override
-  String get rememberMe => 'Se souvenir de moi';
-
-  @override
   String get forgotPassword => 'Mot de passe oublié ?';
 
   @override
@@ -227,9 +224,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get retry => 'Réessayer';
 
   @override
-  String get cancel => 'Annuler';
-
-  @override
   String get save => 'Enregistrer';
 
   @override
@@ -260,22 +254,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get completionRate => 'Taux de completion';
 
   @override
-  String get doneThisWeek => 'Terminées cette semaine';
-
-  @override
   String get inProgress => 'En cours';
 
   @override
   String get blocked => 'Bloquées';
-
-  @override
-  String get updated => 'Mis à jour';
-
-  @override
-  String get team => 'Équipe';
-
-  @override
-  String get project => 'Projet';
 
   @override
   String get resetLinkSent => 'Si cet e-mail existe, un lien a été envoyé.';

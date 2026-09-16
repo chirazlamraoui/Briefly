@@ -22,9 +22,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get password => 'Password';
 
   @override
-  String get rememberMe => 'Remember me';
-
-  @override
   String get forgotPassword => 'Forgot password?';
 
   @override
@@ -227,9 +224,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get retry => 'Retry';
 
   @override
-  String get cancel => 'Cancel';
-
-  @override
   String get save => 'Save';
 
   @override
@@ -260,22 +254,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get completionRate => 'Completion rate';
 
   @override
-  String get doneThisWeek => 'Done this week';
-
-  @override
   String get inProgress => 'In progress';
 
   @override
   String get blocked => 'Blocked';
-
-  @override
-  String get updated => 'Updated';
-
-  @override
-  String get team => 'Team';
-
-  @override
-  String get project => 'Project';
 
   @override
   String get resetLinkSent => 'If that email exists, a reset link was sent.';

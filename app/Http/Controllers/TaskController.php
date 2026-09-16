@@ -99,7 +99,7 @@ class TaskController extends Controller
         $this->authorize('update', $task);
 
         $task->load(['project', 'assignee']);
-        $contextTeam = $this->contextTeamForTask($task);
+        $contextTeam = $this->contextTeamForProject($task->project);
 
         abort_if($contextTeam === null, 403);
 
@@ -116,7 +116,7 @@ class TaskController extends Controller
     {
         $this->authorize('update', $task);
 
-        $contextTeam = $this->contextTeamForTask($task);
+        $contextTeam = $this->contextTeamForProject($task->project);
 
         abort_if($contextTeam === null, 403);
 
@@ -138,15 +138,6 @@ class TaskController extends Controller
         return Team::query()
             ->whereIn('id', auth()->user()->managedTeamIds())
             ->whereHas('projects', fn ($query) => $query->where('projects.id', $project->id))
-            ->orderBy('name')
-            ->first();
-    }
-
-    private function contextTeamForTask(Task $task): ?Team
-    {
-        return Team::query()
-            ->whereIn('id', auth()->user()->managedTeamIds())
-            ->whereHas('projects', fn ($query) => $query->where('projects.id', $task->project_id))
             ->orderBy('name')
             ->first();
     }

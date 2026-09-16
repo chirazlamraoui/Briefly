@@ -42,19 +42,9 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
               return ListView(
                 padding: BrieflySpacing.page,
                 children: [
-                  BrieflyCard(
-                    child: Row(
-                      children: [
-                        CompletionRing(rate: data.completionRate),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Text(
-                            l10n.completionRate,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                          ),
-                        ),
-                      ],
-                    ),
+                  CompletionSummaryCard(
+                    rate: data.completionRate,
+                    label: l10n.completionRate,
                   ),
                   const SizedBox(height: 12),
                   BrieflyCard(

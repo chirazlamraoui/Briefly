@@ -15,12 +15,6 @@ class BrieflyColors {
 }
 
 class BrieflySpacing {
-  static const xs = 4.0;
-  static const sm = 8.0;
-  static const md = 12.0;
-  static const lg = 16.0;
-  static const xl = 24.0;
-  static const xxl = 32.0;
   static const page = EdgeInsets.fromLTRB(16, 12, 16, 24);
   static const pageWithFab = EdgeInsets.fromLTRB(16, 12, 16, 88);
   static const card = EdgeInsets.all(16);
@@ -216,21 +210,6 @@ class BrieflyTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
         titleTextStyle: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         subtitleTextStyle: textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
-      ),
-      navigationBarTheme: NavigationBarThemeData(
-        height: 68,
-        elevation: 0,
-        backgroundColor: scheme.surface,
-        indicatorColor: scheme.secondaryContainer,
-        surfaceTintColor: Colors.transparent,
-        labelPadding: const EdgeInsets.only(top: 2, bottom: 0),
-        labelTextStyle: WidgetStateProperty.resolveWith((states) {
-          return textTheme.labelSmall?.copyWith(
-            fontSize: 11,
-            height: 1.1,
-            fontWeight: states.contains(WidgetState.selected) ? FontWeight.w700 : FontWeight.w500,
-          );
-        }),
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,

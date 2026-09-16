@@ -9,17 +9,6 @@ import '../../providers/providers.dart';
 import '../../theme/briefly_theme.dart';
 import '../../widgets/widgets.dart';
 
-const taskStatuses = ['TODO', 'IN_PROGRESS', 'BLOCKED', 'DONE'];
-
-String statusLabel(AppLocalizations l10n, String status) {
-  return switch (status) {
-    'IN_PROGRESS' => l10n.statusInProgress,
-    'BLOCKED' => l10n.statusBlocked,
-    'DONE' => l10n.statusDone,
-    _ => l10n.statusTodo,
-  };
-}
-
 class TaskListScreen extends ConsumerStatefulWidget {
   const TaskListScreen({super.key});
 

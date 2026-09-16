@@ -7,6 +7,17 @@ import '../models/models.dart';
 import '../providers/providers.dart';
 import '../theme/briefly_theme.dart';
 
+const taskStatuses = ['TODO', 'IN_PROGRESS', 'BLOCKED', 'DONE'];
+
+String statusLabel(AppLocalizations l10n, String status) {
+  return switch (status) {
+    'IN_PROGRESS' => l10n.statusInProgress,
+    'BLOCKED' => l10n.statusBlocked,
+    'DONE' => l10n.statusDone,
+    _ => l10n.statusTodo,
+  };
+}
+
 class StatusPill extends StatelessWidget {
   const StatusPill({super.key, required this.status});
 
@@ -16,26 +27,22 @@ class StatusPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final (background, foreground, label) = switch (status) {
+    final (background, foreground) = switch (status) {
       'DONE' => (
           isDark ? const Color(0xFF14532D) : const Color(0xFFDCFCE7),
           isDark ? const Color(0xFF86EFAC) : const Color(0xFF166534),
-          l10n.statusDone,
         ),
       'IN_PROGRESS' => (
           isDark ? const Color(0xFF1E3A8A) : const Color(0xFFDBEAFE),
           isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8),
-          l10n.statusInProgress,
         ),
       'BLOCKED' => (
           isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEE2E2),
           isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C),
-          l10n.statusBlocked,
         ),
       _ => (
           isDark ? const Color(0xFF27272A) : const Color(0xFFF4F4F5),
           isDark ? const Color(0xFFA1A1AA) : const Color(0xFF3F3F46),
-          l10n.statusTodo,
         ),
     };
 
@@ -43,7 +50,7 @@ class StatusPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(BrieflyRadii.pill)),
       child: Text(
-        label,
+        statusLabel(l10n, status),
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: foreground,
               fontWeight: FontWeight.w700,
@@ -76,6 +83,46 @@ class CompletionRing extends StatelessWidget {
             backgroundColor: scheme.surfaceContainerHighest,
           ),
           Text('$rate%', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
+  }
+}
+
+class CompletionSummaryCard extends StatelessWidget {
+  const CompletionSummaryCard({super.key, required this.rate, required this.label, this.subtitle});
+
+  final int rate;
+  final String label;
+  final String? subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return BrieflyCard(
+      child: Row(
+        children: [
+          CompletionRing(rate: rate),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                if (subtitle != null && subtitle!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle!,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -384,6 +431,47 @@ class InitialAvatar extends StatelessWidget {
   }
 }
 
+class BrieflyListTile extends StatelessWidget {
+  const BrieflyListTile({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.leading,
+    this.trailing,
+    this.onTap,
+    this.grouped = false,
+  });
+
+  final String title;
+  final String? subtitle;
+  final Widget? leading;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+  final bool grouped;
+
+  @override
+  Widget build(BuildContext context) {
+    final tile = ListTile(
+      leading: leading,
+      title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: subtitle == null || subtitle!.isEmpty
+          ? null
+          : Text(subtitle!, maxLines: 1, overflow: TextOverflow.ellipsis),
+      trailing: trailing,
+      onTap: onTap,
+    );
+
+    if (grouped) {
+      return tile;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Card(child: tile),
+    );
+  }
+}
+
 class TaskListTile extends StatelessWidget {
   const TaskListTile({
     super.key,
@@ -402,22 +490,12 @@ class TaskListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tile = ListTile(
-      title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: subtitle == null || subtitle!.isEmpty
-          ? null
-          : Text(subtitle!, maxLines: 1, overflow: TextOverflow.ellipsis),
+    return BrieflyListTile(
+      title: title,
+      subtitle: subtitle,
       trailing: StatusPill(status: status),
       onTap: onTap,
-    );
-
-    if (grouped) {
-      return tile;
-    }
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Card(child: tile),
+      grouped: grouped,
     );
   }
 }
@@ -438,22 +516,14 @@ class RateListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tile = ListTile(
-      title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
+    return BrieflyListTile(
+      title: name,
       trailing: Text(
         '$rate%',
         style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
       ),
       onTap: onTap,
-    );
-
-    if (grouped) {
-      return tile;
-    }
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Card(child: tile),
+      grouped: grouped,
     );
   }
 }
@@ -476,19 +546,12 @@ class EntityListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Card(
-        child: ListTile(
-          leading: leading,
-          title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
-          subtitle: subtitle == null || subtitle!.isEmpty
-              ? null
-              : Text(subtitle!, maxLines: 1, overflow: TextOverflow.ellipsis),
-          trailing: trailing ?? const Icon(Icons.chevron_right),
-          onTap: onTap,
-        ),
-      ),
+    return BrieflyListTile(
+      title: title,
+      subtitle: subtitle,
+      leading: leading,
+      trailing: trailing ?? const Icon(Icons.chevron_right),
+      onTap: onTap,
     );
   }
 }

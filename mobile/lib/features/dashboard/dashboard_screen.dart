@@ -31,7 +31,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.dashboard)),
@@ -45,29 +44,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               return ListView(
                 padding: BrieflySpacing.page,
                 children: [
-                  BrieflyCard(
-                    child: Row(
-                      children: [
-                        CompletionRing(rate: data.overallRate),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l10n.myCompletionRate,
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${data.doneCount}/${data.totalCount}',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                  CompletionSummaryCard(
+                    rate: data.overallRate,
+                    label: l10n.myCompletionRate,
+                    subtitle: '${data.doneCount}/${data.totalCount}',
                   ),
                   const SizedBox(height: 8),
                   SectionHeader(title: l10n.myTasks),
@@ -80,10 +60,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       children: [
                         for (final row in data.tasks.take(5))
                           TaskListTile(
-                            title: row.task.title,
-                            subtitle: row.task.project?.name,
-                            status: row.task.status,
-                            onTap: () => context.push('/tasks/${row.task.id}'),
+                            title: row.title,
+                            subtitle: row.project?.name,
+                            status: row.status,
+                            onTap: () => context.push('/tasks/${row.id}'),
                             grouped: true,
                           ),
                       ],

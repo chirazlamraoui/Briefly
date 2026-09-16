@@ -45,10 +45,6 @@ class LoginController extends Controller
 
         $user = auth()->user();
 
-        if (! $user->isAdmin()) {
-            $user->primaryTeam();
-        }
-
         if ($request->expectsJson()) {
             $user->load('teams');
 

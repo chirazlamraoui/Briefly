@@ -25,7 +25,6 @@ class MemberTaskController extends Controller
 
         return $this->respond($request, view('tasks.index', [
             'tasks' => $tasks,
-            'grouped' => $tasks->groupBy(fn ($task) => $task->status->value),
             'taskService' => $this->taskService,
             'user' => $user,
         ]), TaskResource::collection($tasks));

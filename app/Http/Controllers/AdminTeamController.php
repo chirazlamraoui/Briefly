@@ -69,7 +69,6 @@ class AdminTeamController extends Controller
         return $this->respond($request, view('admin.teams.edit', compact(
             'team',
             'users',
-            'members',
             'projects',
             'selectedUserIds',
             'selectedProjectIds',

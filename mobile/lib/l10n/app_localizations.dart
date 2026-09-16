@@ -122,12 +122,6 @@ abstract class AppLocalizations {
   /// **'Password'**
   String get password;
 
-  /// No description provided for @rememberMe.
-  ///
-  /// In en, this message translates to:
-  /// **'Remember me'**
-  String get rememberMe;
-
   /// No description provided for @forgotPassword.
   ///
   /// In en, this message translates to:
@@ -530,12 +524,6 @@ abstract class AppLocalizations {
   /// **'Retry'**
   String get retry;
 
-  /// No description provided for @cancel.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
-  String get cancel;
-
   /// No description provided for @save.
   ///
   /// In en, this message translates to:
@@ -596,12 +584,6 @@ abstract class AppLocalizations {
   /// **'Completion rate'**
   String get completionRate;
 
-  /// No description provided for @doneThisWeek.
-  ///
-  /// In en, this message translates to:
-  /// **'Done this week'**
-  String get doneThisWeek;
-
   /// No description provided for @inProgress.
   ///
   /// In en, this message translates to:
@@ -613,24 +595,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Blocked'**
   String get blocked;
-
-  /// No description provided for @updated.
-  ///
-  /// In en, this message translates to:
-  /// **'Updated'**
-  String get updated;
-
-  /// No description provided for @team.
-  ///
-  /// In en, this message translates to:
-  /// **'Team'**
-  String get team;
-
-  /// No description provided for @project.
-  ///
-  /// In en, this message translates to:
-  /// **'Project'**
-  String get project;
 
   /// No description provided for @resetLinkSent.
   ///

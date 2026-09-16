@@ -96,7 +96,7 @@ class ApiClient {
     final data = await _send('GET', '/dashboard');
     final progress = _asMap(data['personal_progress']);
     final tasks = (progress['tasks'] as List? ?? []).whereType<Map<String, dynamic>>().map((row) {
-      return (task: AppTask.fromJson(_asMap(row['task'])), rate: row['rate'] as int? ?? 0);
+      return AppTask.fromJson(_asMap(row['task'] ?? row));
     }).toList();
 
     final ledTeams = (data['led_teams'] as List? ?? []).whereType<Map<String, dynamic>>().map((row) {
@@ -113,7 +113,6 @@ class ApiClient {
     }).toList();
 
     return DashboardData(
-      today: data['today'] as String? ?? '',
       overallRate: progress['overall_rate'] as int? ?? 0,
       doneCount: progress['done_count'] as int? ?? 0,
       totalCount: progress['total_count'] as int? ?? 0,
@@ -262,15 +261,12 @@ class ApiClient {
     final chart = _asMap(completion['status_chart']);
 
     return AdminDashboardData(
-      stats: _asMap(data['stats']),
       completionRate: completion['overall_rate'] as int? ?? 0,
       statusLabels: (chart['labels'] as List? ?? []).map((item) => item.toString()).toList(),
       statusValues: (chart['values'] as List? ?? []).map((item) => item as int).toList(),
       statusColors: (chart['colors'] as List? ?? []).map((item) => item.toString()).toList(),
       teamRates: _mapList(completion['team_rates'], RateRow.fromJson),
       projectRates: _mapList(completion['project_rates'], RateRow.fromJson),
-      teams: _mapList(data['teams'], AppTeam.fromJson),
-      projects: _mapList(data['projects'], AppProject.fromJson),
     );
   }
 

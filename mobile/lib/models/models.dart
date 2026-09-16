@@ -5,7 +5,6 @@ class AppUser {
     required this.email,
     required this.role,
     this.jobTitle,
-    this.teamId,
     this.isTeamLead = false,
     this.teams = const [],
   });
@@ -15,7 +14,6 @@ class AppUser {
   final String email;
   final String role;
   final String? jobTitle;
-  final int? teamId;
   final bool isTeamLead;
   final List<AppTeam> teams;
 
@@ -29,7 +27,6 @@ class AppUser {
       email: json['email'] as String? ?? '',
       role: json['role'] as String,
       jobTitle: json['job_title'] as String?,
-      teamId: json['team_id'] as int?,
       isTeamLead: json['is_team_lead'] == true,
       teams: _mapList(json['teams'], AppTeam.fromJson),
     );
@@ -40,23 +37,17 @@ class AppTeam {
   const AppTeam({
     required this.id,
     required this.name,
-    this.isTeamLead,
-    this.memberCount,
     this.teamLead,
   });
 
   final int id;
   final String name;
-  final bool? isTeamLead;
-  final int? memberCount;
   final AppUser? teamLead;
 
   factory AppTeam.fromJson(Map<String, dynamic> json) {
     return AppTeam(
       id: json['id'] as int,
       name: json['name'] as String,
-      isTeamLead: json['is_team_lead'] as bool?,
-      memberCount: json['member_count'] as int?,
       teamLead: json['team_lead'] is Map<String, dynamic>
           ? AppUser.fromJson(json['team_lead'] as Map<String, dynamic>)
           : null,
@@ -186,20 +177,16 @@ class AppTaskUpdate {
 }
 
 class RateRow {
-  const RateRow({required this.name, required this.total, required this.done, required this.rate, this.id});
+  const RateRow({required this.name, required this.rate, this.id});
 
   final int? id;
   final String name;
-  final int total;
-  final int done;
   final int rate;
 
   factory RateRow.fromJson(Map<String, dynamic> json) {
     return RateRow(
       id: json['id'] as int?,
       name: json['name'] as String,
-      total: json['total'] as int? ?? 0,
-      done: json['done'] as int? ?? 0,
       rate: json['rate'] as int? ?? 0,
     );
   }
@@ -207,7 +194,6 @@ class RateRow {
 
 class DashboardData {
   const DashboardData({
-    required this.today,
     required this.overallRate,
     required this.doneCount,
     required this.totalCount,
@@ -215,11 +201,10 @@ class DashboardData {
     required this.ledTeams,
   });
 
-  final String today;
   final int overallRate;
   final int doneCount;
   final int totalCount;
-  final List<({AppTask task, int rate})> tasks;
+  final List<AppTask> tasks;
   final List<LedTeamSection> ledTeams;
 }
 
@@ -241,26 +226,20 @@ class LedTeamSection {
 
 class AdminDashboardData {
   const AdminDashboardData({
-    required this.stats,
     required this.completionRate,
     required this.statusLabels,
     required this.statusValues,
     required this.statusColors,
     required this.teamRates,
     required this.projectRates,
-    required this.teams,
-    required this.projects,
   });
 
-  final Map<String, dynamic> stats;
   final int completionRate;
   final List<String> statusLabels;
   final List<int> statusValues;
   final List<String> statusColors;
   final List<RateRow> teamRates;
   final List<RateRow> projectRates;
-  final List<AppTeam> teams;
-  final List<AppProject> projects;
 }
 
 class PaginatedUpdates {

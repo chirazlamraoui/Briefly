@@ -45,13 +45,9 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  Future<void> login(String email, String password, {bool remember = true}) async {
+  Future<void> login(String email, String password) async {
     final result = await ref.read(apiClientProvider).login(email, password);
-    if (remember) {
-      await ref.read(tokenStorageProvider).write(result.token);
-    } else {
-      await ref.read(tokenStorageProvider).write(result.token);
-    }
+    await ref.read(tokenStorageProvider).write(result.token);
     state = AuthState(user: result.user, loading: false);
   }
 

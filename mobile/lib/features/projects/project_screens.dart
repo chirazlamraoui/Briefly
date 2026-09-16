@@ -133,6 +133,24 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
+                  SectionHeader(title: l10n.members),
+                  if (data.members.isEmpty)
+                    BrieflyCard(
+                      child: EmptyState(message: l10n.emptyUsers, icon: Icons.group_outlined, compact: true),
+                    )
+                  else
+                    GroupedCard(
+                      children: [
+                        for (final member in data.members)
+                          BrieflyListTile(
+                            title: member.name,
+                            subtitle: member.jobTitle,
+                            leading: InitialAvatar(name: member.name),
+                            grouped: true,
+                          ),
+                      ],
+                    ),
+                  const SizedBox(height: 8),
                   SectionHeader(title: l10n.tasks),
                   if (data.tasks.isEmpty)
                     BrieflyCard(

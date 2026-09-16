@@ -18,7 +18,6 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
-  bool _remember = true;
   bool _loading = false;
   String? _error;
 
@@ -37,7 +36,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     try {
-      await ref.read(authProvider.notifier).login(_email.text.trim(), _password.text, remember: _remember);
+      await ref.read(authProvider.notifier).login(_email.text.trim(), _password.text);
     } on ApiException catch (error) {
       setState(() => _error = error.firstFieldError('email') ?? error.message);
     } catch (_) {
@@ -108,13 +107,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         }
                       },
                       decoration: InputDecoration(labelText: l10n.password),
-                    ),
-                    CheckboxListTile(
-                      value: _remember,
-                      onChanged: (value) => setState(() => _remember = value ?? true),
-                      title: Text(l10n.rememberMe),
-                      contentPadding: EdgeInsets.zero,
-                      controlAffinity: ListTileControlAffinity.leading,
                     ),
                     if (_error != null) ...[
                       FormBanner.error(_error!),
