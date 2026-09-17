@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureAdmin
 {
+    /** Only administrators may open /admin. */
     public function handle(Request $request, Closure $next): Response
     {
         if (! $request->user()?->isAdmin()) {

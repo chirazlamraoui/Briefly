@@ -10,18 +10,15 @@ use App\Http\Resources\TeamResource;
 use App\Http\Resources\UserResource;
 use App\Models\Team;
 use App\Services\AdminTeamService;
-use App\Services\AdminUserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/** Admin create / edit teams. */
 class AdminTeamController extends Controller
 {
-    public function __construct(
-        private AdminTeamService $adminTeamService,
-        private AdminUserService $adminUserService,
-    ) {}
+    public function __construct(private AdminTeamService $adminTeamService) {}
 
     public function index(Request $request): View|JsonResponse
     {

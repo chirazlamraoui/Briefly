@@ -8,6 +8,7 @@ import '../../providers/providers.dart';
 import '../../theme/briefly_theme.dart';
 import '../../widgets/widgets.dart';
 
+/// Home after login. Loads GET /dashboard.
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
@@ -71,15 +72,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   for (final section in data.ledTeams) ...[
                     const SizedBox(height: 16),
                     SectionHeader(title: section.team.name),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        StatChip(label: l10n.inProgress, value: section.stats['in_progress'] ?? 0),
-                        StatChip(label: l10n.blocked, value: section.stats['blocked'] ?? 0),
-                        StatChip(label: l10n.statusDone, value: section.stats['done'] ?? 0),
-                      ],
-                    ),
+                    TaskStatsChips(stats: section.stats),
                     const SizedBox(height: 8),
                     SectionHeader(title: l10n.memberProgress),
                     GroupedCard(

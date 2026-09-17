@@ -14,6 +14,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/** Admin create / edit projects. */
 class AdminProjectController extends Controller
 {
     public function __construct(private AdminProjectService $adminProjectService) {}

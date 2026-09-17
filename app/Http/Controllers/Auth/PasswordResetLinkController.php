@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\View\View;
 
+/** Send a reset-password email. Same URL for browser and phone. */
 class PasswordResetLinkController extends Controller
 {
     public function create(): View

@@ -10,6 +10,7 @@ use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
+    // One route file for the website and the phone (no /api prefix).
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
@@ -33,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Phone asked for JSON, so errors stay JSON instead of an HTML page.
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->expectsJson(),
         );

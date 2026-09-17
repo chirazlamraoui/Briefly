@@ -15,6 +15,10 @@ abstract class Controller
     use AuthorizesRequests;
 
     /**
+     * One action, two answers:
+     * - Browser (normal visit) → HTML page or redirect.
+     * - Phone (Accept: application/json) → JSON.
+     *
      * @param  array<string, mixed>|JsonResource|ResourceCollection|JsonResponse  $json
      */
     protected function respond(

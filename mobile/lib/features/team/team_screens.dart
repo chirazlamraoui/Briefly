@@ -8,6 +8,7 @@ import '../../providers/providers.dart';
 import '../../theme/briefly_theme.dart';
 import '../../widgets/widgets.dart';
 
+/// Team-lead: all team tasks and one member's page.
 class TeamTasksScreen extends ConsumerStatefulWidget {
   const TeamTasksScreen({super.key});
 
@@ -66,15 +67,7 @@ class _TeamTasksScreenState extends ConsumerState<TeamTasksScreen> {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            StatChip(label: l10n.inProgress, value: data.stats['in_progress'] ?? 0),
-                            StatChip(label: l10n.blocked, value: data.stats['blocked'] ?? 0),
-                            StatChip(label: l10n.statusDone, value: data.stats['done'] ?? 0),
-                          ],
-                        ),
+                        TaskStatsChips(stats: data.stats),
                       ],
                     ),
                   ),
@@ -122,7 +115,6 @@ class _TeamMemberScreenState extends ConsumerState<TeamMemberScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
 
     return FutureBuilder(
       future: _future,
@@ -136,30 +128,7 @@ class _TeamMemberScreenState extends ConsumerState<TeamMemberScreen> {
               body: ListView(
                 padding: BrieflySpacing.page,
                 children: [
-                  BrieflyCard(
-                    child: Row(
-                      children: [
-                        InitialAvatar(name: data.user.name, radius: 28),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                data.user.name,
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                              ),
-                              if (data.user.jobTitle != null)
-                                Text(
-                                  data.user.jobTitle!,
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  UserHeaderCard(name: data.user.name, jobTitle: data.user.jobTitle),
                   const SizedBox(height: 8),
                   SectionHeader(title: l10n.tasks),
                   if (data.tasks.isEmpty)

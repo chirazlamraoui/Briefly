@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
+ * JSON shape of one progress update for the phone.
+ *
  * @mixin TaskUpdate
  */
 class TaskUpdateResource extends JsonResource

@@ -7,6 +7,7 @@ import '../../providers/providers.dart';
 import '../../theme/briefly_theme.dart';
 import '../../widgets/widgets.dart';
 
+/// Name, email, password, language, and theme.
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
@@ -65,12 +66,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Future<void> _changePassword() async {
     final l10n = AppLocalizations.of(context)!;
-    if (_password.text.length < 8) {
-      setState(() => _error = l10n.passwordMinLength);
-      return;
-    }
-    if (_password.text != _confirm.text) {
-      setState(() => _error = l10n.passwordsDoNotMatch);
+    final error = passwordPairError(_password.text, _confirm.text, l10n);
+    if (error != null) {
+      setState(() => _error = error);
       return;
     }
 
@@ -106,37 +104,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final locale = ref.watch(localeProvider);
     final themeMode = ref.watch(themeModeProvider);
     final user = ref.watch(authProvider).user;
-    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.profile)),
       body: ListView(
         padding: BrieflySpacing.page,
         children: [
-          BrieflyCard(
-            child: Row(
-              children: [
-                InitialAvatar(name: user?.name ?? '', radius: 28),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        user?.name ?? '',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                      ),
-                      if (user?.jobTitle != null)
-                        Text(
-                          user!.jobTitle!,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
+          UserHeaderCard(name: user?.name ?? '', jobTitle: user?.jobTitle),
           const SizedBox(height: 8),
           if (_error != null) ...[
             FormBanner.error(_error!),

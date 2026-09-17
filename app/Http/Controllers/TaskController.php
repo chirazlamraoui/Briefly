@@ -17,6 +17,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/** Open a task, update progress, or (team lead) create/edit a task. */
 class TaskController extends Controller
 {
     public function __construct(private TaskService $taskService) {}

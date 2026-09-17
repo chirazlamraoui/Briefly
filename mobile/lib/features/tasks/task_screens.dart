@@ -9,6 +9,7 @@ import '../../providers/providers.dart';
 import '../../theme/briefly_theme.dart';
 import '../../widgets/widgets.dart';
 
+/// My tasks, history, detail, and the create/edit form.
 class TaskListScreen extends ConsumerStatefulWidget {
   const TaskListScreen({super.key});
 

@@ -12,8 +12,33 @@ import '../features/team/team_screens.dart';
 import '../providers/providers.dart';
 import '../widgets/widgets.dart';
 
+const _guestPages = ['/login', '/forgot-password', '/reset-password'];
+
 final _rootKey = GlobalKey<NavigatorState>();
 final _shellKey = GlobalKey<NavigatorState>();
+
+/// Send guests to login, send logged-in people off the login page, keep admins in /admin.
+String? _whereToGo(AuthState auth, String path) {
+  if (auth.loading) {
+    return null;
+  }
+
+  final onGuestPage = _guestPages.contains(path);
+
+  if (!auth.isAuthenticated) {
+    return onGuestPage ? null : '/login';
+  }
+
+  if (onGuestPage) {
+    return auth.user!.isAdmin ? '/admin' : '/dashboard';
+  }
+
+  if (auth.user!.isAdmin && (path == '/dashboard' || path == '/tasks')) {
+    return '/admin';
+  }
+
+  return null;
+}
 
 final routerProvider = Provider<GoRouter>((ref) {
   final refresh = ValueNotifier<int>(0);
@@ -24,30 +49,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     navigatorKey: _rootKey,
     initialLocation: '/dashboard',
     refreshListenable: refresh,
-    redirect: (context, state) {
-      final auth = ref.read(authProvider);
-      if (auth.loading) {
-        return null;
-      }
-
-      final loggingIn = state.matchedLocation == '/login' ||
-          state.matchedLocation == '/forgot-password' ||
-          state.matchedLocation == '/reset-password';
-
-      if (!auth.isAuthenticated) {
-        return loggingIn ? null : '/login';
-      }
-
-      if (loggingIn) {
-        return auth.user!.isAdmin ? '/admin' : '/dashboard';
-      }
-
-      if (auth.user!.isAdmin && (state.matchedLocation == '/dashboard' || state.matchedLocation == '/tasks')) {
-        return '/admin';
-      }
-
-      return null;
-    },
+    redirect: (context, state) => _whereToGo(ref.read(authProvider), state.matchedLocation),
     routes: [
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(path: '/forgot-password', builder: (context, state) => const ForgotPasswordScreen()),

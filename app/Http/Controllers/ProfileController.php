@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
+/** Name, email, and password. GET /profile is also how the phone reloads the user. */
 class ProfileController extends Controller
 {
     public function edit(Request $request): View|JsonResponse

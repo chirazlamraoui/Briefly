@@ -14,6 +14,9 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
+/**
+ * Website login uses a cookie. Phone login uses HasApiTokens (Sanctum).
+ */
 #[Fillable(['name', 'job_title', 'email', 'password', 'role', 'team_id'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
@@ -51,15 +54,6 @@ class User extends Authenticatable
         return $team;
     }
 
-    public function teamLabel(): string
-    {
-        if ($this->isAdmin()) {
-            return __('All teams');
-        }
-
-        return $this->primaryTeam()?->name ?? __('No team');
-    }
-
     public function teamsSummary(): string
     {
         $teams = $this->relationLoaded('teams')
@@ -79,11 +73,6 @@ class User extends Authenticatable
         }
 
         return __(':count teams', ['count' => $teams->count()]);
-    }
-
-    public function primaryTeamId(): ?int
-    {
-        return $this->primaryTeam()?->id;
     }
 
     public function teams(): BelongsToMany
@@ -116,20 +105,6 @@ class User extends Authenticatable
             ->all();
     }
 
-    public function managesTeam(?int $teamId): bool
-    {
-        if ($teamId === null) {
-            return false;
-        }
-
-        return $this->isTeamLeadOf($teamId);
-    }
-
-    public function assignedTasks(): HasMany
-    {
-        return $this->hasMany(Task::class, 'assigned_to');
-    }
-
     public function taskUpdates(): HasMany
     {
         return $this->hasMany(TaskUpdate::class);
@@ -138,11 +113,6 @@ class User extends Authenticatable
     public function isTeamLead(): bool
     {
         return $this->teams()->wherePivot('is_team_lead', true)->exists();
-    }
-
-    public function isMember(): bool
-    {
-        return $this->role === UserRole::Member;
     }
 
     public function isAdmin(): bool
@@ -165,36 +135,5 @@ class User extends Authenticatable
         }
 
         return $this->teams()->where('teams.id', $teamId)->exists();
-    }
-
-    public function syncTeams(array $teamIds): void
-    {
-        $teamIds = collect($teamIds)->filter()->unique()->values()->all();
-        $currentIds = $this->teams()->pluck('teams.id')->all();
-
-        $toAttach = array_values(array_diff($teamIds, $currentIds));
-        $toDetach = array_values(array_diff($currentIds, $teamIds));
-
-        if ($toAttach !== []) {
-            $attachData = collect($toAttach)
-                ->mapWithKeys(fn (int $teamId) => [$teamId => ['is_team_lead' => false]])
-                ->all();
-
-            $this->teams()->attach($attachData);
-        }
-
-        if ($toDetach !== []) {
-            $this->teams()->detach($toDetach);
-        }
-
-        if ($teamIds === []) {
-            $this->update(['team_id' => null]);
-
-            return;
-        }
-
-        if (! in_array((int) $this->team_id, array_map('intval', $teamIds), true)) {
-            $this->update(['team_id' => $teamIds[0]]);
-        }
     }
 }

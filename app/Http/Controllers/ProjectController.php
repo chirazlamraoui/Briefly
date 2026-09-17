@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/** Team-lead project list and project detail. */
 class ProjectController extends Controller
 {
     public function __construct(private TaskService $taskService) {}

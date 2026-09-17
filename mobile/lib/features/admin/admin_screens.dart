@@ -10,6 +10,7 @@ import '../../providers/providers.dart';
 import '../../theme/briefly_theme.dart';
 import '../../widgets/widgets.dart';
 
+/// Admin home, users, teams, and projects. Same /admin URLs as the website.
 class AdminDashboardScreen extends ConsumerStatefulWidget {
   const AdminDashboardScreen({super.key});
 

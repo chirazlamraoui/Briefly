@@ -14,6 +14,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/** Admin create / edit people. */
 class AdminUserController extends Controller
 {
     public function __construct(private AdminUserService $adminUserService) {}

@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Enums\TaskStatus;
-use App\Enums\UserRole;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\Team;
@@ -150,20 +149,6 @@ class AdminService
             'task_count' => Task::count(),
             'task_status_counts' => $taskStatusCounts,
         ];
-    }
-
-    /**
-     * @return Collection<int, Team>
-     */
-    public function teamsOverview(): Collection
-    {
-        return Team::query()
-            ->withCount([
-                'assignedUsers as member_count' => fn ($query) => $query->where('role', UserRole::Member),
-            ])
-            ->with(['teamLead'])
-            ->orderBy('name')
-            ->get();
     }
 
     /**

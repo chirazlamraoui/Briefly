@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureNotAdmin
 {
+    /** Admins stay in /admin. Members and leads use /tasks. */
     public function handle(Request $request, Closure $next): Response
     {
         if ($request->user()?->isAdmin()) {

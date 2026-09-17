@@ -7,6 +7,7 @@ import 'providers/providers.dart';
 import 'router/app_router.dart';
 import 'theme/briefly_theme.dart';
 
+/// Theme, French/English, and which screen to show.
 class BrieflyApp extends ConsumerWidget {
   const BrieflyApp({super.key});
 

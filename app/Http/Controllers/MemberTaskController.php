@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/** A member's task list and progress history. */
 class MemberTaskController extends Controller
 {
     public function __construct(private TaskService $taskService) {}
@@ -23,10 +24,9 @@ class MemberTaskController extends Controller
             $task->setAttribute('team_label', $this->taskService->teamLabelForTask($task, $user));
         });
 
+        // Browser → tasks/index.blade.php. Phone → TaskResource JSON.
         return $this->respond($request, view('tasks.index', [
             'tasks' => $tasks,
-            'taskService' => $this->taskService,
-            'user' => $user,
         ]), TaskResource::collection($tasks));
     }
 

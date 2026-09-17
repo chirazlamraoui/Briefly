@@ -29,16 +29,6 @@ enum TaskStatus: string
         };
     }
 
-    public function badgeClass(): string
-    {
-        return match ($this) {
-            self::Todo => 'secondary',
-            self::InProgress => 'primary',
-            self::Blocked => 'danger',
-            self::Done => 'success',
-        };
-    }
-
     public function progressPercent(): int
     {
         return match ($this) {

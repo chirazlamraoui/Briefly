@@ -68,7 +68,7 @@
 
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3 mt-2">
         <h2 class="h6 mb-0">{{ $team->name }}</h2>
-        <a href="{{ route('team.tasks', ['team' => $team->id]) }}" class="btn btn-sm btn-outline-primary">{{ __('Team Tasks') }}</a>
+        <a href="{{ route('team.tasks') }}" class="btn btn-sm btn-outline-primary">{{ __('Team Tasks') }}</a>
     </div>
 
     <div class="row g-3 mb-4">
@@ -140,7 +140,7 @@
         <div class="card mb-5">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span>{{ __('Blocked tasks') }}</span>
-                <a href="{{ route('team.tasks', ['team' => $team->id, 'status' => \App\Enums\TaskStatus::Blocked->value]) }}" class="btn btn-sm btn-outline-primary">{{ __('View all') }}</a>
+                <a href="{{ route('team.tasks', ['status' => \App\Enums\TaskStatus::Blocked->value]) }}" class="btn btn-sm btn-outline-primary">{{ __('View all') }}</a>
             </div>
             <div class="list-group list-group-flush">
                 @foreach($blockedTasks as $task)

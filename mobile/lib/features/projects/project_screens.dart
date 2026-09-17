@@ -8,6 +8,7 @@ import '../../providers/providers.dart';
 import '../../theme/briefly_theme.dart';
 import '../../widgets/widgets.dart';
 
+/// Team-lead projects. Loads GET /projects.
 class ProjectListScreen extends ConsumerStatefulWidget {
   const ProjectListScreen({super.key});
 

@@ -22,9 +22,4 @@ class ProjectPolicy
             ->whereIn('teams.id', $user->managedTeamIds())
             ->exists();
     }
-
-    public function create(User $user): bool
-    {
-        return false;
-    }
 }

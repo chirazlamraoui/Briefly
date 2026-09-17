@@ -11,6 +11,11 @@ class VerifyCsrfToken extends Middleware
      */
     protected $except = [];
 
+    /**
+     * The website sends a hidden CSRF field. The phone cannot.
+     * Skip CSRF when the phone already proved itself with a Bearer token,
+     * or when it is posting JSON to login / password reset.
+     */
     protected function inExceptArray($request): bool
     {
         if ($request->bearerToken()) {

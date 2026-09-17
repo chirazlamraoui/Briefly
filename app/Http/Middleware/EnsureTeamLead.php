@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureTeamLead
 {
+    /** Projects and team monitoring are for team leads. */
     public function handle(Request $request, Closure $next): Response
     {
         if (! $request->user()?->isTeamLead()) {

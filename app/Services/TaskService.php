@@ -10,6 +10,7 @@ use App\Models\TaskUpdate;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
@@ -107,15 +108,6 @@ class TaskService
         }
     }
 
-    public function ensureTaskAssignedToUser(Task $task, User $user): void
-    {
-        if ($task->assigned_to !== $user->id) {
-            throw ValidationException::withMessages([
-                'task_id' => __('The selected task is invalid.'),
-            ]);
-        }
-    }
-
     /**
      * @return array{total: int, in_progress: int, blocked: int, done: int, done_this_week: int}
      */
@@ -127,14 +119,8 @@ class TaskService
     /**
      * @return array{total: int, in_progress: int, blocked: int, done: int, done_this_week: int}
      */
-    public function teamTaskStatsForManagedTeams(User $user, ?int $teamId = null): array
+    public function teamTaskStatsForManagedTeams(User $user): array
     {
-        if ($teamId !== null) {
-            abort_unless(in_array($teamId, $user->managedTeamIds(), true), 403);
-
-            return $this->teamTaskStats(Team::query()->findOrFail($teamId));
-        }
-
         $tasks = $this->tasksForManagedTeams($user)->pluck('task');
 
         return $this->completionStatsForTasks($tasks);
@@ -159,7 +145,7 @@ class TaskService
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Builder<Task>
+     * @return Builder<Task>
      */
     public function teamTasksQuery(Team $team)
     {
@@ -176,16 +162,9 @@ class TaskService
     /**
      * @return Collection<int, array{task: Task, team: Team}>
      */
-    public function tasksForManagedTeams(User $user, ?TaskStatus $status = null, ?int $teamId = null): Collection
+    public function tasksForManagedTeams(User $user, ?TaskStatus $status = null): Collection
     {
-        $teamIds = $teamId !== null
-            ? [$teamId]
-            : $user->managedTeamIds();
-
-        if ($teamId !== null && ! in_array($teamId, $user->managedTeamIds(), true)) {
-            return collect();
-        }
-
+        $teamIds = $user->managedTeamIds();
         $rows = collect();
 
         foreach ($teamIds as $managedTeamId) {

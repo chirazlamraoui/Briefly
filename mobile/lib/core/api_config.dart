@@ -2,6 +2,11 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 
+/// Where the phone should call Laravel (the same site as the browser).
+///
+/// A real iPhone cannot use 127.0.0.1 (that is the phone itself).
+/// Pass the Mac Wi-Fi address:
+/// `--dart-define=API_BASE_URL=http://10.x.x.x:8000`
 class ApiConfig {
   static String get baseUrl {
     const fromEnv = String.fromEnvironment('API_BASE_URL');

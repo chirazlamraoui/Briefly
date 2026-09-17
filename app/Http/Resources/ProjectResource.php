@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
+ * JSON shape of a project for the phone.
+ *
  * @mixin Project
  */
 class ProjectResource extends JsonResource

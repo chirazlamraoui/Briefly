@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
+ * JSON shape of a task for the phone.
+ *
  * @mixin Task
  */
 class TaskResource extends JsonResource
@@ -30,7 +32,6 @@ class TaskResource extends JsonResource
             'assignee' => new UserResource($this->whenLoaded('assignee')),
             'updates' => TaskUpdateResource::collection($this->whenLoaded('updates')),
             'team_label' => $this->when(array_key_exists('team_label', $this->resource->getAttributes()), $this->team_label),
-            'team' => new TeamResource($this->when(isset($this->team_context), $this->team_context)),
         ];
     }
 }

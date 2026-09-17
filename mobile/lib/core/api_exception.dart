@@ -1,8 +1,8 @@
+/// Laravel sent an error (422 validation, 403 forbidden, network, ...).
 class ApiException implements Exception {
-  ApiException(this.message, {this.statusCode, this.fieldErrors = const {}});
+  ApiException(this.message, {this.fieldErrors = const {}});
 
   final String message;
-  final int? statusCode;
   final Map<String, List<String>> fieldErrors;
 
   String? firstFieldError(String field) {

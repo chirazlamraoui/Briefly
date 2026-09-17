@@ -21,10 +21,16 @@ use App\Http\Middleware\EnsureTeamLead;
 use App\Models\Team;
 use Illuminate\Support\Facades\Route;
 
+/*
+| Website and phone use these same URLs.
+| Browser gets HTML. Phone sends Accept: application/json and gets JSON.
+*/
+
 Route::get('/', fn () => redirect()->route('login'));
 
 Route::get('/locale/{locale}', [LocaleController::class, 'switch'])->name('locale.switch');
 
+// Anyone not logged in
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
@@ -36,10 +42,12 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.update');
 });
 
+// Cookie (website) or Sanctum token (phone)
 Route::middleware('auth:web,sanctum')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Admin only
     Route::middleware(EnsureAdmin::class)->prefix('admin')->name('admin.')->group(function () {
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::get('/projects', [AdminProjectController::class, 'index'])->name('projects.index');
@@ -64,6 +72,7 @@ Route::middleware('auth:web,sanctum')->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
 
+    // Members and team leads (not admin)
     Route::middleware(EnsureNotAdmin::class)->group(function () {
         Route::get('/tasks', [MemberTaskController::class, 'index'])->name('tasks.index');
         Route::get('/tasks/history', [MemberTaskController::class, 'history'])->name('tasks.history');
@@ -71,6 +80,7 @@ Route::middleware('auth:web,sanctum')->group(function () {
         Route::patch('/tasks/{task}/progress', [TaskController::class, 'updateProgress'])->name('tasks.update-progress');
     });
 
+    // Team leads only
     Route::middleware(EnsureTeamLead::class)->group(function () {
         Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
         Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');

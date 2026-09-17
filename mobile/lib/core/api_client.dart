@@ -5,6 +5,8 @@ import 'api_config.dart';
 import 'api_exception.dart';
 import 'token_storage.dart';
 
+/// Calls the same URLs as the website (`routes/web.php`).
+/// Always asks for JSON. Attaches the saved login token on every request.
 class ApiClient {
   ApiClient({required this._tokenStorage, Dio? dio})
       : _dio = dio ??
@@ -18,7 +20,6 @@ class ApiClient {
                 validateStatus: (status) => status != null && status < 500,
               ),
             ) {
-
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
@@ -106,9 +107,9 @@ class ApiClient {
         stats: Map<String, int>.from(
           (_asMap(row['stats'])).map((key, value) => MapEntry(key, value as int? ?? 0)),
         ),
-        memberRates: _mapList(progressMap['member_rates'], RateRow.fromJson),
-        projectRates: _mapList(progressMap['project_rates'], RateRow.fromJson),
-        blockedTasks: _mapList(row['blocked_tasks'], AppTask.fromJson),
+        memberRates: mapJsonList(progressMap['member_rates'], RateRow.fromJson),
+        projectRates: mapJsonList(progressMap['project_rates'], RateRow.fromJson),
+        blockedTasks: mapJsonList(row['blocked_tasks'], AppTask.fromJson),
       );
     }).toList();
 
@@ -123,19 +124,12 @@ class ApiClient {
 
   Future<List<AppTask>> tasks() async {
     final data = await _send('GET', '/tasks');
-    return _mapList(_unwrapList(data), AppTask.fromJson);
+    return mapJsonList(_laravelList(data), AppTask.fromJson);
   }
 
-  Future<PaginatedUpdates> taskHistory({int page = 1}) async {
-    final data = await _send('GET', '/tasks/history', query: {'page': page});
-    final items = _mapList(_unwrapList(data), AppTaskUpdate.fromJson);
-    final meta = data['meta'] is Map<String, dynamic> ? _asMap(data['meta']) : data;
-
-    return PaginatedUpdates(
-      items: items,
-      currentPage: meta['current_page'] as int? ?? page,
-      lastPage: meta['last_page'] as int? ?? 1,
-    );
+  Future<PaginatedUpdates> taskHistory() async {
+    final data = await _send('GET', '/tasks/history');
+    return PaginatedUpdates(items: mapJsonList(_laravelList(data), AppTaskUpdate.fromJson));
   }
 
   Future<({AppTask task, bool canUpdateProgress, bool canEdit})> task(int id) async {
@@ -166,15 +160,15 @@ class ApiClient {
 
   Future<List<AppProject>> projects() async {
     final data = await _send('GET', '/projects');
-    return _mapList(_unwrapList(data), AppProject.fromJson);
+    return mapJsonList(_laravelList(data), AppProject.fromJson);
   }
 
   Future<({AppProject project, List<AppTask> tasks, List<AppUser> members})> project(int id) async {
     final data = await _send('GET', '/projects/$id');
     return (
       project: AppProject.fromJson(_asMap(data['project'])),
-      tasks: _mapList(data['tasks'], AppTask.fromJson),
-      members: _mapList(data['members'], AppUser.fromJson),
+      tasks: mapJsonList(data['tasks'], AppTask.fromJson),
+      members: mapJsonList(data['members'], AppUser.fromJson),
     );
   }
 
@@ -182,7 +176,7 @@ class ApiClient {
     final data = await _send('GET', '/projects/$projectId/tasks/create');
     return (
       project: AppProject.fromJson(_asMap(data['project'])),
-      members: _mapList(data['members'], AppUser.fromJson),
+      members: mapJsonList(data['members'], AppUser.fromJson),
     );
   }
 
@@ -207,7 +201,7 @@ class ApiClient {
     final data = await _send('GET', '/tasks/$taskId/edit');
     return (
       task: AppTask.fromJson(_asMap(data['task'])),
-      members: _mapList(data['members'], AppUser.fromJson),
+      members: mapJsonList(data['members'], AppUser.fromJson),
     );
   }
 
@@ -242,16 +236,11 @@ class ApiClient {
 
   Future<({AppUser user, List<AppTask> tasks, PaginatedUpdates updates})> teamMember(int userId) async {
     final data = await _send('GET', '/team/members/$userId');
-    final meta = _asMap(data['meta']);
 
     return (
       user: AppUser.fromJson(_asMap(data['user'])),
-      tasks: _mapList(data['tasks'], AppTask.fromJson),
-      updates: PaginatedUpdates(
-        items: _mapList(data['updates'], AppTaskUpdate.fromJson),
-        currentPage: meta['current_page'] as int? ?? 1,
-        lastPage: meta['last_page'] as int? ?? 1,
-      ),
+      tasks: mapJsonList(data['tasks'], AppTask.fromJson),
+      updates: PaginatedUpdates(items: mapJsonList(data['updates'], AppTaskUpdate.fromJson)),
     );
   }
 
@@ -265,19 +254,19 @@ class ApiClient {
       statusLabels: (chart['labels'] as List? ?? []).map((item) => item.toString()).toList(),
       statusValues: (chart['values'] as List? ?? []).map((item) => item as int).toList(),
       statusColors: (chart['colors'] as List? ?? []).map((item) => item.toString()).toList(),
-      teamRates: _mapList(completion['team_rates'], RateRow.fromJson),
-      projectRates: _mapList(completion['project_rates'], RateRow.fromJson),
+      teamRates: mapJsonList(completion['team_rates'], RateRow.fromJson),
+      projectRates: mapJsonList(completion['project_rates'], RateRow.fromJson),
     );
   }
 
   Future<List<AppUser>> adminUsers() async {
     final data = await _send('GET', '/admin/users');
-    return _mapList(_unwrapList(data), AppUser.fromJson);
+    return mapJsonList(_laravelList(data), AppUser.fromJson);
   }
 
   Future<List<AppTeam>> adminUserFormTeams() async {
     final data = await _send('GET', '/admin/users/create');
-    return _mapList(data['teams'], AppTeam.fromJson);
+    return mapJsonList(data['teams'], AppTeam.fromJson);
   }
 
   Future<AppUser> createUser(Map<String, dynamic> body) async {
@@ -290,7 +279,7 @@ class ApiClient {
     final data = await _send('GET', '/admin/users/$id');
     return (
       user: AppUser.fromJson(_asMap(data['user'])),
-      teams: _mapList(data['teams'], AppTeam.fromJson),
+      teams: mapJsonList(data['teams'], AppTeam.fromJson),
       selectedTeamIds: _intList(data['selected_team_ids']),
       selectedTeamLeadIds: _intList(data['selected_team_lead_ids']),
     );
@@ -303,12 +292,12 @@ class ApiClient {
 
   Future<List<AppTeam>> adminTeams() async {
     final data = await _send('GET', '/admin/teams');
-    return _mapList(_unwrapList(data), AppTeam.fromJson);
+    return mapJsonList(_laravelList(data), AppTeam.fromJson);
   }
 
   Future<List<AppUser>> adminTeamFormUsers() async {
     final data = await _send('GET', '/admin/teams/create');
-    return _mapList(data['users'], AppUser.fromJson);
+    return mapJsonList(data['users'], AppUser.fromJson);
   }
 
   Future<AppTeam> createTeam(Map<String, dynamic> body) async {
@@ -328,8 +317,8 @@ class ApiClient {
     final data = await _send('GET', '/admin/teams/$id/edit');
     return (
       team: AppTeam.fromJson(_asMap(data['team'])),
-      users: _mapList(data['users'], AppUser.fromJson),
-      projects: _mapList(data['projects'], AppProject.fromJson),
+      users: mapJsonList(data['users'], AppUser.fromJson),
+      projects: mapJsonList(data['projects'], AppProject.fromJson),
       selectedUserIds: _intList(data['selected_user_ids']),
       selectedProjectIds: _intList(data['selected_project_ids']),
       selectedTeamLeadId: data['selected_team_lead_id'] as int?,
@@ -343,12 +332,12 @@ class ApiClient {
 
   Future<List<AppProject>> adminProjects() async {
     final data = await _send('GET', '/admin/projects');
-    return _mapList(_unwrapList(data), AppProject.fromJson);
+    return mapJsonList(_laravelList(data), AppProject.fromJson);
   }
 
   Future<List<AppTeam>> adminProjectFormTeams() async {
     final data = await _send('GET', '/admin/projects/create');
-    return _mapList(data['teams'], AppTeam.fromJson);
+    return mapJsonList(data['teams'], AppTeam.fromJson);
   }
 
   Future<AppProject> createProject(Map<String, dynamic> body) async {
@@ -360,7 +349,7 @@ class ApiClient {
     final data = await _send('GET', '/admin/projects/$id/edit');
     return (
       project: AppProject.fromJson(_asMap(data['project'])),
-      teams: _mapList(data['teams'], AppTeam.fromJson),
+      teams: mapJsonList(data['teams'], AppTeam.fromJson),
       selectedTeamIds: _intList(data['selected_team_ids']),
     );
   }
@@ -370,6 +359,7 @@ class ApiClient {
     return AppProject.fromJson(_asMap(data['project'] ?? data['data']));
   }
 
+  /// One HTTP call. Adds the token. Turns Laravel JSON into Dart maps or ApiException.
   Future<Map<String, dynamic>> _send(
     String method,
     String path, {
@@ -404,7 +394,7 @@ class ApiClient {
       if (error.error is ApiException) {
         throw error.error as ApiException;
       }
-      throw ApiException(error.message ?? 'Request failed', statusCode: error.response?.statusCode);
+      throw ApiException(error.message ?? 'Request failed');
     }
   }
 
@@ -425,12 +415,11 @@ class ApiClient {
 
       return ApiException(
         data['message']?.toString() ?? 'Request failed',
-        statusCode: response.statusCode,
         fieldErrors: errors,
       );
     }
 
-    return ApiException('Request failed', statusCode: response.statusCode);
+    return ApiException('Request failed');
   }
 
   Map<String, dynamic> _asMap(dynamic value) {
@@ -441,20 +430,13 @@ class ApiClient {
     return {};
   }
 
-  List<dynamic> _unwrapList(Map<String, dynamic> json) {
+  /// Laravel wraps lists as `{ "data": [ ... ] }`.
+  List<dynamic> _laravelList(Map<String, dynamic> json) {
     if (json['data'] is List) {
       return json['data'] as List;
     }
 
     return const [];
-  }
-
-  List<T> _mapList<T>(dynamic value, T Function(Map<String, dynamic> json) map) {
-    if (value is! List) {
-      return const [];
-    }
-
-    return value.whereType<Map<String, dynamic>>().map(map).toList();
   }
 
   List<int> _intList(dynamic value) {

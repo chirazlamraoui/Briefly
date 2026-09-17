@@ -7,6 +7,7 @@ import '../models/models.dart';
 import '../providers/providers.dart';
 import '../theme/briefly_theme.dart';
 
+/// Shared screen pieces: status, cards, list rows, bottom bar.
 const taskStatuses = ['TODO', 'IN_PROGRESS', 'BLOCKED', 'DONE'];
 
 String statusLabel(AppLocalizations l10n, String status) {
@@ -18,6 +19,17 @@ String statusLabel(AppLocalizations l10n, String status) {
   };
 }
 
+String? passwordPairError(String password, String confirm, AppLocalizations l10n) {
+  if (password.length < 8) {
+    return l10n.passwordMinLength;
+  }
+  if (password != confirm) {
+    return l10n.passwordsDoNotMatch;
+  }
+  return null;
+}
+
+/// Coloured badge: TODO, IN_PROGRESS, BLOCKED, or DONE.
 class StatusPill extends StatelessWidget {
   const StatusPill({super.key, required this.status});
 
@@ -239,25 +251,17 @@ class AsyncBody<T> extends StatelessWidget {
 }
 
 class SectionHeader extends StatelessWidget {
-  const SectionHeader({super.key, required this.title, this.trailing});
+  const SectionHeader({super.key, required this.title});
 
   final String title;
-  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(left: 4, right: 4, top: 8, bottom: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-            ),
-          ),
-          ?trailing,
-        ],
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
       ),
     );
   }
@@ -410,6 +414,27 @@ class StatChip extends StatelessWidget {
   }
 }
 
+class TaskStatsChips extends StatelessWidget {
+  const TaskStatsChips({super.key, required this.stats});
+
+  final Map<String, int> stats;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        StatChip(label: l10n.inProgress, value: stats['in_progress'] ?? 0),
+        StatChip(label: l10n.blocked, value: stats['blocked'] ?? 0),
+        StatChip(label: l10n.statusDone, value: stats['done'] ?? 0),
+      ],
+    );
+  }
+}
+
 class InitialAvatar extends StatelessWidget {
   const InitialAvatar({super.key, required this.name, this.radius = 20});
 
@@ -431,6 +456,44 @@ class InitialAvatar extends StatelessWidget {
   }
 }
 
+class UserHeaderCard extends StatelessWidget {
+  const UserHeaderCard({super.key, required this.name, this.jobTitle});
+
+  final String name;
+  final String? jobTitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return BrieflyCard(
+      child: Row(
+        children: [
+          InitialAvatar(name: name, radius: 28),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                if (jobTitle != null)
+                  Text(
+                    jobTitle!,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One row in a list (task, person, team, ...).
 class BrieflyListTile extends StatelessWidget {
   const BrieflyListTile({
     super.key,
@@ -556,6 +619,7 @@ class EntityListTile extends StatelessWidget {
   }
 }
 
+/// Bottom bar around every signed-in screen.
 class AppShell extends ConsumerWidget {
   const AppShell({super.key, required this.child});
 

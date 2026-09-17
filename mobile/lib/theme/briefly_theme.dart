@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+/// Zinc + rose colours used on every screen.
 class BrieflyColors {
   static const accent = Color(0xFFE8B4BC);
   static const accentSoft = Color(0xFFFDF2F4);

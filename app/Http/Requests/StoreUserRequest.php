@@ -2,11 +2,13 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ValidatesTeamLeadAssignments;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Validator;
 
 class StoreUserRequest extends FormRequest
 {
+    use ValidatesTeamLeadAssignments;
+
     public function authorize(): bool
     {
         return auth()->user()->isAdmin();
@@ -27,17 +29,5 @@ class StoreUserRequest extends FormRequest
             'team_lead_ids' => ['nullable', 'array'],
             'team_lead_ids.*' => ['integer', 'exists:teams,id'],
         ];
-    }
-
-    public function withValidator(Validator $validator): void
-    {
-        $validator->after(function (Validator $validator): void {
-            $teamIds = collect($this->input('team_ids', []))->map(fn ($id) => (int) $id)->all();
-            $teamLeadIds = collect($this->input('team_lead_ids', []))->map(fn ($id) => (int) $id);
-
-            if ($teamLeadIds->contains(fn (int $teamLeadId) => ! in_array($teamLeadId, $teamIds, true))) {
-                $validator->errors()->add('team_lead_ids', __('Team lead assignments must belong to selected teams.'));
-            }
-        });
     }
 }

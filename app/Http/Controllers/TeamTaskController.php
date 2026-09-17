@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/** Team-lead view of every task across their teams. */
 class TeamTaskController extends Controller
 {
     public function __construct(private TaskService $taskService) {}

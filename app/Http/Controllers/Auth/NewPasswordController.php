@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
+/** Set a new password from the email link. Same URL for browser and phone. */
 class NewPasswordController extends Controller
 {
     public function create(Request $request, string $token): View

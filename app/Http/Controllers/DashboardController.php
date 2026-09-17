@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/** Member home: Blade for the browser, JSON for the phone. */
 class DashboardController extends Controller
 {
     public function __construct(private TaskService $taskService) {}

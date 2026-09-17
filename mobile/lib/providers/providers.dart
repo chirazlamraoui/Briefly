@@ -13,6 +13,7 @@ final apiClientProvider = Provider<ApiClient>((ref) {
   return ApiClient(tokenStorage: ref.watch(tokenStorageProvider));
 });
 
+/// Who is logged in. `loading` is true until we check the saved token.
 class AuthState {
   const AuthState({this.user, this.loading = true});
 
@@ -22,6 +23,7 @@ class AuthState {
   bool get isAuthenticated => user != null;
 }
 
+/// Holds the logged-in user. Login saves a token; logout deletes it.
 class AuthNotifier extends Notifier<AuthState> {
   @override
   AuthState build() {
@@ -60,7 +62,7 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       await ref.read(apiClientProvider).logout();
     } on ApiException {
-      // Token is cleared locally either way.
+      // Still drop the local token if the network call fails.
     }
     await ref.read(tokenStorageProvider).clear();
     state = const AuthState(loading: false);

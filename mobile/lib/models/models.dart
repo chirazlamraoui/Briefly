@@ -1,3 +1,4 @@
+/// Copies of the JSON Laravel sends (UserResource, TaskResource, ...).
 class AppUser {
   const AppUser({
     required this.id,
@@ -6,7 +7,6 @@ class AppUser {
     required this.role,
     this.jobTitle,
     this.isTeamLead = false,
-    this.teams = const [],
   });
 
   final int id;
@@ -15,7 +15,6 @@ class AppUser {
   final String role;
   final String? jobTitle;
   final bool isTeamLead;
-  final List<AppTeam> teams;
 
   bool get isAdmin => role == 'ADMIN';
   bool get isLead => isTeamLead || role == 'TEAM_LEAD';
@@ -28,7 +27,6 @@ class AppUser {
       role: json['role'] as String,
       jobTitle: json['job_title'] as String?,
       isTeamLead: json['is_team_lead'] == true,
-      teams: _mapList(json['teams'], AppTeam.fromJson),
     );
   }
 }
@@ -79,7 +77,7 @@ class AppProject {
       description: json['description'] as String?,
       tasksCount: json['tasks_count'] as int?,
       teamsSummary: json['teams_summary'] as String?,
-      teams: _mapList(json['teams'], AppTeam.fromJson),
+      teams: mapJsonList(json['teams'], AppTeam.fromJson),
     );
   }
 }
@@ -93,13 +91,10 @@ class AppTask {
     this.progressDone,
     this.progressNext,
     this.blockerNote,
-    this.completedAt,
-    this.updatedAt,
     this.project,
     this.assignee,
     this.updates = const [],
     this.teamLabel,
-    this.team,
   });
 
   final int id;
@@ -109,13 +104,10 @@ class AppTask {
   final String? progressDone;
   final String? progressNext;
   final String? blockerNote;
-  final String? completedAt;
-  final String? updatedAt;
   final AppProject? project;
   final AppUser? assignee;
   final List<AppTaskUpdate> updates;
   final String? teamLabel;
-  final AppTeam? team;
 
   factory AppTask.fromJson(Map<String, dynamic> json) {
     return AppTask(
@@ -126,17 +118,14 @@ class AppTask {
       progressDone: json['progress_done'] as String?,
       progressNext: json['progress_next'] as String?,
       blockerNote: json['blocker_note'] as String?,
-      completedAt: json['completed_at'] as String?,
-      updatedAt: json['updated_at'] as String?,
       project: json['project'] is Map<String, dynamic>
           ? AppProject.fromJson(json['project'] as Map<String, dynamic>)
           : null,
       assignee: json['assignee'] is Map<String, dynamic>
           ? AppUser.fromJson(json['assignee'] as Map<String, dynamic>)
           : null,
-      updates: _mapList(json['updates'], AppTaskUpdate.fromJson),
+      updates: mapJsonList(json['updates'], AppTaskUpdate.fromJson),
       teamLabel: json['team_label'] as String?,
-      team: json['team'] is Map<String, dynamic> ? AppTeam.fromJson(json['team'] as Map<String, dynamic>) : null,
     );
   }
 }
@@ -146,8 +135,6 @@ class AppTaskUpdate {
     required this.id,
     required this.status,
     this.progressDone,
-    this.progressNext,
-    this.blockerNote,
     this.createdAt,
     this.task,
     this.user,
@@ -156,8 +143,6 @@ class AppTaskUpdate {
   final int id;
   final String status;
   final String? progressDone;
-  final String? progressNext;
-  final String? blockerNote;
   final String? createdAt;
   final AppTask? task;
   final AppUser? user;
@@ -167,8 +152,6 @@ class AppTaskUpdate {
       id: json['id'] as int,
       status: json['status'] as String,
       progressDone: json['progress_done'] as String?,
-      progressNext: json['progress_next'] as String?,
-      blockerNote: json['blocker_note'] as String?,
       createdAt: json['created_at'] as String?,
       task: json['task'] is Map<String, dynamic> ? AppTask.fromJson(json['task'] as Map<String, dynamic>) : null,
       user: json['user'] is Map<String, dynamic> ? AppUser.fromJson(json['user'] as Map<String, dynamic>) : null,
@@ -243,14 +226,12 @@ class AdminDashboardData {
 }
 
 class PaginatedUpdates {
-  const PaginatedUpdates({required this.items, required this.currentPage, required this.lastPage});
+  const PaginatedUpdates({required this.items});
 
   final List<AppTaskUpdate> items;
-  final int currentPage;
-  final int lastPage;
 }
 
-List<T> _mapList<T>(dynamic value, T Function(Map<String, dynamic> json) map) {
+List<T> mapJsonList<T>(dynamic value, T Function(Map<String, dynamic> json) map) {
   if (value is! List) {
     return const [];
   }

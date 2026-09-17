@@ -8,6 +8,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureCanonicalAppUrl
 {
+    /**
+     * Keep the public website on APP_URL.
+     * Skip the phone: it often uses a LAN IP (e.g. 10.x.x.x) instead of localhost.
+     */
     public function handle(Request $request, Closure $next): Response
     {
         if ($request->expectsJson() || $request->bearerToken()) {

@@ -8,6 +8,7 @@ import '../../providers/providers.dart';
 import '../../theme/briefly_theme.dart';
 import '../../widgets/widgets.dart';
 
+/// Login, forgot password, reset password — same URLs as the website.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -224,12 +225,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
   Future<void> _submit() async {
     final l10n = AppLocalizations.of(context)!;
-    if (_password.text.length < 8) {
-      setState(() => _error = l10n.passwordMinLength);
-      return;
-    }
-    if (_password.text != _confirm.text) {
-      setState(() => _error = l10n.passwordsDoNotMatch);
+    final error = passwordPairError(_password.text, _confirm.text, l10n);
+    if (error != null) {
+      setState(() => _error = error);
       return;
     }
 

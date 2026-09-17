@@ -33,7 +33,7 @@
                                     <div class="small text-danger">{{ Str::limit($task->blocker_note, 80) }}</div>
                                 @endif
                             </td>
-                            <td class="small">{{ $taskService->teamLabelForTask($task, $user) }}</td>
+                            <td class="small">{{ $task->team_label }}</td>
                             <td class="small">{{ $task->project->name }}</td>
                             <td>@include('partials.status-pill', ['status' => $task->status])</td>
                             <td class="small text-muted">{{ $task->updated_at->translatedFormat('j M Y') }}</td>

@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/** Team-lead view of one member's tasks and history. */
 class TeamMemberController extends Controller
 {
     public function __construct(private TaskService $taskService) {}
@@ -28,7 +29,7 @@ class TeamMemberController extends Controller
         abort_if($sharedTeamIds === [], 404);
 
         $tasks = $this->taskService->assignedTasksFor($user);
-        $updates = $user->taskUpdates()->with(['task.project'])->latest()->paginate(15);
+        $updates = $this->taskService->memberProgressHistory($user);
         $user->load('teams');
 
         return $this->respond($request, view('team.member', compact('user', 'tasks', 'updates')), [
