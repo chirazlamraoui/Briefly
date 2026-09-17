@@ -17,6 +17,8 @@ class ApiClient {
                   'Accept': 'application/json',
                   'Content-Type': 'application/json',
                 },
+                connectTimeout: const Duration(seconds: 15),
+                receiveTimeout: const Duration(seconds: 20),
                 validateStatus: (status) => status != null && status < 500,
               ),
             ) {
@@ -393,6 +395,14 @@ class ApiClient {
     } on DioException catch (error) {
       if (error.error is ApiException) {
         throw error.error as ApiException;
+      }
+      if (error.type == DioExceptionType.connectionTimeout ||
+          error.type == DioExceptionType.connectionError ||
+          error.type == DioExceptionType.sendTimeout ||
+          error.type == DioExceptionType.receiveTimeout) {
+        throw ApiException(
+          'Could not reach ${ApiConfig.baseUrl}. Use the same Wi-Fi as the Mac, allow Local Network for Briefly Mobile, or run the app again after a tunnel is up.',
+        );
       }
       throw ApiException(error.message ?? 'Request failed');
     }
