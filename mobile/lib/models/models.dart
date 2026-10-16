@@ -225,12 +225,6 @@ class AdminDashboardData {
   final List<RateRow> projectRates;
 }
 
-class PaginatedUpdates {
-  const PaginatedUpdates({required this.items});
-
-  final List<AppTaskUpdate> items;
-}
-
 List<T> mapJsonList<T>(dynamic value, T Function(Map<String, dynamic> json) map) {
   if (value is! List) {
     return const [];
@@ -239,10 +233,7 @@ List<T> mapJsonList<T>(dynamic value, T Function(Map<String, dynamic> json) map)
   return value.whereType<Map<String, dynamic>>().map(map).toList();
 }
 
-String? validateBlockerNote(String status, String blockerNote) {
-  if (status == 'BLOCKED' && blockerNote.trim().isEmpty) {
-    return 'blocker';
-  }
-
-  return null;
+/// A blocked task must say what blocks it (same rule as UpdateTaskProgressRequest).
+bool isMissingBlockerNote(String status, String blockerNote) {
+  return status == 'BLOCKED' && blockerNote.trim().isEmpty;
 }

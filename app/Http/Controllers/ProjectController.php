@@ -7,7 +7,6 @@ use App\Http\Resources\TaskResource;
 use App\Http\Resources\TeamResource;
 use App\Http\Resources\UserResource;
 use App\Models\Project;
-use App\Models\Team;
 use App\Services\TaskService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -38,15 +37,7 @@ class ProjectController extends Controller
     {
         $this->authorize('view', $project);
 
-        $managedTeamIds = auth()->user()->managedTeamIds();
-        $contextTeams = Team::query()
-            ->whereIn('id', $managedTeamIds)
-            ->whereHas('projects', fn ($query) => $query->where('projects.id', $project->id))
-            ->orderBy('name')
-            ->get();
-
-        abort_if($contextTeams->isEmpty(), 403);
-
+        $contextTeams = $this->taskService->leadTeamsForProject(auth()->user(), $project);
         $contextTeam = $contextTeams->first();
         $tasks = $this->taskService->teamTasksForProject($contextTeam, $project);
         $members = $this->taskService->assignableMembers($contextTeam);

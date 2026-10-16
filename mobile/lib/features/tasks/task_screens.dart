@@ -77,7 +77,7 @@ class TaskHistoryScreen extends ConsumerStatefulWidget {
 }
 
 class _TaskHistoryScreenState extends ConsumerState<TaskHistoryScreen> {
-  late Future<PaginatedUpdates> _future;
+  late Future<List<AppTaskUpdate>> _future;
 
   @override
   void initState() {
@@ -91,21 +91,21 @@ class _TaskHistoryScreenState extends ConsumerState<TaskHistoryScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.taskHistory)),
-      body: FutureBuilder<PaginatedUpdates>(
+      body: FutureBuilder<List<AppTaskUpdate>>(
         future: _future,
         builder: (context, snapshot) {
-          return AsyncBody<PaginatedUpdates>(
+          return AsyncBody<List<AppTaskUpdate>>(
             snapshot: snapshot,
             onRetry: () => setState(() => _future = ref.read(apiClientProvider).taskHistory()),
-            builder: (page) {
-              if (page.items.isEmpty) {
+            builder: (updates) {
+              if (updates.isEmpty) {
                 return EmptyState(message: l10n.emptyHistory, icon: Icons.history);
               }
 
               return ListView(
                 padding: BrieflySpacing.page,
                 children: [
-                  for (final update in page.items)
+                  for (final update in updates)
                     TaskListTile(
                       title: update.task?.title ?? '',
                       subtitle: update.progressDone ?? update.createdAt,
@@ -201,8 +201,7 @@ class _TaskDetailBodyState extends ConsumerState<_TaskDetailBody> {
 
   Future<void> _save() async {
     final l10n = AppLocalizations.of(context)!;
-    final error = validateBlockerNote(_status, _blocker.text);
-    if (error != null) {
+    if (isMissingBlockerNote(_status, _blocker.text)) {
       setState(() => _blockerError = l10n.blockerRequired);
       return;
     }

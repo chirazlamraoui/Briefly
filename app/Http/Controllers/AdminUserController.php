@@ -23,8 +23,6 @@ class AdminUserController extends Controller
     {
         $users = $this->adminUserService->assignableUsers();
 
-        $users->load('teams');
-
         return $this->respond($request, view('admin.users.index', compact('users')), UserResource::collection($users));
     }
 
@@ -53,15 +51,7 @@ class AdminUserController extends Controller
         $user->load(['team', 'teams']);
         $teams = Team::query()->orderBy('name')->get();
         $selectedTeamIds = $user->teams->pluck('id')->all();
-
-        if ($selectedTeamIds === [] && $user->team_id) {
-            $selectedTeamIds = [$user->team_id];
-        }
-
-        $selectedTeamLeadIds = $user->teams()
-            ->wherePivot('is_team_lead', true)
-            ->pluck('teams.id')
-            ->all();
+        $selectedTeamLeadIds = $user->managedTeamIds();
 
         return $this->respond($request, view('admin.users.show', compact(
             'user',

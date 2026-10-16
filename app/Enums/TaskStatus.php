@@ -29,6 +29,16 @@ enum TaskStatus: string
         };
     }
 
+    public function chartColor(): string
+    {
+        return match ($this) {
+            self::Todo => '#a1a1aa',
+            self::InProgress => '#3b82f6',
+            self::Blocked => '#ef4444',
+            self::Done => '#22c55e',
+        };
+    }
+
     public function progressPercent(): int
     {
         return match ($this) {

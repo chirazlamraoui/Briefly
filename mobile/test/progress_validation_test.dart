@@ -3,14 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('blocked status requires a blocker note', () {
-    expect(validateBlockerNote('BLOCKED', ''), 'blocker');
-    expect(validateBlockerNote('BLOCKED', '   '), 'blocker');
-    expect(validateBlockerNote('BLOCKED', 'Waiting on API'), isNull);
+    expect(isMissingBlockerNote('BLOCKED', ''), isTrue);
+    expect(isMissingBlockerNote('BLOCKED', '   '), isTrue);
+    expect(isMissingBlockerNote('BLOCKED', 'Waiting on API'), isFalse);
   });
 
   test('other statuses do not require a blocker note', () {
-    expect(validateBlockerNote('TODO', ''), isNull);
-    expect(validateBlockerNote('IN_PROGRESS', ''), isNull);
-    expect(validateBlockerNote('DONE', ''), isNull);
+    expect(isMissingBlockerNote('TODO', ''), isFalse);
+    expect(isMissingBlockerNote('IN_PROGRESS', ''), isFalse);
+    expect(isMissingBlockerNote('DONE', ''), isFalse);
   });
 }

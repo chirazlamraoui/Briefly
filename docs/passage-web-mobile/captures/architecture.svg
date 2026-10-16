@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="280" viewBox="0 0 920 280">
+  <rect width="920" height="280" fill="#ffffff"/>
+  <rect x="20" y="90" width="200" height="80" rx="8" fill="#f4f1ea" stroke="#2c2c2c" stroke-width="1.5"/>
+  <text x="120" y="124" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" fill="#1a1a1a">Navigateur</text>
+  <text x="120" y="146" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#555555">Blade / cookie</text>
+  <rect x="20" y="190" width="200" height="80" rx="8" fill="#f4f1ea" stroke="#2c2c2c" stroke-width="1.5"/>
+  <text x="120" y="224" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" fill="#1a1a1a">Flutter</text>
+  <text x="120" y="246" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#555555">JSON / jeton Sanctum</text>
+  <rect x="360" y="140" width="220" height="80" rx="8" fill="#e8eef5" stroke="#2c2c2c" stroke-width="1.5"/>
+  <text x="470" y="174" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" fill="#1a1a1a">Laravel</text>
+  <text x="470" y="196" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#555555">routes/web.php</text>
+  <ellipse cx="780" cy="180" rx="110" ry="50" fill="#eef6ea" stroke="#2c2c2c" stroke-width="1.5"/>
+  <text x="780" y="176" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" fill="#1a1a1a">MySQL</text>
+  <line x1="220" y1="130" x2="360" y2="170" stroke="#2c2c2c" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="220" y1="230" x2="360" y2="190" stroke="#2c2c2c" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="580" y1="180" x2="670" y2="180" stroke="#2c2c2c" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#2c2c2c"/>
+    </marker>
+  </defs>
+</svg>

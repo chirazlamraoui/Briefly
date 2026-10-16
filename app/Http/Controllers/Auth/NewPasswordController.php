@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 /** Set a new password from the email link. Same URL for browser and phone. */
@@ -33,9 +34,9 @@ class NewPasswordController extends Controller
 
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
+            function (User $user, string $password): void {
                 $user->forceFill([
-                    'password' => Hash::make($password),
+                    'password' => $password,
                     'remember_token' => Str::random(60),
                 ])->save();
 
@@ -43,19 +44,10 @@ class NewPasswordController extends Controller
             }
         );
 
-        if ($request->expectsJson()) {
-            if ($status === Password::PASSWORD_RESET) {
-                return response()->json(['message' => __($status)]);
-            }
-
-            return response()->json([
-                'message' => __($status),
-                'errors' => ['email' => [__($status)]],
-            ], 422);
+        if ($status !== Password::PASSWORD_RESET) {
+            throw ValidationException::withMessages(['email' => __($status)]);
         }
 
-        return $status === Password::PASSWORD_RESET
-            ? redirect()->route('login')->with('success', __($status))
-            : back()->withErrors(['email' => __($status)]);
+        return $this->respond($request, redirect()->route('login')->with('success', __($status)), ['message' => __($status)]);
     }
 }

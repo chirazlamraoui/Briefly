@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\UserResource;
-use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 /** Browser gets a cookie. Phone gets a Sanctum token in JSON. */
@@ -27,28 +27,25 @@ class LoginController extends Controller
             'device_name' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $loggedIn = Auth::attempt([
-            'email' => $credentials['email'],
-            'password' => $credentials['password'],
-        ], $request->boolean('remember'));
-
-        if (! $loggedIn) {
-            return $this->invalidLogin($request);
+        if (! Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
+            throw ValidationException::withMessages(['email' => __('Invalid credentials.')]);
         }
 
         $request->session()->regenerate();
-
-        /** @var User $user */
         $user = auth()->user();
 
         if ($request->expectsJson()) {
-            return $this->phoneLogin($request, $user);
+            // The phone stores this token and sends it as "Bearer" on every later request.
+            return response()->json([
+                'token' => $user->createToken($credentials['device_name'] ?? 'mobile')->plainTextToken,
+                'user' => new UserResource($user->load('teams')),
+            ]);
         }
 
-        return $this->browserHome($user);
+        return redirect()->intended(route($user->isAdmin() ? 'admin.dashboard' : 'dashboard'));
     }
 
-    public function logout(Request $request): RedirectResponse|JsonResponse|Response
+    public function logout(Request $request): RedirectResponse|Response
     {
         if ($request->expectsJson()) {
             $request->user()?->currentAccessToken()?->delete();
@@ -58,46 +55,6 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        if ($request->expectsJson()) {
-            return response()->noContent();
-        }
-
-        return redirect()->route('login');
-    }
-
-    private function invalidLogin(Request $request): RedirectResponse|JsonResponse
-    {
-        $error = ['email' => __('Invalid credentials.')];
-
-        if ($request->expectsJson()) {
-            return response()->json([
-                'message' => __('Invalid credentials.'),
-                'errors' => $error,
-            ], 422);
-        }
-
-        return back()->withErrors($error)->onlyInput('email');
-    }
-
-    /**
-     * Phone: return a Sanctum token. The app stores it and sends it as Bearer on later requests.
-     */
-    private function phoneLogin(Request $request, User $user): JsonResponse
-    {
-        $user->load('teams');
-
-        return response()->json([
-            'token' => $user->createToken($request->input('device_name', 'mobile'))->plainTextToken,
-            'user' => new UserResource($user),
-        ]);
-    }
-
-    private function browserHome(User $user): RedirectResponse
-    {
-        $home = $user->isAdmin()
-            ? route('admin.dashboard')
-            : route('dashboard');
-
-        return redirect()->intended($home);
+        return $request->expectsJson() ? response()->noContent() : redirect()->route('login');
     }
 }

@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Enums\TaskStatus;
 use Database\Factories\TaskFactory;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -47,5 +49,13 @@ class Task extends Model
     public function updates(): HasMany
     {
         return $this->hasMany(TaskUpdate::class)->latest();
+    }
+
+    /** Blocked first, then in progress, to do, done; then by title. */
+    #[Scope]
+    protected function orderedByStatus(Builder $query): void
+    {
+        $query->orderByRaw("CASE status WHEN 'BLOCKED' THEN 0 WHEN 'IN_PROGRESS' THEN 1 WHEN 'TODO' THEN 2 ELSE 3 END")
+            ->orderBy('title');
     }
 }

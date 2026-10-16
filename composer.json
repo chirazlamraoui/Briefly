@@ -12,7 +12,6 @@
         "laravel/tinker": "^3.0"
     },
     "require-dev": {
-        "dompdf/dompdf": "^3.1",
         "fakerphp/faker": "^1.23",
         "laravel/boost": "^2.8",
         "laravel/pail": "^1.2.5",
@@ -40,13 +39,7 @@
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
             "@php artisan key:generate",
             "@php -r \"echo 'Ensure XAMPP MySQL is running and database `briefly` exists (see database/sql/xampp-setup.sql).'.PHP_EOL;\"",
-            "@php artisan migrate --force",
-            "npm install --ignore-scripts",
-            "npm run build"
-        ],
-        "dev": [
-            "Composer\\Config::disableProcessTimeout",
-            "@php artisan dev"
+            "@php artisan migrate --force"
         ],
         "test": [
             "@php artisan config:clear --ansi @no_additional_args",

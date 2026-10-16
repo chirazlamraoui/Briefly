@@ -18,15 +18,10 @@ class TeamMemberController extends Controller
 
     public function show(Request $request, User $user): View|JsonResponse
     {
-        abort_if($user->isAdmin(), 404);
+        $isInLeadsTeam = collect(auth()->user()->managedTeamIds())
+            ->contains(fn (int $teamId) => $user->belongsToTeam($teamId));
 
-        $managedTeamIds = auth()->user()->managedTeamIds();
-        $sharedTeamIds = collect($managedTeamIds)
-            ->filter(fn (int $teamId) => $user->belongsToTeam($teamId))
-            ->values()
-            ->all();
-
-        abort_if($sharedTeamIds === [], 404);
+        abort_if($user->isAdmin() || ! $isInLeadsTeam, 404);
 
         $tasks = $this->taskService->assignedTasksFor($user);
         $updates = $this->taskService->memberProgressHistory($user);

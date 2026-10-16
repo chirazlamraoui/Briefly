@@ -104,7 +104,7 @@ class TeamMemberScreen extends ConsumerStatefulWidget {
 }
 
 class _TeamMemberScreenState extends ConsumerState<TeamMemberScreen> {
-  late Future<({AppUser user, List<AppTask> tasks, PaginatedUpdates updates})> _future;
+  late Future<({AppUser user, List<AppTask> tasks, List<AppTaskUpdate> updates})> _future;
 
   @override
   void initState() {
@@ -149,14 +149,14 @@ class _TeamMemberScreenState extends ConsumerState<TeamMemberScreen> {
                     ),
                   const SizedBox(height: 8),
                   SectionHeader(title: l10n.history),
-                  if (data.updates.items.isEmpty)
+                  if (data.updates.isEmpty)
                     BrieflyCard(
                       child: EmptyState(message: l10n.emptyHistory, icon: Icons.history, compact: true),
                     )
                   else
                     GroupedCard(
                       children: [
-                        for (final update in data.updates.items)
+                        for (final update in data.updates)
                           TaskListTile(
                             title: update.task?.title ?? '',
                             subtitle: update.progressDone,

@@ -9,15 +9,12 @@ class ProjectPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->isTeamLead() && $user->managedTeamIds() !== [];
+        return $user->isTeamLead();
     }
 
+    /** A lead sees a project when one of the teams they lead works on it. */
     public function view(User $user, Project $project): bool
     {
-        if (! $user->isTeamLead()) {
-            return false;
-        }
-
         return $project->teams()
             ->whereIn('teams.id', $user->managedTeamIds())
             ->exists();

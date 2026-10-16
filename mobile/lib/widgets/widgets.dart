@@ -402,18 +402,6 @@ class LoadingFilledButton extends StatelessWidget {
   }
 }
 
-class StatChip extends StatelessWidget {
-  const StatChip({super.key, required this.label, required this.value});
-
-  final String label;
-  final int value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Chip(label: Text('$label · $value'));
-  }
-}
-
 class TaskStatsChips extends StatelessWidget {
   const TaskStatsChips({super.key, required this.stats});
 
@@ -427,9 +415,9 @@ class TaskStatsChips extends StatelessWidget {
       spacing: 8,
       runSpacing: 8,
       children: [
-        StatChip(label: l10n.inProgress, value: stats['in_progress'] ?? 0),
-        StatChip(label: l10n.blocked, value: stats['blocked'] ?? 0),
-        StatChip(label: l10n.statusDone, value: stats['done'] ?? 0),
+        Chip(label: Text('${l10n.inProgress} · ${stats['in_progress'] ?? 0}')),
+        Chip(label: Text('${l10n.blocked} · ${stats['blocked'] ?? 0}')),
+        Chip(label: Text('${l10n.statusDone} · ${stats['done'] ?? 0}')),
       ],
     );
   }

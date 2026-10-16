@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 /** Send a reset-password email. Same URL for browser and phone. */
@@ -25,19 +26,10 @@ class PasswordResetLinkController extends Controller
 
         $status = Password::sendResetLink($request->only('email'));
 
-        if ($request->expectsJson()) {
-            if ($status === Password::RESET_LINK_SENT) {
-                return response()->json(['message' => __($status)]);
-            }
-
-            return response()->json([
-                'message' => __($status),
-                'errors' => ['email' => [__($status)]],
-            ], 422);
+        if ($status !== Password::RESET_LINK_SENT) {
+            throw ValidationException::withMessages(['email' => __($status)]);
         }
 
-        return $status === Password::RESET_LINK_SENT
-            ? back()->with('success', __($status))
-            : back()->withErrors(['email' => __($status)]);
+        return $this->respond($request, back()->with('success', __($status)), ['message' => __($status)]);
     }
 }

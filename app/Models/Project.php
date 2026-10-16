@@ -28,18 +28,13 @@ class Project extends Model
         return $this->hasMany(Task::class);
     }
 
+    /** "Design", "3 teams" or "—", for lists. */
     public function teamsSummary(): string
     {
-        $teamsCount = (int) ($this->teams_count ?? $this->teams()->count());
-
-        if ($teamsCount === 0) {
-            return '—';
-        }
-
-        if ($teamsCount === 1) {
-            return $this->teams->first()?->name ?? '—';
-        }
-
-        return __(':count teams', ['count' => $teamsCount]);
+        return match ($this->teams->count()) {
+            0 => '—',
+            1 => $this->teams->first()->name,
+            default => __(':count teams', ['count' => $this->teams->count()]),
+        };
     }
 }

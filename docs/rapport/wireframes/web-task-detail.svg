@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <rect x="0" y="0" width="1280" height="800" fill="#FFFFFF"/>
+  <rect x="0" y="0" width="230" height="800" rx="0" fill="#F2F2F2" stroke="none" stroke-width="0"/>
+  <line x1="230" y1="0" x2="230" y2="800" stroke="#9A9A9A" stroke-width="1.5"/>
+  <rect x="20" y="20" width="30" height="30" rx="4" fill="#F2F2F2" stroke="#9A9A9A" stroke-width="1.5"/>
+  <line x1="20" y1="20" x2="50" y2="50" stroke="#9A9A9A" stroke-width="1.5"/>
+  <line x1="50" y1="20" x2="20" y2="50" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="62" y="41" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#333333" text-anchor="start">Briefly</text>
+  <rect x="26" y="91" width="14" height="14" rx="3" fill="none" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="52" y="103" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="normal" fill="#333333" text-anchor="start">Tableau de bord</text>
+  <rect x="12" y="124" width="206" height="36" rx="6" fill="#FFFFFF" stroke="#333333" stroke-width="1.5"/>
+  <rect x="26" y="135" width="14" height="14" rx="3" fill="none" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="52" y="147" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#333333" text-anchor="start">Tâches</text>
+  <rect x="26" y="179" width="14" height="14" rx="3" fill="none" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="52" y="191" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="normal" fill="#333333" text-anchor="start">Profil</text>
+  <line x1="0" y1="680" x2="230" y2="680" stroke="#9A9A9A" stroke-width="1.5"/>
+  <circle cx="36" cy="714" r="15" fill="none" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="60" y="710" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#333333" text-anchor="start">Nom du membre</text>
+  <text x="60" y="728" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="normal" fill="#555555" text-anchor="start">Nombre d’équipes</text>
+  <rect x="16" y="750" width="198" height="30" rx="6" fill="#FFFFFF" stroke="#333333" stroke-width="1.5"/>
+  <text x="115.0" y="769.55" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="normal" fill="#333333" text-anchor="middle">Déconnexion</text>
+  <text x="260" y="34" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="normal" fill="#555555" text-anchor="start">Détail de la tâche</text>
+  <text x="260" y="58" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="bold" fill="#333333" text-anchor="start">[Titre de la tâche]</text>
+  <rect x="1150" y="18" width="104" height="32" rx="16" fill="#FFFFFF" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="1174" y="39" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="bold" fill="#333333" text-anchor="start">FR</text>
+  <text x="1202" y="39" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="normal" fill="#333333" text-anchor="start">EN</text>
+  <circle cx="1236" cy="34" r="7" fill="none" stroke="#9A9A9A" stroke-width="1.5"/>
+  <line x1="230" y1="76" x2="1280" y2="76" stroke="#9A9A9A" stroke-width="1.5"/>
+  <rect x="260" y="92" width="79.6" height="22" rx="11.0" fill="#F2F2F2" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="299.8" y="106" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="normal" fill="#333333" text-anchor="middle">En cours</text>
+  <text x="360" y="108" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="normal" fill="#555555" text-anchor="start">Nom du projet</text>
+  <rect x="1120" y="90" width="134" height="30" rx="6" fill="#FFFFFF" stroke="#333333" stroke-width="1.5"/>
+  <text x="1187.0" y="109.55" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="normal" fill="#333333" text-anchor="middle">Retour aux tâches</text>
+  <rect x="260" y="140" width="560" height="380" rx="10" fill="#FFFFFF" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="276" y="168" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#333333" text-anchor="start">Détail de la tâche</text>
+  <line x1="260" y1="184" x2="820" y2="184" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="276" y="214" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#333333" text-anchor="start">Équipe</text>
+  <rect x="420" y="204" width="260" height="10" rx="5.0" fill="#D4D4D4"/>
+  <text x="276" y="250" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#333333" text-anchor="start">Projet</text>
+  <rect x="420" y="240" width="260" height="10" rx="5.0" fill="#D4D4D4"/>
+  <text x="276" y="286" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#333333" text-anchor="start">Assigné à</text>
+  <rect x="420" y="276" width="260" height="10" rx="5.0" fill="#D4D4D4"/>
+  <text x="276" y="322" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#333333" text-anchor="start">À faire</text>
+  <rect x="420" y="312" width="260" height="10" rx="5.0" fill="#D4D4D4"/>
+  <text x="276" y="358" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#333333" text-anchor="start">Déjà fait</text>
+  <rect x="420" y="348" width="260" height="10" rx="5.0" fill="#D4D4D4"/>
+  <text x="276" y="394" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#333333" text-anchor="start">En cours</text>
+  <rect x="420" y="384" width="260" height="10" rx="5.0" fill="#D4D4D4"/>
+  <rect x="840" y="140" width="414" height="500" rx="10" fill="#FFFFFF" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="856" y="168" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#333333" text-anchor="start">Mettre à jour l’avancement</text>
+  <line x1="840" y1="184" x2="1254" y2="184" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="856" y="214" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="bold" fill="#333333" text-anchor="start">Statut de la tâche</text>
+  <rect x="856" y="222" width="382" height="40" rx="5" fill="#FFFFFF" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="868" y="247.0" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="normal" fill="#9A9A9A" text-anchor="start">En cours</text>
+  <path d="M1216 239.0 l6 6 l6 -6" fill="none" stroke="#333333" stroke-width="1.5"/>
+  <text x="856" y="288" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="bold" fill="#333333" text-anchor="start">Déjà fait</text>
+  <rect x="856" y="296" width="382" height="64" rx="5" fill="#FFFFFF" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="856" y="386" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="bold" fill="#333333" text-anchor="start">En cours</text>
+  <rect x="856" y="394" width="382" height="64" rx="5" fill="#FFFFFF" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="856" y="484" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="bold" fill="#333333" text-anchor="start">Note de blocage (statut Bloqué)</text>
+  <rect x="856" y="492" width="382" height="52" rx="5" fill="#FFFFFF" stroke="#9A9A9A" stroke-width="1.5"/>
+  <rect x="856" y="562" width="200" height="38" rx="6" fill="#333333" stroke="#333333" stroke-width="1.5"/>
+  <text x="956.0" y="585.55" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Enregistrer l’avancement</text>
+  <rect x="260" y="540" width="560" height="236" rx="10" fill="#FFFFFF" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="276" y="568" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#333333" text-anchor="start">Historique des tâches</text>
+  <line x1="260" y1="584" x2="820" y2="584" stroke="#9A9A9A" stroke-width="1.5"/>
+  <circle cx="284" cy="618" r="8" fill="none" stroke="#9A9A9A" stroke-width="1.5"/>
+  <rect x="304" y="608" width="200" height="10" rx="5.0" fill="#D4D4D4"/>
+  <rect x="304" y="624" width="340" height="8" rx="4.0" fill="#D4D4D4"/>
+  <rect x="720" y="604" width="65.19999999999999" height="22" rx="11.0" fill="#F2F2F2" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="752.6" y="618" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="normal" fill="#333333" text-anchor="middle">Statut</text>
+  <circle cx="284" cy="674" r="8" fill="none" stroke="#9A9A9A" stroke-width="1.5"/>
+  <rect x="304" y="664" width="200" height="10" rx="5.0" fill="#D4D4D4"/>
+  <rect x="304" y="680" width="340" height="8" rx="4.0" fill="#D4D4D4"/>
+  <rect x="720" y="660" width="65.19999999999999" height="22" rx="11.0" fill="#F2F2F2" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="752.6" y="674" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="normal" fill="#333333" text-anchor="middle">Statut</text>
+  <circle cx="284" cy="730" r="8" fill="none" stroke="#9A9A9A" stroke-width="1.5"/>
+  <rect x="304" y="720" width="200" height="10" rx="5.0" fill="#D4D4D4"/>
+  <rect x="304" y="736" width="340" height="8" rx="4.0" fill="#D4D4D4"/>
+  <rect x="720" y="716" width="65.19999999999999" height="22" rx="11.0" fill="#F2F2F2" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="752.6" y="730" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="normal" fill="#333333" text-anchor="middle">Statut</text>
+</svg>

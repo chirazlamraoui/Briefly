@@ -117,6 +117,15 @@ class JsonEndpointTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_admin_json_request_to_member_dashboard_returns_403(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->withToken($this->tokenFor($admin))
+            ->getJson(route('dashboard'))
+            ->assertForbidden();
+    }
+
     public function test_member_json_request_to_projects_returns_403(): void
     {
         $team = Team::factory()->create();

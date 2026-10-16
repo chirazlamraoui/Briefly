@@ -8,6 +8,7 @@ use App\Http\Resources\TeamResource;
 use App\Models\Team;
 use App\Services\TaskService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -16,26 +17,26 @@ class DashboardController extends Controller
 {
     public function __construct(private TaskService $taskService) {}
 
-    public function index(Request $request): View|JsonResponse
+    public function index(Request $request): View|JsonResponse|RedirectResponse
     {
         $user = auth()->user();
+        if ($user->isAdmin()) {
+            if ($request->expectsJson()) {
+                abort(403, __('This action is reserved for team members.'));
+            }
+
+            return redirect()->route('admin.dashboard');
+        }
+
         $today = today();
         $personalProgress = $this->taskService->memberProgressOverview($user);
 
-        $ledTeams = collect();
-
-        if ($user->isTeamLead()) {
-            $ledTeams = Team::query()
-                ->whereIn('id', $user->managedTeamIds())
-                ->orderBy('name')
-                ->get()
-                ->map(fn (Team $team) => [
-                    'team' => $team,
-                    'stats' => $this->taskService->teamTaskStats($team),
-                    'progress' => $this->taskService->teamLeadProgressOverview($team),
-                    'blockedTasks' => $this->taskService->teamTasksForLead($team, TaskStatus::Blocked)->take(5),
-                ]);
-        }
+        $ledTeams = $user->managedTeams()->orderBy('name')->get()->map(fn (Team $team) => [
+            'team' => $team,
+            'stats' => $this->taskService->teamTaskStats($team),
+            'progress' => $this->taskService->teamLeadProgressOverview($team),
+            'blockedTasks' => $this->taskService->teamTasks($team, TaskStatus::Blocked)->take(5),
+        ]);
 
         return $this->respond($request, view('dashboard.home', compact('user', 'today', 'personalProgress', 'ledTeams')), [
             'today' => $today->toDateString(),
@@ -53,7 +54,7 @@ class DashboardController extends Controller
                 'stats' => $row['stats'],
                 'progress' => $row['progress'],
                 'blocked_tasks' => TaskResource::collection($row['blockedTasks'])->resolve(),
-            ])->values()->all(),
+            ])->all(),
         ]);
     }
 }

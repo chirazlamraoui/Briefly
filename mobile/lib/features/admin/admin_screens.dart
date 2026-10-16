@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/api_client.dart';
 import '../../core/api_exception.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/models.dart';
@@ -105,59 +106,24 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
   }
 }
 
-class AdminUsersScreen extends ConsumerStatefulWidget {
+class AdminUsersScreen extends StatelessWidget {
   const AdminUsersScreen({super.key});
-
-  @override
-  ConsumerState<AdminUsersScreen> createState() => _AdminUsersScreenState();
-}
-
-class _AdminUsersScreenState extends ConsumerState<AdminUsersScreen> {
-  late Future<List<AppUser>> _future;
-
-  @override
-  void initState() {
-    super.initState();
-    _future = ref.read(apiClientProvider).adminUsers();
-  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.users)),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/admin/users/create'),
-        child: const Icon(Icons.add),
-      ),
-      body: FutureBuilder<List<AppUser>>(
-        future: _future,
-        builder: (context, snapshot) {
-          return AsyncBody<List<AppUser>>(
-            snapshot: snapshot,
-            onRetry: () => setState(() => _future = ref.read(apiClientProvider).adminUsers()),
-            builder: (users) {
-              if (users.isEmpty) {
-                return EmptyState(message: l10n.emptyUsers, icon: Icons.people_outline);
-              }
-
-              return ListView.builder(
-                padding: BrieflySpacing.pageWithFab,
-                itemCount: users.length,
-                itemBuilder: (context, index) {
-                  final user = users[index];
-                  return EntityListTile(
-                    title: user.name,
-                    subtitle: user.email,
-                    leading: InitialAvatar(name: user.name),
-                    onTap: () => context.push('/admin/users/${user.id}'),
-                  );
-                },
-              );
-            },
-          );
-        },
+    return _AdminListScreen<AppUser>(
+      title: l10n.users,
+      createPath: '/admin/users/create',
+      emptyMessage: l10n.emptyUsers,
+      emptyIcon: Icons.people_outline,
+      load: (api) => api.adminUsers(),
+      itemBuilder: (context, user) => EntityListTile(
+        title: user.name,
+        subtitle: user.email,
+        leading: InitialAvatar(name: user.name),
+        onTap: () => context.push('/admin/users/${user.id}'),
       ),
     );
   }
@@ -338,59 +304,24 @@ class _AdminUserFormScreenState extends ConsumerState<AdminUserFormScreen> {
   }
 }
 
-class AdminTeamsScreen extends ConsumerStatefulWidget {
+class AdminTeamsScreen extends StatelessWidget {
   const AdminTeamsScreen({super.key});
-
-  @override
-  ConsumerState<AdminTeamsScreen> createState() => _AdminTeamsScreenState();
-}
-
-class _AdminTeamsScreenState extends ConsumerState<AdminTeamsScreen> {
-  late Future<List<AppTeam>> _future;
-
-  @override
-  void initState() {
-    super.initState();
-    _future = ref.read(apiClientProvider).adminTeams();
-  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.teams)),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/admin/teams/create'),
-        child: const Icon(Icons.add),
-      ),
-      body: FutureBuilder<List<AppTeam>>(
-        future: _future,
-        builder: (context, snapshot) {
-          return AsyncBody<List<AppTeam>>(
-            snapshot: snapshot,
-            onRetry: () => setState(() => _future = ref.read(apiClientProvider).adminTeams()),
-            builder: (teams) {
-              if (teams.isEmpty) {
-                return EmptyState(message: l10n.emptyTeams, icon: Icons.groups_outlined);
-              }
-
-              return ListView.builder(
-                padding: BrieflySpacing.pageWithFab,
-                itemCount: teams.length,
-                itemBuilder: (context, index) {
-                  final team = teams[index];
-                  return EntityListTile(
-                    title: team.name,
-                    subtitle: team.teamLead?.name ?? l10n.none,
-                    leading: const Icon(Icons.groups_outlined),
-                    onTap: () => context.push('/admin/teams/${team.id}/edit'),
-                  );
-                },
-              );
-            },
-          );
-        },
+    return _AdminListScreen<AppTeam>(
+      title: l10n.teams,
+      createPath: '/admin/teams/create',
+      emptyMessage: l10n.emptyTeams,
+      emptyIcon: Icons.groups_outlined,
+      load: (api) => api.adminTeams(),
+      itemBuilder: (context, team) => EntityListTile(
+        title: team.name,
+        subtitle: team.teamLead?.name ?? l10n.none,
+        leading: const Icon(Icons.groups_outlined),
+        onTap: () => context.push('/admin/teams/${team.id}/edit'),
       ),
     );
   }
@@ -551,55 +482,83 @@ class _AdminTeamFormScreenState extends ConsumerState<AdminTeamFormScreen> {
   }
 }
 
-class AdminProjectsScreen extends ConsumerStatefulWidget {
+class AdminProjectsScreen extends StatelessWidget {
   const AdminProjectsScreen({super.key});
-
-  @override
-  ConsumerState<AdminProjectsScreen> createState() => _AdminProjectsScreenState();
-}
-
-class _AdminProjectsScreenState extends ConsumerState<AdminProjectsScreen> {
-  late Future<List<AppProject>> _future;
-
-  @override
-  void initState() {
-    super.initState();
-    _future = ref.read(apiClientProvider).adminProjects();
-  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
+    return _AdminListScreen<AppProject>(
+      title: l10n.projects,
+      createPath: '/admin/projects/create',
+      emptyMessage: l10n.emptyProjects,
+      emptyIcon: Icons.folder_outlined,
+      load: (api) => api.adminProjects(),
+      itemBuilder: (context, project) => EntityListTile(
+        title: project.name,
+        subtitle: project.teamsSummary,
+        leading: const Icon(Icons.folder_outlined),
+        onTap: () => context.push('/admin/projects/${project.id}/edit'),
+      ),
+    );
+  }
+}
+
+/// List page shared by users, teams and projects: load, empty state, "+" button.
+class _AdminListScreen<T> extends ConsumerStatefulWidget {
+  const _AdminListScreen({
+    required this.title,
+    required this.createPath,
+    required this.emptyMessage,
+    required this.emptyIcon,
+    required this.load,
+    required this.itemBuilder,
+  });
+
+  final String title;
+  final String createPath;
+  final String emptyMessage;
+  final IconData emptyIcon;
+  final Future<List<T>> Function(ApiClient api) load;
+  final Widget Function(BuildContext context, T item) itemBuilder;
+
+  @override
+  ConsumerState<_AdminListScreen<T>> createState() => _AdminListScreenState<T>();
+}
+
+class _AdminListScreenState<T> extends ConsumerState<_AdminListScreen<T>> {
+  late Future<List<T>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = widget.load(ref.read(apiClientProvider));
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.projects)),
+      appBar: AppBar(title: Text(widget.title)),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/admin/projects/create'),
+        onPressed: () => context.push(widget.createPath),
         child: const Icon(Icons.add),
       ),
-      body: FutureBuilder<List<AppProject>>(
+      body: FutureBuilder<List<T>>(
         future: _future,
         builder: (context, snapshot) {
-          return AsyncBody<List<AppProject>>(
+          return AsyncBody<List<T>>(
             snapshot: snapshot,
-            onRetry: () => setState(() => _future = ref.read(apiClientProvider).adminProjects()),
-            builder: (projects) {
-              if (projects.isEmpty) {
-                return EmptyState(message: l10n.emptyProjects, icon: Icons.folder_outlined);
+            onRetry: () => setState(() => _future = widget.load(ref.read(apiClientProvider))),
+            builder: (items) {
+              if (items.isEmpty) {
+                return EmptyState(message: widget.emptyMessage, icon: widget.emptyIcon);
               }
 
               return ListView.builder(
                 padding: BrieflySpacing.pageWithFab,
-                itemCount: projects.length,
-                itemBuilder: (context, index) {
-                  final project = projects[index];
-                  return EntityListTile(
-                    title: project.name,
-                    subtitle: project.teamsSummary,
-                    leading: const Icon(Icons.folder_outlined),
-                    onTap: () => context.push('/admin/projects/${project.id}/edit'),
-                  );
-                },
+                itemCount: items.length,
+                itemBuilder: (context, index) => widget.itemBuilder(context, items[index]),
               );
             },
           );

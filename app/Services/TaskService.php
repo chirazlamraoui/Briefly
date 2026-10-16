@@ -16,11 +16,9 @@ use Illuminate\Validation\ValidationException;
 
 class TaskService
 {
-    public function projectsForTeam(Team $team): Collection
-    {
-        return $team->projects()->orderBy('name')->get();
-    }
-
+    /**
+     * @return Collection<int, User>
+     */
     public function assignableMembers(Team $team): Collection
     {
         return $team->assignedUsers()
@@ -29,74 +27,69 @@ class TaskService
             ->get();
     }
 
+    /**
+     * Teams led by the user that work on the project (the first one is used to create tasks).
+     *
+     * @return Collection<int, Team>
+     */
+    public function leadTeamsForProject(User $user, Project $project): Collection
+    {
+        return $user->managedTeams()
+            ->whereHas('projects', fn ($query) => $query->where('projects.id', $project->id))
+            ->orderBy('name')
+            ->get();
+    }
+
+    /**
+     * @return Collection<int, Task>
+     */
     public function assignedTasksFor(User $user): Collection
     {
         return Task::query()
             ->with(['project.teams', 'assignee'])
             ->where('assigned_to', $user->id)
-            ->orderByRaw("CASE status WHEN 'BLOCKED' THEN 0 WHEN 'IN_PROGRESS' THEN 1 WHEN 'TODO' THEN 2 ELSE 3 END")
-            ->orderBy('title')
+            ->orderedByStatus()
             ->get();
     }
 
+    /** Teams shown next to a task: the ones the user shares with the project, else the project's first team. */
     public function teamLabelForTask(Task $task, User $user): string
     {
         $task->loadMissing('project.teams');
         $user->loadMissing('teams');
 
-        $sharedTeams = $user->teams
-            ->whereIn('id', $task->project->teams->pluck('id'))
-            ->sortBy('name')
-            ->values();
+        $projectTeams = $task->project->teams->sortBy('name');
+        $sharedTeams = $projectTeams->whereIn('id', $user->teams->pluck('id'));
 
-        if ($sharedTeams->isEmpty()) {
-            return $task->project->teams->sortBy('name')->first()?->name ?? '—';
-        }
+        $label = ($sharedTeams->isNotEmpty() ? $sharedTeams : $projectTeams->take(1))
+            ->pluck('name')
+            ->join(', ');
 
-        if ($sharedTeams->count() === 1) {
-            return $sharedTeams->first()->name;
-        }
-
-        return $sharedTeams->pluck('name')->join(', ');
+        return $label !== '' ? $label : '—';
     }
 
     /**
+     * Save the task's current state and keep a copy in its history.
+     *
      * @param  array{status: string, progress_done?: ?string, progress_next?: ?string, blocker_note?: ?string}  $data
      */
     public function recordProgress(Task $task, User $user, array $data): TaskUpdate
     {
         $status = TaskStatus::from($data['status']);
 
-        $completedAt = match (true) {
-            $status === TaskStatus::Done => $task->completed_at ?? now(),
-            default => null,
-        };
+        $progress = [
+            'status' => $status,
+            'progress_done' => $data['progress_done'] ?? null,
+            'progress_next' => $data['progress_next'] ?? null,
+            'blocker_note' => $status === TaskStatus::Blocked ? ($data['blocker_note'] ?? null) : null,
+        ];
 
         $task->update([
-            'status' => $status,
-            'progress_done' => $data['progress_done'] ?? null,
-            'progress_next' => $data['progress_next'] ?? null,
-            'blocker_note' => $status === TaskStatus::Blocked ? ($data['blocker_note'] ?? null) : null,
-            'completed_at' => $completedAt,
+            ...$progress,
+            'completed_at' => $status === TaskStatus::Done ? ($task->completed_at ?? now()) : null,
         ]);
 
-        return TaskUpdate::create([
-            'task_id' => $task->id,
-            'user_id' => $user->id,
-            'status' => $status,
-            'progress_done' => $data['progress_done'] ?? null,
-            'progress_next' => $data['progress_next'] ?? null,
-            'blocker_note' => $status === TaskStatus::Blocked ? ($data['blocker_note'] ?? null) : null,
-        ]);
-    }
-
-    public function ensureProjectAccessibleToTeam(Project $project, Team $team): void
-    {
-        if (! $project->teams()->where('teams.id', $team->id)->exists()) {
-            throw ValidationException::withMessages([
-                'project_id' => __('This project is not available for your team.'),
-            ]);
-        }
+        return $task->updates()->create([...$progress, 'user_id' => $user->id]);
     }
 
     public function ensureAssigneeOnTeam(User $assignee, Team $team): void
@@ -109,82 +102,27 @@ class TaskService
     }
 
     /**
-     * @return array{total: int, in_progress: int, blocked: int, done: int, done_this_week: int}
-     */
-    public function teamTaskStats(Team $team): array
-    {
-        return $this->completionStatsForTasks($this->teamTasksQuery($team)->get());
-    }
-
-    /**
-     * @return array{total: int, in_progress: int, blocked: int, done: int, done_this_week: int}
-     */
-    public function teamTaskStatsForManagedTeams(User $user): array
-    {
-        $tasks = $this->tasksForManagedTeams($user)->pluck('task');
-
-        return $this->completionStatsForTasks($tasks);
-    }
-
-    /**
-     * @param  Collection<int, Task>  $tasks
-     * @return array{total: int, in_progress: int, blocked: int, done: int, done_this_week: int}
-     */
-    private function completionStatsForTasks(Collection $tasks): array
-    {
-        return [
-            'total' => $tasks->count(),
-            'in_progress' => $tasks->where('status', TaskStatus::InProgress)->count(),
-            'blocked' => $tasks->where('status', TaskStatus::Blocked)->count(),
-            'done' => $tasks->where('status', TaskStatus::Done)->count(),
-            'done_this_week' => $tasks
-                ->where('status', TaskStatus::Done)
-                ->filter(fn (Task $task) => $task->completed_at?->isCurrentWeek())
-                ->count(),
-        ];
-    }
-
-    /**
+     * Tasks of the team's people on the team's projects.
+     *
      * @return Builder<Task>
      */
-    public function teamTasksQuery(Team $team)
+    private function teamTasksQuery(Team $team): Builder
     {
-        $assigneeIds = $team->assignedUsers()->pluck('users.id');
-
         return Task::query()
             ->with(['project', 'assignee'])
-            ->whereIn('assigned_to', $assigneeIds)
+            ->whereIn('assigned_to', $team->assignedUsers()->pluck('users.id'))
             ->whereHas('project.teams', fn ($query) => $query->where('teams.id', $team->id))
-            ->orderByRaw("CASE status WHEN 'BLOCKED' THEN 0 WHEN 'IN_PROGRESS' THEN 1 WHEN 'TODO' THEN 2 ELSE 3 END")
-            ->orderBy('title');
+            ->orderedByStatus();
     }
 
     /**
-     * @return Collection<int, array{task: Task, team: Team}>
+     * @return Collection<int, Task>
      */
-    public function tasksForManagedTeams(User $user, ?TaskStatus $status = null): Collection
+    public function teamTasks(Team $team, ?TaskStatus $status = null): Collection
     {
-        $teamIds = $user->managedTeamIds();
-        $rows = collect();
-
-        foreach ($teamIds as $managedTeamId) {
-            $team = Team::query()->find($managedTeamId);
-
-            if ($team === null) {
-                continue;
-            }
-
-            $tasks = $this->teamTasksForLead($team, $status);
-
-            foreach ($tasks as $task) {
-                $rows->push([
-                    'task' => $task,
-                    'team' => $team,
-                ]);
-            }
-        }
-
-        return $rows->unique(fn (array $row) => $row['task']->id.'-'.$row['team']->id)->values();
+        return $this->teamTasksQuery($team)
+            ->when($status, fn ($query) => $query->where('status', $status))
+            ->get();
     }
 
     /**
@@ -192,23 +130,53 @@ class TaskService
      */
     public function teamTasksForProject(Team $team, Project $project): Collection
     {
-        return $this->teamTasksQuery($team)
-            ->where('project_id', $project->id)
-            ->get();
+        return $this->teamTasksQuery($team)->where('project_id', $project->id)->get();
     }
 
     /**
-     * @return Collection<int, Task>
+     * Every task of every team the user leads, with the team it belongs to.
+     *
+     * @return Collection<int, array{task: Task, team: Team}>
      */
-    public function teamTasksForLead(Team $team, ?TaskStatus $status = null): Collection
+    public function tasksForManagedTeams(User $user, ?TaskStatus $status = null): Collection
     {
-        $query = $this->teamTasksQuery($team);
+        return $user->managedTeams()->orderBy('name')->get()
+            ->flatMap(fn (Team $team) => $this->teamTasks($team, $status)
+                ->map(fn (Task $task) => ['task' => $task, 'team' => $team]))
+            ->values();
+    }
 
-        if ($status !== null) {
-            $query->where('status', $status);
-        }
+    /**
+     * @return array{total: int, in_progress: int, blocked: int, done: int, done_this_week: int}
+     */
+    public function teamTaskStats(Team $team): array
+    {
+        return $this->taskStats($this->teamTasks($team));
+    }
 
-        return $query->get();
+    /**
+     * @return array{total: int, in_progress: int, blocked: int, done: int, done_this_week: int}
+     */
+    public function teamTaskStatsForManagedTeams(User $user): array
+    {
+        return $this->taskStats($this->tasksForManagedTeams($user)->pluck('task'));
+    }
+
+    /**
+     * @param  Collection<int, Task>  $tasks
+     * @return array{total: int, in_progress: int, blocked: int, done: int, done_this_week: int}
+     */
+    private function taskStats(Collection $tasks): array
+    {
+        $doneTasks = $tasks->where('status', TaskStatus::Done);
+
+        return [
+            'total' => $tasks->count(),
+            'in_progress' => $tasks->where('status', TaskStatus::InProgress)->count(),
+            'blocked' => $tasks->where('status', TaskStatus::Blocked)->count(),
+            'done' => $doneTasks->count(),
+            'done_this_week' => $doneTasks->filter(fn (Task $task) => $task->completed_at?->isCurrentWeek())->count(),
+        ];
     }
 
     public function memberProgressHistory(User $user): LengthAwarePaginator
@@ -232,8 +200,22 @@ class TaskService
         return [
             'total' => $total,
             'done' => $done,
-            'rate' => $total > 0 ? (int) round(($done / $total) * 100) : 0,
+            'rate' => $total > 0 ? (int) round($done / $total * 100) : 0,
         ];
+    }
+
+    /**
+     * Highest rate first, then alphabetical.
+     *
+     * @param  Collection<int, array{name: string, rate: int}>  $rows
+     * @return list<array{name: string, rate: int}>
+     */
+    public function rankByRate(Collection $rows): array
+    {
+        return $rows
+            ->sortBy([['rate', 'desc'], fn (array $a, array $b) => strcasecmp($a['name'], $b['name'])])
+            ->values()
+            ->all();
     }
 
     /**
@@ -247,46 +229,27 @@ class TaskService
      */
     public function teamLeadProgressOverview(Team $team): array
     {
-        $tasks = $this->teamTasksQuery($team)->get();
+        $tasks = $this->teamTasks($team);
         $summary = $this->completionSummary($tasks);
 
-        $memberRates = $this->assignableMembers($team)->map(function (User $member) use ($team): array {
-            $memberTasks = Task::query()
-                ->where('assigned_to', $member->id)
-                ->whereHas('project.teams', fn ($query) => $query->where('teams.id', $team->id))
-                ->get();
+        $memberRates = $this->assignableMembers($team)->map(fn (User $member) => [
+            'id' => $member->id,
+            'name' => $member->name,
+            ...$this->completionSummary($tasks->where('assigned_to', $member->id)),
+        ]);
 
-            return array_merge(
-                ['id' => $member->id, 'name' => $member->name],
-                $this->completionSummary($memberTasks),
-            );
-        })->sort(function (array $a, array $b): int {
-            $rateCompare = $b['rate'] <=> $a['rate'];
-
-            return $rateCompare !== 0
-                ? $rateCompare
-                : strcasecmp($a['name'], $b['name']);
-        })->values()->all();
-
-        $projectRates = $this->projectsForTeam($team)->map(function (Project $project) use ($team): array {
-            return array_merge(
-                ['id' => $project->id, 'name' => $project->name],
-                $this->completionSummary($this->teamTasksForProject($team, $project)),
-            );
-        })->sort(function (array $a, array $b): int {
-            $rateCompare = $b['rate'] <=> $a['rate'];
-
-            return $rateCompare !== 0
-                ? $rateCompare
-                : strcasecmp($a['name'], $b['name']);
-        })->values()->all();
+        $projectRates = $team->projects()->get()->map(fn (Project $project) => [
+            'id' => $project->id,
+            'name' => $project->name,
+            ...$this->completionSummary($tasks->where('project_id', $project->id)),
+        ]);
 
         return [
             'overall_rate' => $summary['rate'],
             'done_count' => $summary['done'],
             'total_count' => $summary['total'],
-            'member_rates' => $memberRates,
-            'project_rates' => $projectRates,
+            'member_rates' => $this->rankByRate($memberRates),
+            'project_rates' => $this->rankByRate($projectRates),
         ];
     }
 
@@ -308,17 +271,8 @@ class TaskService
             'done_count' => $summary['done'],
             'total_count' => $summary['total'],
             'tasks' => $tasks
-                ->map(fn (Task $task): array => [
-                    'task' => $task,
-                    'rate' => $task->status->progressPercent(),
-                ])
-                ->sort(function (array $a, array $b): int {
-                    $rateCompare = $b['rate'] <=> $a['rate'];
-
-                    return $rateCompare !== 0
-                        ? $rateCompare
-                        : strcasecmp($a['task']->title, $b['task']->title);
-                })
+                ->map(fn (Task $task) => ['task' => $task, 'rate' => $task->status->progressPercent()])
+                ->sortBy([['rate', 'desc'], fn (array $a, array $b) => strcasecmp($a['task']->title, $b['task']->title)])
                 ->values(),
         ];
     }

@@ -29,7 +29,7 @@ class AdminTeamController extends Controller
 
     public function create(Request $request): View|JsonResponse
     {
-        $users = $this->adminTeamService->assignableUsersForTeam(new Team);
+        $users = $this->adminTeamService->assignableUsers();
 
         return $this->respond($request, view('admin.teams.create', compact('users')), [
             'users' => UserResource::collection($users)->resolve(),
@@ -52,16 +52,12 @@ class AdminTeamController extends Controller
     public function edit(Request $request, Team $team): View|JsonResponse
     {
         $team = $this->adminTeamService->teamDetail($team);
-        $users = $this->adminTeamService->assignableUsersForTeam($team);
+        $users = $this->adminTeamService->assignableUsers();
         $members = $users->where('role', UserRole::Member)->values();
         $projects = $this->adminTeamService->assignableProjects();
-
         $selectedUserIds = $team->assignedUsers->pluck('id')->all();
-
         $selectedProjectIds = $team->projects->pluck('id')->all();
-        $selectedTeamLeadId = $team->assignedUsers
-            ->first(fn ($user) => (bool) $user->pivot->is_team_lead)
-            ?->id;
+        $selectedTeamLeadId = $team->teamLead?->id;
 
         return $this->respond($request, view('admin.teams.edit', compact(
             'team',

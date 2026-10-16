@@ -21,7 +21,7 @@ class AdminTeamService
             ->withCount([
                 'assignedUsers as member_count' => fn ($query) => $query->where('role', UserRole::Member),
             ])
-            ->with(['teamLead'])
+            ->with('teamLead')
             ->orderBy('name')
             ->get();
     }
@@ -37,11 +37,7 @@ class AdminTeamService
             $this->adminUserService->assignTeamLead($team, User::query()->findOrFail($teamLeadId));
         }
 
-        $userIds = collect($memberIds)
-            ->when($teamLeadId, fn ($ids) => $ids->push($teamLeadId))
-            ->unique()
-            ->values()
-            ->all();
+        $userIds = $this->withLead($memberIds, $teamLeadId);
 
         if ($userIds !== []) {
             $this->adminUserService->syncTeamUsers($team, $userIds);
@@ -63,29 +59,19 @@ class AdminTeamService
         $team->update(['name' => $data['name']]);
 
         $requestedUserIds = $data['user_ids'] ?? [];
+        $teamLeadId = ! empty($data['team_lead_id']) ? (int) $data['team_lead_id'] : null;
 
-        $teamLeadId = isset($data['team_lead_id']) && $data['team_lead_id']
-            ? (int) $data['team_lead_id']
-            : null;
-
+        // No lead picked in the form: keep the current one while members are being edited.
         if ($teamLeadId === null && $requestedUserIds !== []) {
-            $teamLeadId = $team->assignedUsers()->wherePivot('is_team_lead', true)->value('users.id');
+            $teamLeadId = $team->teamLead?->id;
         }
 
-        $userIds = collect($requestedUserIds)
-            ->when($teamLeadId, fn ($ids) => $ids->push($teamLeadId))
-            ->unique()
-            ->values()
-            ->all();
+        $userIds = $this->withLead($requestedUserIds, $teamLeadId);
 
         if ($teamLeadId) {
             $this->adminUserService->assignTeamLead($team, User::query()->findOrFail($teamLeadId));
-        } else {
-            $currentLead = $team->teamLead;
-
-            if ($currentLead !== null && in_array($currentLead->id, $userIds, true)) {
-                $this->adminUserService->clearTeamLeadForTeam($team, $currentLead);
-            }
+        } elseif ($team->teamLead !== null && in_array($team->teamLead->id, $userIds, true)) {
+            $this->adminUserService->clearTeamLeadForTeam($team, $team->teamLead);
         }
 
         $this->adminUserService->syncTeamUsers($team, $userIds);
@@ -106,7 +92,7 @@ class AdminTeamService
     /**
      * @return Collection<int, User>
      */
-    public function assignableUsersForTeam(Team $team): Collection
+    public function assignableUsers(): Collection
     {
         return User::query()
             ->where('role', '!=', UserRole::Admin)
@@ -120,5 +106,18 @@ class AdminTeamService
     public function assignableProjects(): Collection
     {
         return Project::query()->orderBy('name')->get();
+    }
+
+    /**
+     * @param  list<int>  $userIds
+     * @return list<int>
+     */
+    private function withLead(array $userIds, ?int $teamLeadId): array
+    {
+        return collect($userIds)
+            ->when($teamLeadId, fn ($ids) => $ids->push($teamLeadId))
+            ->unique()
+            ->values()
+            ->all();
     }
 }

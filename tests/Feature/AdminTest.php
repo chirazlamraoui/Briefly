@@ -45,6 +45,15 @@ class AdminTest extends TestCase
             ->assertRedirect(route('admin.dashboard'));
     }
 
+    public function test_admin_is_redirected_from_member_dashboard(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)
+            ->get(route('dashboard'))
+            ->assertRedirect(route('admin.dashboard'));
+    }
+
     public function test_admin_can_create_and_update_project(): void
     {
         $admin = User::factory()->admin()->create();

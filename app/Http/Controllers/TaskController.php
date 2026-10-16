@@ -26,19 +26,17 @@ class TaskController extends Controller
     {
         $this->authorize('view', $task);
 
+        $user = auth()->user();
         $task->load(['project', 'assignee', 'updates.user']);
-        $teamLabel = $this->taskService->teamLabelForTask($task, auth()->user());
+        $teamLabel = $this->taskService->teamLabelForTask($task, $user);
         $task->setAttribute('team_label', $teamLabel);
+        $canUpdateProgress = $user->can('updateStatus', $task);
+        $canEdit = $user->can('update', $task);
 
-        return $this->respond($request, view('tasks.show', [
-            'task' => $task,
-            'canUpdateProgress' => auth()->user()->can('updateStatus', $task),
-            'canEdit' => auth()->user()->can('update', $task),
-            'teamLabel' => $teamLabel,
-        ]), [
+        return $this->respond($request, view('tasks.show', compact('task', 'canUpdateProgress', 'canEdit', 'teamLabel')), [
             'task' => (new TaskResource($task))->resolve(),
-            'can_update_progress' => auth()->user()->can('updateStatus', $task),
-            'can_edit' => auth()->user()->can('update', $task),
+            'can_update_progress' => $canUpdateProgress,
+            'can_edit' => $canEdit,
             'team_label' => $teamLabel,
         ]);
     }
@@ -58,13 +56,8 @@ class TaskController extends Controller
 
     public function create(Request $request, Project $project): View|JsonResponse
     {
-        $this->authorize('view', $project);
         $this->authorize('create', Task::class);
-
-        $contextTeam = $this->contextTeamForProject($project);
-
-        abort_if($contextTeam === null, 403);
-
+        $contextTeam = $this->contextTeam($project);
         $members = $this->taskService->assignableMembers($contextTeam);
 
         return $this->respond($request, view('tasks.create', compact('project', 'members', 'contextTeam')), [
@@ -76,17 +69,9 @@ class TaskController extends Controller
 
     public function store(StoreTaskRequest $request, Project $project): RedirectResponse|JsonResponse
     {
-        $this->authorize('view', $project);
         $this->authorize('create', Task::class);
-
-        $contextTeam = $this->contextTeamForProject($project);
-
-        abort_if($contextTeam === null, 403);
-
-        $this->taskService->ensureProjectAccessibleToTeam($project, $contextTeam);
-
-        $assignee = User::query()->findOrFail($request->validated('assigned_to'));
-        $this->taskService->ensureAssigneeOnTeam($assignee, $contextTeam);
+        $contextTeam = $this->contextTeam($project);
+        $this->ensureAssigneeOnTeam($request, $contextTeam);
 
         $task = $project->tasks()->create($request->validated());
         $task->load(['project', 'assignee']);
@@ -98,12 +83,8 @@ class TaskController extends Controller
     public function edit(Request $request, Task $task): View|JsonResponse
     {
         $this->authorize('update', $task);
-
         $task->load(['project', 'assignee']);
-        $contextTeam = $this->contextTeamForProject($task->project);
-
-        abort_if($contextTeam === null, 403);
-
+        $contextTeam = $this->contextTeam($task->project);
         $members = $this->taskService->assignableMembers($contextTeam);
 
         return $this->respond($request, view('tasks.edit', compact('task', 'members', 'contextTeam')), [
@@ -116,13 +97,7 @@ class TaskController extends Controller
     public function update(StoreTaskRequest $request, Task $task): RedirectResponse|JsonResponse
     {
         $this->authorize('update', $task);
-
-        $contextTeam = $this->contextTeamForProject($task->project);
-
-        abort_if($contextTeam === null, 403);
-
-        $assignee = User::query()->findOrFail($request->validated('assigned_to'));
-        $this->taskService->ensureAssigneeOnTeam($assignee, $contextTeam);
+        $this->ensureAssigneeOnTeam($request, $this->contextTeam($task->project));
 
         $task->update($request->validated());
         $task->refresh()->load(['project', 'assignee']);
@@ -134,12 +109,15 @@ class TaskController extends Controller
             ]);
     }
 
-    private function contextTeamForProject(Project $project): ?Team
+    /** The lead's team on this project. 403 when they lead none of its teams. */
+    private function contextTeam(Project $project): Team
     {
-        return Team::query()
-            ->whereIn('id', auth()->user()->managedTeamIds())
-            ->whereHas('projects', fn ($query) => $query->where('projects.id', $project->id))
-            ->orderBy('name')
-            ->first();
+        return $this->taskService->leadTeamsForProject(auth()->user(), $project)->first() ?? abort(403);
+    }
+
+    private function ensureAssigneeOnTeam(StoreTaskRequest $request, Team $team): void
+    {
+        $assignee = User::query()->findOrFail($request->validated('assigned_to'));
+        $this->taskService->ensureAssigneeOnTeam($assignee, $team);
     }
 }

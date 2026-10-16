@@ -1,32 +1,26 @@
 # Conclusion générale
 
-Nous avons conçu et réalisé Briefly, une application interne de suivi d’avancement, en version web et mobile. Dans le périmètre des chapitres 2 à 4, l’avancement est lisible, structuré, et consultable depuis les deux clients, sans inscription publique.
+Ce mémoire a présenté la conception et la réalisation de Briefly, une application interne de suivi d’avancement des équipes, disponible en version web (Laravel) et mobile (Flutter). Le point de départ était un besoin simple : outiller le *stand-up* quotidien, que les équipes tiennent le plus souvent dans une messagerie, sans structure ni lien avec les tâches.
 
-Le travail a suivi l’étude préalable, l’analyse des besoins, la conception, puis cinq sprints (tableau 2.1). Nous y avons pratiqué Laravel, Flutter, UML, Scrum et des tests automatisés. La communication unifiée HTML/JSON (§3.1.1) évite de dupliquer les règles métier : un seul ensemble de routes sert le navigateur et l’application mobile.
+Briefly répond à ce besoin pour des équipes déjà constituées, sans inscription publique. L’administrateur crée les comptes, les équipes et les projets. Le chef d’équipe crée et suit les tâches de ses équipes. Le membre rend compte de ses tâches en trois champs : ce qui a été réalisé, ce qui vient ensuite, et ce qui bloque. Une tâche bloquée exige une note. Les tableaux de bord de chaque rôle calculent ensuite un taux d’avancement par membre, par équipe et par projet.
 
-Le livrable reste un prototype académique. Il n’y a pas de notifications push, de calendrier partagé ni d’export PDF. Un brief quotidien d’équipe, envisagé plus tôt, n’est pas dans cette version. L’intégration continue est trop simple pour un usage industriel.
+Le travail a suivi l’étude préalable, l’analyse des besoins, la conception, puis six sprints (tableau 2.1). La communication unifiée (§3.1.1) sert le web en HTML et le mobile en JSON depuis le même serveur Laravel ; PHPUnit et GitHub Actions en vérifient les règles avant chaque évolution du dépôt.
 
-Les pistes suivantes ne sont pas implémentées : notifications push, brief quotidien d’équipe optionnel, calendrier des tâches, export PDF des tableaux de bord, pipeline d’intégration continue plus complet.
+Ce projet nous a permis de pratiquer l’ensemble du cycle d’une application : analyse UML, architecture en couches, conception d’une base relationnelle, développement web avec Laravel, développement mobile avec Flutter, authentification par jeton avec Sanctum, tests automatisés, intégration continue et mise en ligne du serveur (chapitre 5).
 
-Briefly fournit donc un socle de suivi d’avancement sur le web et sur mobile, dans le périmètre fixé. Des évolutions restent possibles ensuite.
+## Perspectives
 
----
+Cette version n’inclut pas encore certaines fonctions. Plusieurs évolutions sont envisageables pour les prochaines versions de Briefly :
 
-# Résumé
+- **Notifications push.** Prévenir le chef d’équipe sur mobile lorsqu’une tâche passe au statut bloqué, et le membre lorsqu’une tâche lui est assignée.
+- **Brief quotidien d’équipe.** Rassembler chaque jour les points d’avancement de tous les membres, à partir de l’historique déjà conservé dans `task_updates`.
+- **Export PDF.** Générer un état d’avancement à partir des tableaux de bord, à joindre à un compte rendu de réunion.
+- **Calendrier partagé.** Afficher sur une même vue les échéances des tâches et des projets.
+- **Sécurité de l’authentification.** Limiter le nombre de tentatives sur `POST /login` et donner une durée de validité aux jetons Sanctum (§4.3.6).
+- **Déploiement automatisé.** Prolonger le workflow d’intégration continue par une mise en production de l’application après le succès des tests.
+- **Tests mobiles.** Étendre les tests Flutter, qui portent aujourd’hui sur l’accès authentifié et la validation de l’avancement, aux principaux écrans.
 
-Ce mémoire décrit la conception et le développement de Briefly, application interne de suivi d’avancement des équipes, en version web (Laravel) et mobile (Flutter). L’outil s’adresse à des équipes déjà constituées. Les utilisateurs sont administrateur, chef d’équipe ou membre. Les membres déposent des points d’avancement structurés. Des tableaux de bord en donnent une lecture d’ensemble. Il n’y a pas d’auto-inscription publique. Le travail a suivi Scrum. Un serveur unique sert les deux clients, en HTML ou en JSON selon le contexte (communication unifiée). Notifications, brief quotidien, calendrier, export PDF et intégration continue plus complète restent hors du livrable actuel.
-
-**Mots clés :** Application web, Application mobile, Laravel, Flutter, MySQL, Sanctum, Scrum, suivi de tâches.
-
----
-
-# Abstract
-
-This dissertation describes the design and development of Briefly, an internal application for tracking team progress, as a web client (Laravel) and a mobile client (Flutter). The tool is for teams that already exist. Users are administrator, team lead, or member. Members report structured progress updates. Dashboards give an overall view. There is no public self-registration. The work followed Scrum. One server serves both clients, returning HTML or JSON according to the request (unified communication). Push notifications, a daily team brief, a calendar, PDF export, and fuller continuous integration are not part of this deliverable.
-
-**Keywords:** Web application, Mobile application, Laravel, Flutter, MySQL, Sanctum, Scrum, task tracking.
-
----
+Les règles métier restant sur le serveur Laravel, chacune de ces évolutions profiterait aux deux clients sans dupliquer la logique.
 
 # Netographie
 
@@ -75,3 +69,11 @@ This dissertation describes the design and development of Briefly, an internal a
 [22] https://dev.mysql.com/doc/refman/8.4/en/, consulté le 15/09/2026.
 
 [23] https://docs.phpunit.de/, consulté le 15/09/2026.
+
+[24] https://laravel.com/docs/13.x/hashing, consulté le 01/10/2026.
+
+[25] https://docs.github.com/fr/actions, consulté le 01/10/2026.
+
+[26] https://www.alwaysdata.com/fr/offers/, consulté le 03/10/2026.
+
+[27] https://help.alwaysdata.com/fr/docs/hebergement-web/languages/php/, consulté le 03/10/2026.

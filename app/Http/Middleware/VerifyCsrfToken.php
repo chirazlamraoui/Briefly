@@ -7,11 +7,6 @@ use Illuminate\Foundation\Http\Middleware\PreventRequestForgery as Middleware;
 class VerifyCsrfToken extends Middleware
 {
     /**
-     * @var list<string>
-     */
-    protected $except = [];
-
-    /**
      * The website sends a hidden CSRF field. The phone cannot.
      * Skip CSRF when the phone already proved itself with a Bearer token,
      * or when it is posting JSON to login / password reset.

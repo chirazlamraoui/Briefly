@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <rect x="0" y="0" width="1280" height="800" fill="#FFFFFF"/>
+  <rect x="0" y="0" width="1280" height="800" rx="0" fill="#F2F2F2" stroke="none" stroke-width="0"/>
+  <rect x="1170" y="18" width="84" height="32" rx="16" fill="#FFFFFF" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="1192" y="39" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="bold" fill="#333333" text-anchor="start">FR</text>
+  <text x="1224" y="39" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="normal" fill="#333333" text-anchor="start">EN</text>
+  <rect x="450" y="190" width="380" height="420" rx="12" fill="#FFFFFF" stroke="#9A9A9A" stroke-width="1.5"/>
+  <rect x="618.0" y="218" width="44" height="44" rx="4" fill="#F2F2F2" stroke="#9A9A9A" stroke-width="1.5"/>
+  <line x1="618.0" y1="218" x2="662.0" y2="262" stroke="#9A9A9A" stroke-width="1.5"/>
+  <line x1="662.0" y1="218" x2="618.0" y2="262" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="640.0" y="298" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="bold" fill="#333333" text-anchor="middle">Briefly</text>
+  <text x="640.0" y="322" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="normal" fill="#555555" text-anchor="middle">Suivi de l’avancement des tâches pour les équipes</text>
+  <text x="474" y="362" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="bold" fill="#333333" text-anchor="start">E-mail</text>
+  <rect x="474" y="370" width="332" height="40" rx="5" fill="#FFFFFF" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="486" y="395.0" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="normal" fill="#9A9A9A" text-anchor="start">nom@entreprise.fr</text>
+  <text x="474" y="436" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="bold" fill="#333333" text-anchor="start">Mot de passe</text>
+  <rect x="474" y="444" width="332" height="40" rx="5" fill="#FFFFFF" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="486" y="469.0" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="normal" fill="#9A9A9A" text-anchor="start">••••••••</text>
+  <rect x="474" y="498" width="14" height="14" rx="3" fill="#FFFFFF" stroke="#9A9A9A" stroke-width="1.5"/>
+  <text x="496" y="510" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="normal" fill="#333333" text-anchor="start">Se souvenir de moi</text>
+  <text x="806" y="510" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="normal" fill="#333333" text-anchor="end" text-decoration="underline">Mot de passe oublié ?</text>
+  <rect x="474" y="532" width="332" height="42" rx="6" fill="#333333" stroke="#333333" stroke-width="1.5"/>
+  <text x="640.0" y="557.9" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Se connecter</text>
+</svg>

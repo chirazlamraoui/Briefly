@@ -9,6 +9,12 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Team membership rules:
+ * - a team has at most one lead (team_user.is_team_lead);
+ * - a user's role is TEAM_LEAD as soon as they lead one team;
+ * - users.team_id always points to one of the user's teams, a led one first.
+ */
 class AdminUserService
 {
     /**
@@ -21,36 +27,6 @@ class AdminUserService
             ->where('role', '!=', UserRole::Admin)
             ->orderBy('name')
             ->get();
-    }
-
-    /**
-     * @param  array{
-     *     name: string,
-     *     job_title?: ?string,
-     *     team_ids: list<int>,
-     *     team_lead_ids?: list<int>
-     * }  $data
-     */
-    public function updateUser(User $user, array $data): User
-    {
-        if ($user->isAdmin()) {
-            throw ValidationException::withMessages([
-                'user' => __('Administrators cannot be reassigned through this form.'),
-            ]);
-        }
-
-        $user->update([
-            'name' => $data['name'],
-            'job_title' => $data['job_title'] ?? null,
-        ]);
-
-        $this->syncUserTeams(
-            $user,
-            $data['team_ids'],
-            $data['team_lead_ids'] ?? [],
-        );
-
-        return $user->fresh(['team', 'teams']);
     }
 
     /**
@@ -73,6 +49,23 @@ class AdminUserService
     }
 
     /**
+     * @param  array{name: string, job_title?: ?string, team_ids: list<int>, team_lead_ids?: list<int>}  $data
+     */
+    public function updateUser(User $user, array $data): User
+    {
+        $user->update([
+            'name' => $data['name'],
+            'job_title' => $data['job_title'] ?? null,
+        ]);
+
+        $this->syncUserTeams($user, $data['team_ids'], $data['team_lead_ids'] ?? []);
+
+        return $user->fresh(['team', 'teams']);
+    }
+
+    /**
+     * Put the user in exactly these teams, leading the ones in $teamLeadIds.
+     *
      * @param  list<int>  $teamIds
      * @param  list<int>  $teamLeadIds
      */
@@ -84,47 +77,21 @@ class AdminUserService
             ]);
         }
 
-        $teamIds = collect($teamIds)->map(fn ($id) => (int) $id)->unique()->values()->all();
-        $teamLeadIds = collect($teamLeadIds)
-            ->map(fn ($id) => (int) $id)
-            ->intersect($teamIds)
-            ->unique()
-            ->values()
-            ->all();
+        $teamIds = array_values(array_unique(array_map('intval', $teamIds)));
+        $teamLeadIds = array_map('intval', $teamLeadIds);
 
-        $currentTeamIds = $user->teams()->pluck('teams.id')->all();
-        $detachIds = array_diff($currentTeamIds, $teamIds);
+        $removedTeamIds = array_diff($user->teams()->pluck('teams.id')->all(), $teamIds);
 
-        foreach ($detachIds as $teamId) {
-            $wasTeamLead = $user->isTeamLeadOf($teamId);
-
-            $user->teams()->detach($teamId);
-
-            if ((int) $user->team_id === (int) $teamId) {
-                $nextTeamId = $user->teams()->value('teams.id');
-
-                if ($nextTeamId === null && $wasTeamLead) {
-                    throw ValidationException::withMessages([
-                        'team_ids' => __('Team leads must remain assigned to at least one team.'),
-                    ]);
-                }
-
-                $user->update(['team_id' => $nextTeamId]);
-            }
+        foreach ($removedTeamIds as $teamId) {
+            $this->detachFromTeam($user, $teamId, 'team_ids');
         }
 
         foreach ($teamIds as $teamId) {
             $isLead = in_array($teamId, $teamLeadIds, true);
-
-            if (! $user->teams()->where('teams.id', $teamId)->exists()) {
-                $user->teams()->attach($teamId, ['is_team_lead' => $isLead]);
-            } else {
-                $user->teams()->updateExistingPivot($teamId, ['is_team_lead' => $isLead]);
-            }
+            $user->teams()->syncWithoutDetaching([$teamId => ['is_team_lead' => $isLead]]);
 
             if ($isLead) {
-                $this->clearTeamLeadFlags($teamId);
-                $this->setTeamLeadFlag($teamId, $user->id, true);
+                $this->makeTeamLead($teamId, $user);
             }
         }
 
@@ -139,12 +106,8 @@ class AdminUserService
             ]);
         }
 
-        if (! $user->teams()->where('teams.id', $team->id)->exists()) {
-            $user->teams()->attach($team->id, ['is_team_lead' => true]);
-        }
-
-        $this->clearTeamLeadFlags($team->id);
-        $this->setTeamLeadFlag($team->id, $user->id, true);
+        $user->teams()->syncWithoutDetaching([$team->id => ['is_team_lead' => true]]);
+        $this->makeTeamLead($team->id, $user);
         $user->update(['team_id' => $team->id]);
 
         $this->syncPrimaryTeamAndRole($user);
@@ -152,15 +115,17 @@ class AdminUserService
 
     public function clearTeamLeadForTeam(Team $team, User $user): void
     {
-        if (! $team->assignedUsers()->where('users.id', $user->id)->exists()) {
+        if (! $user->belongsToTeam($team->id)) {
             return;
         }
 
-        $this->setTeamLeadFlag($team->id, $user->id, false);
+        $user->teams()->updateExistingPivot($team->id, ['is_team_lead' => false]);
         $this->syncPrimaryTeamAndRole($user);
     }
 
     /**
+     * Put exactly these users in the team (admins are ignored).
+     *
      * @param  list<int>  $userIds
      */
     public function syncTeamUsers(Team $team, array $userIds): void
@@ -170,7 +135,7 @@ class AdminUserService
             ->where('role', '!=', UserRole::Admin)
             ->get();
 
-        $currentUserIds = $team->assignedUsers()->pluck('users.id')->all();
+        $removedUserIds = array_diff($team->assignedUsers()->pluck('users.id')->all(), $users->pluck('id')->all());
 
         foreach ($users as $user) {
             if (! $user->teams()->where('teams.id', $team->id)->exists()) {
@@ -182,84 +147,48 @@ class AdminUserService
             }
         }
 
-        $detachIds = array_diff($currentUserIds, $users->pluck('id')->all());
-
-        foreach ($detachIds as $userId) {
-            $user = User::query()->find($userId);
-
-            if ($user === null) {
-                continue;
-            }
-
-            $wasTeamLead = $user->isTeamLeadOf($team);
-
-            $user->teams()->detach($team->id);
-
-            if ((int) $user->team_id === (int) $team->id) {
-                $nextTeamId = $user->teams()->value('teams.id');
-
-                if ($nextTeamId === null && $wasTeamLead) {
-                    throw ValidationException::withMessages([
-                        'user_ids' => __('Team leads must remain assigned to at least one team.'),
-                    ]);
-                }
-
-                $user->update(['team_id' => $nextTeamId]);
-            }
-
-            if ($wasTeamLead) {
-                $this->syncPrimaryTeamAndRole($user);
-            }
+        foreach (User::query()->whereIn('id', $removedUserIds)->get() as $user) {
+            $this->detachFromTeam($user, $team->id, 'user_ids');
+            $this->syncPrimaryTeamAndRole($user);
         }
+    }
+
+    /** A lead cannot be left without any team. */
+    private function detachFromTeam(User $user, int $teamId, string $errorField): void
+    {
+        $wasTeamLead = $user->isTeamLeadOf($teamId);
+
+        $user->teams()->detach($teamId);
+
+        if ($wasTeamLead && ! $user->teams()->exists()) {
+            throw ValidationException::withMessages([
+                $errorField => __('Team leads must remain assigned to at least one team.'),
+            ]);
+        }
+    }
+
+    /** The user becomes the only lead of the team. */
+    private function makeTeamLead(int $teamId, User $user): void
+    {
+        DB::table('team_user')->where('team_id', $teamId)->update(['is_team_lead' => false]);
+        $user->teams()->updateExistingPivot($teamId, ['is_team_lead' => true]);
     }
 
     private function syncPrimaryTeamAndRole(User $user): void
     {
-        $isTeamLead = $user->teams()->wherePivot('is_team_lead', true)->exists();
-        $ledTeamId = $user->teams()->wherePivot('is_team_lead', true)->value('teams.id');
-        $firstTeamId = $user->teams()->value('teams.id');
+        $teamIds = $user->teams()->pluck('teams.id')->map(fn ($id) => (int) $id)->all();
+        $ledTeamIds = $user->managedTeamIds();
+        $currentTeamId = (int) $user->team_id;
+
+        $teamId = match (true) {
+            $ledTeamIds !== [] && ! in_array($currentTeamId, $ledTeamIds, true) => $ledTeamIds[0],
+            in_array($currentTeamId, $teamIds, true) => $currentTeamId,
+            default => $teamIds[0] ?? null,
+        };
 
         $user->update([
-            'role' => $isTeamLead ? UserRole::TeamLead : UserRole::Member,
+            'role' => $ledTeamIds !== [] ? UserRole::TeamLead : UserRole::Member,
+            'team_id' => $teamId,
         ]);
-
-        if ($ledTeamId !== null && ! $user->isTeamLeadOf((int) $user->team_id)) {
-            $user->update(['team_id' => $ledTeamId]);
-
-            return;
-        }
-
-        if (! $user->teams()->where('teams.id', $user->team_id)->exists()) {
-            $user->update(['team_id' => $firstTeamId]);
-        }
-    }
-
-    private function clearTeamLeadFlags(int $teamId): void
-    {
-        DB::table('team_user')
-            ->where('team_id', $teamId)
-            ->where('is_team_lead', true)
-            ->update(['is_team_lead' => false]);
-    }
-
-    private function setTeamLeadFlag(int $teamId, int $userId, bool $isTeamLead = true): void
-    {
-        $updated = DB::table('team_user')
-            ->where('team_id', $teamId)
-            ->where('user_id', $userId)
-            ->update([
-                'is_team_lead' => $isTeamLead,
-                'updated_at' => now(),
-            ]);
-
-        if ($updated === 0) {
-            DB::table('team_user')->insert([
-                'team_id' => $teamId,
-                'user_id' => $userId,
-                'is_team_lead' => $isTeamLead,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
     }
 }
