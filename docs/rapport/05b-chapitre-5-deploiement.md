@@ -2,13 +2,15 @@
 
 ## Introduction
 
-Les chapitres 3 et 4 décrivent Briefly sur le poste de développement. Nous avons ensuite mis le serveur Laravel en ligne et branché l’application Flutter sur cette URL. Le navigateur et le téléphone utilisent le même backend (§3.1.1) : HTML et cookies côté web, JSON et jeton Sanctum côté mobile. Ce chapitre présente l’hébergement retenu, les grandes étapes de mise en production et les contrôles réalisés sur le web et sur iPhone.
+Les chapitres 3 et 4 décrivent Briefly sur le poste de développement. Nous avons ensuite mis le serveur en ligne et branché l’application mobile sur cette adresse. Le navigateur et le téléphone joignent ce même serveur. Ce chapitre présente l’hébergement retenu, les grandes étapes de mise en production et les contrôles réalisés sur le web et sur iPhone.
 
 ## 5.1 Choix d’hébergement
 
-Briefly en production demande PHP 8.3 ou plus, MySQL ou MariaDB, et une racine web sur le dossier `public/` de Laravel. Les sessions et le cache restent en base (`SESSION_DRIVER=database`, `CACHE_STORE=database`). La file d’attente est synchrone (`QUEUE_CONNECTION=sync`) : aucun worker permanent n’est nécessaire. L’interface web charge Bootstrap et Chart.js depuis un CDN, donc le déploiement n’exécute pas `npm`.
+Briefly est une application PHP avec une base relationnelle. Le site est servi depuis le dossier `public/`, en HTTPS, et les mises à jour passent par SSH. L’application n’a pas de worker de file d’attente et ne compile pas de ressources front. L’hébergement doit couvrir ces besoins.
 
-Nous avons retenu l’offre gratuite alwaysdata [26], compte `lamraoui`. Elle fournit PHP 8.5, MariaDB 11.4, un accès SSH et HTTPS sur le sous-domaine du compte. L’application est accessible à l’adresse https://lamraoui.alwaysdata.net. Ce choix suffit pour un projet de titre : coût nul, stack compatible Laravel, certificat TLS géré par l’hébergeur [27].
+Nous avons retenu alwaysdata, compte `lamraoui`, à l’adresse https://lamraoui.alwaysdata.net [26]. Ce compte fournit déjà PHP 8.5, MariaDB 11.4, un accès SSH et un certificat sur le sous-domaine, sans frais supplémentaires [27].
+
+Les réglages suivent ce choix. PHP 8.5 et MariaDB 11.4 portent le serveur et la base `lamraoui_briefly`. La racine web pointe sur `www/briefly/public/`. `APP_ENV` vaut `production` et `APP_DEBUG` vaut `false`. Les sessions et le cache restent en base (`SESSION_DRIVER=database`, `CACHE_STORE=database`). La file d’attente est synchrone (`QUEUE_CONNECTION=sync`). L’interface web charge Bootstrap et Chart.js depuis un CDN, donc le déploiement n’exécute pas `npm`.
 
 **Tableau 5.1** – Environnement de production
 
@@ -19,8 +21,6 @@ Nous avons retenu l’offre gratuite alwaysdata [26], compte `lamraoui`. Elle fo
 | SGBD | MariaDB 11.4, base `lamraoui_briefly` |
 | Racine web | `www/briefly/public/` |
 | `APP_ENV` / `APP_DEBUG` | `production` / `false` |
-
-Pour l’activité type 3 du référentiel CDA (tableau 1.2), nous documentons ici l’hébergement, le schéma déployé par migrations et les essais d’accès web et mobile.
 
 ## 5.2 Installation sur le serveur
 
@@ -80,8 +80,8 @@ Nous avons ouvert les écrans de connexion et de tableau de bord contre le serve
 
 ## 5.5 Exploitation et limites
 
-Les mises à jour passent par un nouveau transfert SSH et, si le schéma change, `php artisan migrate --force` puis `php artisan optimize`. Le workflow GitHub Actions (§4.4) exécute PHPUnit et les tests Flutter à chaque push ; il ne déploie pas encore automatiquement vers alwaysdata (piste en conclusion générale). Les liens de réinitialisation de mot de passe ne partent pas par courriel : `MAIL_MAILER` vaut `log`. Un envoi réel pourrait utiliser le SMTP du compte alwaysdata. Avec `QUEUE_CONNECTION=sync`, aucune tâche asynchrone longue n’est prévue dans cette version.
+Un push sur `main` lance le workflow GitHub Actions (§4.4). Les tests Laravel et Flutter s’exécutent d’abord. S’ils réussissent, `scripts/deploy-alwaysdata.sh` copie le code vers `~/www/briefly/` par SSH, sans écraser le `.env`, puis lance `php artisan migrate --force` et `php artisan optimize`. Les dossiers `mobile/` et `docs/` ne partent pas sur le serveur. Une pull request lance les tests et laisse le serveur en l’état. Les liens de réinitialisation de mot de passe ne partent pas par courriel : `MAIL_MAILER` vaut `log`. Un envoi réel pourrait utiliser le SMTP du compte alwaysdata. Avec `QUEUE_CONNECTION=sync`, aucune tâche asynchrone longue n’est prévue dans cette version.
 
 ## Conclusion du chapitre
 
-Briefly est accessible sur https://lamraoui.alwaysdata.net pour le navigateur et depuis l’application Flutter installée sur iPhone. L’hébergement alwaysdata couvre PHP, MariaDB et HTTPS ; le déploiement Laravel repose sur une racine `public/`, un `.env` de production et les migrations Artisan. Le mobile réutilise la communication unifiée du chapitre 3 : mêmes routes, mêmes politiques, authentification Sanctum. Les captures de ce chapitre montrent un parcours web et mobile cohérent sur ce serveur. Les mises à jour restent manuelles (SSH, `migrate`, `optimize`) ; le courriel de réinitialisation est journalisé et la CI ne déploie pas encore automatiquement (chapitre 4).
+Briefly est accessible sur https://lamraoui.alwaysdata.net pour le navigateur et depuis l’application Flutter installée sur iPhone. L’hébergement alwaysdata couvre PHP, MariaDB et HTTPS ; le déploiement Laravel repose sur une racine `public/`, un `.env` de production et les migrations Artisan. Le mobile rejoint le même serveur que le navigateur et s’authentifie par un jeton d’accès. Les captures de ce chapitre montrent un parcours web et mobile cohérent sur ce serveur. Un push sur `main` publie cette version après les tests du chapitre 4. Le courriel de réinitialisation est journalisé.

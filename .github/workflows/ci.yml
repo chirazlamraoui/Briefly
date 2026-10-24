@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: briefly-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   laravel:
@@ -54,3 +59,32 @@ jobs:
 
       - name: Run tests
         run: flutter test
+
+  deploy:
+    name: Déploiement alwaysdata
+    needs: [laravel, flutter]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: mbstring, pdo_mysql
+          coverage: none
+
+      - name: Install the alwaysdata SSH key
+        env:
+          ALWAYSDATA_SSH_KEY: ${{ secrets.ALWAYSDATA_SSH_KEY }}
+        run: |
+          if [ -z "$ALWAYSDATA_SSH_KEY" ]; then
+            echo "The ALWAYSDATA_SSH_KEY secret is missing." >&2
+            exit 1
+          fi
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$ALWAYSDATA_SSH_KEY" > "$HOME/.ssh/alwaysdata_lamraoui"
+          chmod 600 "$HOME/.ssh/alwaysdata_lamraoui"
+
+      - name: Deploy
+        run: bash scripts/deploy-alwaysdata.sh

@@ -90,6 +90,23 @@ La note de blocage n’est exigée que si le statut vaut `BLOCKED`. `Rule::requi
 | Données | MySQL |
 | Client mobile | Flutter (Dart 3.13), Riverpod, GoRouter, Dio, flutter_secure_storage, fl_chart, google_fonts, intl / flutter_localizations |
 
+Les migrations créent le schéma physique à partir du modèle logique du tableau 3.3.
+
+**Tableau 4.11** – Tables physiques
+
+| Élément logique | Table |
+| --- | --- |
+| Compte | `users` |
+| Équipe | `teams` |
+| Appartenance | `team_user` |
+| Projet | `projects` |
+| Rattachement projet–équipe | `project_team` |
+| Tâche | `tasks` |
+| Avancement | `task_updates` |
+| Session web | `sessions` |
+| Réinitialisation du mot de passe | `password_reset_tokens` |
+| Jeton d’accès mobile | `personal_access_tokens` |
+
 ## 4.2 Réalisation des sprints
 
 Nous avons découpé le travail en six sprints, selon le tableau 2.1. Les tableaux de tests qui suivent transposent, en scénarios fonctionnels, les cas réellement exercés par PHPUnit (`AuthenticationTest`, `AdminTest`, `ProjectTaskTest`, `JsonEndpointTest`, `LocaleTest`). La colonne « Résultat » indique la conformité constatée lors de l’exécution de la suite. Les parcours de réinitialisation du mot de passe, de mise à jour du profil, de l’option « se souvenir de moi » et du thème sont implémentés mais **non couverts** par cette suite.
@@ -415,7 +432,7 @@ Deux points restent à traiter. La route `POST /login` ne limite pas le nombre d
 
 ## 4.4 Intégration continue
 
-Le dépôt est branché sur GitHub Actions via `.github/workflows/ci.yml`. Il se déclenche à chaque `push` sur la branche `main` et à chaque *pull request*. Deux jobs indépendants s’exécutent en parallèle sur une machine Ubuntu (tableau 4.10).
+Le dépôt est branché sur GitHub Actions via `.github/workflows/ci.yml`. Il se déclenche à chaque `push` sur la branche `main`, à chaque *pull request*, et sur demande depuis l’onglet Actions. Deux jobs de test s’exécutent en parallèle sur une machine Ubuntu. Le troisième ne publie sur alwaysdata que depuis `main` (tableau 4.10).
 
 **Tableau 4.10** – Jobs du workflow d’intégration continue
 
@@ -423,8 +440,9 @@ Le dépôt est branché sur GitHub Actions via `.github/workflows/ci.yml`. Il se
 | --- | --- | --- |
 | Tests Laravel | PHP 8.5, extensions `mbstring`, `pdo_sqlite` et `pdo_mysql` | `composer install`, copie de `.env.example` et `php artisan key:generate`, puis `php artisan test` |
 | Tests Flutter | Flutter 3.47.1 (canal stable), dossier `mobile/` | `flutter pub get`, `flutter analyze`, puis `flutter test` |
+| Déploiement alwaysdata | Ubuntu, PHP 8.5, SSH vers le compte `lamraoui` | réservé à `main`, après les deux suites : `scripts/deploy-alwaysdata.sh`, puis contrôle de `GET /up` |
 
-Le job Laravel exécute la suite PHPUnit des tableaux 4.4 à 4.8 sur une base SQLite en mémoire, comme en local, grâce à la configuration de `phpunit.xml`. Le job Flutter lance l’analyse statique du code Dart, puis les tests `auth_gate_test.dart` et `progress_validation_test.dart`. Une modification qui casse une règle d’accès ou de validation fait échouer le workflow, et l’échec apparaît dans la *pull request* concernée.
+Le job Laravel exécute la suite PHPUnit des tableaux 4.4 à 4.8 sur une base SQLite en mémoire, comme en local, grâce à la configuration de `phpunit.xml`. Le job Flutter lance l’analyse statique du code Dart, puis les tests `auth_gate_test.dart` et `progress_validation_test.dart`. Une modification qui casse une règle d’accès ou de validation fait échouer le workflow, et l’échec apparaît dans la *pull request* concernée. Le job de déploiement ne part que sur `main`, une fois les deux suites réussies. Il publie l’application sur alwaysdata (§5.5).
 
 ## Conclusion
 

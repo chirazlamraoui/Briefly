@@ -216,7 +216,7 @@ def uc_member() -> None:
     arrow(d, a, (280, 350))
     arrow(d, a, (280, 460))
     arrow(d, (700, 350), (560, 350), dashed=True, label="«extend»")
-    center_text(d, 640, 318, "{statut = BLOCKED}", fnt(12))
+    center_text(d, 640, 318, "{statut bloqué}", fnt(12))
     save(im, "diag-uc-member.png")
 
 
@@ -252,30 +252,30 @@ def scrum() -> None:
 
 def arch_physical() -> None:
     im, d = new(980, 360)
-    box(d, 40, 40, 220, 90, ["Navigateur web", "vues Blade / session"])
-    box(d, 40, 200, 220, 90, ["Application Flutter", "JSON / jeton Sanctum"])
-    box(d, 380, 120, 240, 100, ["Laravel", "contrôleurs, services"])
-    d.ellipse((740, 125, 940, 215), fill=GRAY, outline=BLACK, width=2)
-    center_text(d, 840, 160, "MySQL", fnt(16, True))
-    center_text(d, 840, 182, "données métier", fnt(12))
-    arrow(d, (260, 85), (380, 155))
-    arrow(d, (260, 245), (380, 185))
-    arrow(d, (620, 170), (740, 170))
-    center_text(d, 150, 22, "Niveau 1 : clients", fnt(13, True))
-    center_text(d, 500, 100, "Niveau 2 : application", fnt(13, True))
-    center_text(d, 840, 108, "Niveau 3 : données", fnt(13, True))
+    box(d, 40, 40, 240, 90, ["Navigateur", "pages et session"])
+    box(d, 40, 200, 240, 90, ["Application mobile", "écrans et jeton"])
+    box(d, 390, 120, 250, 100, ["Serveur d'application", "règles métier"])
+    d.ellipse((750, 125, 950, 215), fill=GRAY, outline=BLACK, width=2)
+    center_text(d, 850, 158, "Données", fnt(16, True))
+    center_text(d, 850, 180, "base relationnelle", fnt(12))
+    arrow(d, (280, 85), (390, 155))
+    arrow(d, (280, 245), (390, 185))
+    arrow(d, (640, 170), (750, 170))
+    center_text(d, 160, 22, "Niveau 1 : clients", fnt(13, True))
+    center_text(d, 515, 100, "Niveau 2 : application", fnt(13, True))
+    center_text(d, 850, 108, "Niveau 3 : données", fnt(13, True))
     save(im, "diag-arch-physical.png")
 
 
 def arch_unified() -> None:
     im, d = new(980, 420)
-    box(d, 40, 50, 200, 80, ["Navigateur", "Accept: text/html"])
-    box(d, 40, 250, 200, 80, ["Flutter / Dio", "Accept: application/json"])
-    box(d, 360, 140, 260, 110, ["routes/web.php", "auth + respond()"])
-    box(d, 740, 50, 200, 80, ["Vue Blade", "ou redirection"])
-    box(d, 740, 250, 200, 80, ["JSON", "Resource ou tableau"])
-    arrow(d, (240, 90), (360, 175))
-    arrow(d, (240, 290), (360, 215))
+    box(d, 40, 50, 210, 80, ["Navigateur", "session"])
+    box(d, 40, 250, 210, 80, ["Application mobile", "jeton d'accès"])
+    box(d, 360, 140, 260, 110, ["Catalogue unique", "mêmes opérations"])
+    box(d, 740, 50, 200, 80, ["Page web", "ou redirection"])
+    box(d, 740, 250, 200, 80, ["Réponse structurée", "pour le mobile"])
+    arrow(d, (250, 90), (360, 175))
+    arrow(d, (250, 290), (360, 215))
     arrow(d, (620, 175), (740, 90))
     arrow(d, (620, 215), (740, 290))
     save(im, "diag-arch-unified.png")
@@ -284,12 +284,12 @@ def arch_unified() -> None:
 def arch_layers() -> None:
     im, d = new(720, 520)
     labels = [
-        "Présentation  ·  Blade + Bootstrap, widgets Flutter",
-        "Coordination  ·  routes, middleware, contrôleurs, Form Requests",
-        "Autorisation  ·  TaskPolicy, ProjectPolicy",
-        "Application / métier  ·  TaskService, services d'administration",
-        "Domaine  ·  User, Team, Project, Task, TaskUpdate",
-        "Persistance  ·  Eloquent / MySQL",
+        "Présentation  ·  navigateur et application mobile",
+        "Coordination  ·  acheminement, saisie, réponse",
+        "Autorisation  ·  qui agit sur quelle ressource",
+        "Métier  ·  invariants, historique, tableaux de bord",
+        "Domaine  ·  comptes, équipes, projets, tâches",
+        "Persistance  ·  schéma relationnel",
     ]
     y = 30
     for i, label in enumerate(labels):
@@ -365,7 +365,7 @@ def _draw_seq_steps(d: ImageDraw.ImageDraw, xs: list[int], y: int, steps: list[t
                 if i:
                     dashed_line(d, (left, inner_y), (right, inner_y))
                     inner_y += SEP_H
-                d.text((left + 10, inner_y), f"[{guard}]", font=fnt(12, True), fill=BLACK)
+                d.text((max(left + 10, xs[0] + 16), inner_y), f"[{guard}]", font=fnt(12, True), fill=BLACK)
                 inner_y += GUARD_H
                 inner_y = _draw_seq_steps(d, xs, inner_y, inner, left + 10, right - 10)
             y += h + GAP_H
@@ -373,13 +373,13 @@ def _draw_seq_steps(d: ImageDraw.ImageDraw, xs: list[int], y: int, steps: list[t
             h = _step_height(step)
             d.rectangle((left, y, right, y + h), outline=BLACK, width=2)
             _draw_frag_tab(d, left, y, kind)
-            d.text((left + 10, y + TAB_H), f"[{step[1]}]", font=fnt(12, True), fill=BLACK)
+            d.text((max(left + 10, xs[0] + 16), y + TAB_H), f"[{step[1]}]", font=fnt(12, True), fill=BLACK)
             _draw_seq_steps(d, xs, y + TAB_H + GUARD_H, step[2], left + 10, right - 10)
             y += h + GAP_H
     return y
 
 
-def draw_sequence(name: str, actors: list[str], steps: list[tuple], *, stick_first: bool = False, gap: int = 200) -> None:
+def draw_sequence(name: str, actors: list[str], steps: list[tuple], *, stick_first: bool = False, gap: int = 200, box_w: int = 140) -> None:
     n = len(actors)
     width = max(gap * n + 80, 920)
     body = _inner_height(steps)
@@ -389,11 +389,13 @@ def draw_sequence(name: str, actors: list[str], steps: list[tuple], *, stick_fir
     xs = [80 + i * gap for i in range(n)]
     if stick_first:
         stick(d, xs[0], 12, actors[0], 0.85)
+        half = box_w // 2
         for i, label in enumerate(actors[1:], start=1):
-            box(d, xs[i] - 70, 28, 140, 52, label.split("\n"))
+            box(d, xs[i] - half, 28, box_w, 52, label.split("\n"))
     else:
+        half = box_w // 2
         for i, label in enumerate(actors):
-            box(d, xs[i] - 70, 20, 140, 56, label.split("\n"))
+            box(d, xs[i] - half, 20, box_w, 56, label.split("\n"))
     for x in xs:
         d.line((x, 88, x, h - 14), fill=BLACK, width=1)
     _draw_seq_steps(d, xs, top, steps, 20, width - 20)
@@ -412,8 +414,8 @@ def seq_auth() -> None:
             (
                 "alt",
                 [
-                    ("identifiants valides", [("msg", 1, 0, "Session web ou jeton Sanctum")]),
-                    ("sinon", [("msg", 1, 0, "Erreurs 422")]),
+                    ("identifiants valides", [("msg", 1, 0, "Session web ou jeton d'accès")]),
+                    ("sinon", [("msg", 1, 0, "Erreur de validation")]),
                 ],
             ),
         ],
@@ -432,7 +434,7 @@ def seq_forgot() -> None:
                 "alt",
                 [
                     ("compte existant", [("msg", 1, 0, "Envoi du lien et du jeton")]),
-                    ("sinon", [("msg", 1, 0, "Erreur de validation 422")]),
+                    ("sinon", [("msg", 1, 0, "Erreur de validation")]),
                 ],
             ),
             ("msg", 0, 1, "Nouveau mot de passe confirmé"),
@@ -452,91 +454,97 @@ def seq_forgot() -> None:
 def seq_create_user() -> None:
     draw_sequence(
         "diag-seq-create-user.png",
-        ["Administrateur", "Contrôleur", "AdminUserService", "Modèle"],
+        ["Administrateur", "Contrôleur", "Service métier", "Modèle"],
         [
-            ("msg", 0, 1, "POST /admin/users"),
-            ("self", 1, "StoreUserRequest"),
+            ("msg", 0, 1, "Soumettre le formulaire"),
+            ("self", 1, "Contrôler droits et saisie"),
             (
                 "alt",
                 [
                     (
-                        "saisie valide",
+                        "saisie acceptée",
                         [
-                            ("msg", 1, 2, "createUser()"),
-                            ("msg", 2, 3, "User.create"),
+                            ("msg", 1, 2, "Créer le compte"),
+                            ("msg", 2, 3, "Enregistrer le compte"),
                             (
                                 "loop",
-                                "pour chaque team_id",
-                                [("msg", 2, 3, "attacher l'équipe (team_user)")],
+                                "pour chaque équipe",
+                                [("msg", 2, 3, "Rattacher l'équipe")],
                             ),
                             (
                                 "opt",
-                                "team_id dans team_lead_ids",
-                                [("msg", 2, 3, "is_team_lead = vrai, rôle TEAM_LEAD")],
+                                "équipe dirigée",
+                                [("msg", 2, 3, "Indiquer qu'il est chef")],
                             ),
-                            ("msg", 3, 2, "User persisté"),
-                            ("msg", 2, 1, "User"),
-                            ("msg", 1, 0, "Liste / JSON 201"),
+                            ("msg", 3, 2, "Compte enregistré"),
+                            ("msg", 2, 1, "Confirmation"),
+                            ("msg", 1, 0, "Liste mise à jour"),
                         ],
                     ),
-                    ("sinon", [("msg", 1, 0, "Erreurs 422")]),
+                    ("sinon", [("msg", 1, 0, "Saisie refusée")]),
                 ],
             ),
         ],
+        gap=250,
+        box_w=168,
     )
 
 
 def seq_create_task() -> None:
     draw_sequence(
         "diag-seq-create-task.png",
-        ["Chef d'équipe", "TaskController", "TaskService", "Modèle"],
+        ["Chef d'équipe", "Contrôleur", "Service métier", "Modèle"],
         [
-            ("msg", 0, 1, "POST /projects/{id}/tasks"),
-            ("self", 1, "StoreTaskRequest + politiques"),
-            ("msg", 1, 2, "leadTeamsForProject()"),
+            ("msg", 0, 1, "Soumettre la tâche"),
+            ("self", 1, "Contrôler droits et saisie"),
+            ("msg", 1, 2, "Équipe de contexte"),
             (
                 "alt",
                 [
                     (
-                        "assigné dans l'équipe de contexte",
+                        "assigné dans l'équipe",
                         [
-                            ("msg", 1, 3, "project.tasks().create()"),
-                            ("msg", 3, 1, "Task"),
+                            ("msg", 2, 3, "Créer la tâche"),
+                            ("msg", 3, 1, "Tâche enregistrée"),
                             ("msg", 1, 0, "Tâche créée"),
                         ],
                     ),
-                    ("sinon", [("msg", 2, 1, "ValidationException"), ("msg", 1, 0, "Erreurs 422")]),
+                    ("sinon", [("msg", 2, 1, "Assigné hors équipe"), ("msg", 1, 0, "Création refusée")]),
                 ],
             ),
         ],
+        gap=250,
+        box_w=168,
     )
 
 
 def seq_progress() -> None:
     draw_sequence(
         "diag-seq-progress.png",
-        ["Membre", "TaskController", "TaskService", "Task / TaskUpdate"],
+        ["Membre", "Contrôleur", "Service métier", "Tâche"],
         [
-            ("msg", 0, 1, "PATCH /tasks/{id}/progress"),
-            ("self", 1, "UpdateTaskProgressRequest"),
+            ("msg", 0, 1, "Enregistrer l'avancement"),
+            ("self", 1, "Contrôler assignation et saisie"),
             (
                 "alt",
                 [
-                    ("BLOCKED sans note", [("msg", 1, 0, "Erreurs 422")]),
+                    ("bloqué sans note", [("msg", 1, 0, "Mise à jour refusée")]),
                     (
                         "sinon",
                         [
-                            ("msg", 1, 2, "recordProgress()"),
-                            ("msg", 2, 3, "Task.update + TaskUpdate.create"),
-                            ("opt", "statut = DONE", [("msg", 2, 3, "poser completed_at")]),
-                            ("msg", 3, 2, "Instantané enregistré"),
-                            ("msg", 2, 1, "TaskUpdate"),
+                            ("msg", 1, 2, "Enregistrer le point"),
+                            ("msg", 2, 3, "Tâche et historique"),
+                            ("opt", "statut terminé", [("msg", 2, 3, "Poser la date de clôture")]),
+                            ("msg", 3, 2, "Point enregistré"),
+                            ("msg", 2, 1, "Avancement"),
                             ("msg", 1, 0, "Tâche à jour"),
                         ],
                     ),
                 ],
             ),
         ],
+        gap=250,
+        box_w=168,
     )
 
 
@@ -569,10 +577,10 @@ def activity() -> None:
     s = start_node(460, 28)
     a = rbox(310, 58, 300, 48, "Ouvrir la tâche assignée")
     b = rbox(310, 140, 300, 48, "Saisir statut, réalisé, prochain pas")
-    blocked = diamond(460, 280, "Statut BLOCKED ?")
+    blocked = diamond(460, 280, "Statut bloqué ?")
     note = diamond(200, 450, "Note renseignée ?")
     reject = rbox(20, 580, 230, 48, "Rejeter : note obligatoire")
-    save_box = rbox(500, 580, 380, 48, "Mettre à jour la tâche et créer un TaskUpdate")
+    save_box = rbox(500, 580, 380, 48, "Mettre à jour la tâche et l'historique")
     fail = end_node(135, 690)
     ok = end_node(690, 690)
 
@@ -644,19 +652,17 @@ def class_diag() -> None:
     def label(x, y, text, bold=False):
         d.text((x, y), text, font=fnt(14, True) if bold else label_font, fill=BLACK)
 
-    klass(40, 30, 270, "UserRole", ["MEMBER", "TEAM_LEAD", "ADMIN"], [], "<<énumération>>")
-    klass(1090, 30, 270, "TaskStatus", ["TODO", "IN_PROGRESS", "BLOCKED", "DONE"], ["+ progressPercent() : int"], "<<énumération>>")
+    klass(40, 30, 280, "Rôle", ["membre", "chef d'équipe", "administrateur"], [], "<<énumération>>")
+    klass(1080, 30, 280, "Statut", ["à faire", "en cours", "bloqué", "terminé"], [], "<<énumération>>")
 
-    ux, uy, uw, uh = klass(480, 30, 300, "Utilisateur",
-                           ["- id : int", "- name : string", "- job_title : string", "- email : string",
-                            "- password : string", "- role : UserRole", "- team_id : int"],
-                           ["+ isAdmin() : bool"])
+    ux, uy, uw, uh = klass(460, 30, 320, "Utilisateur",
+                           ["- identifiant", "- nom", "- intitulé de poste", "- courriel",
+                            "- mot de passe", "- rôle", "- équipe de référence"],
+                           [])
     ucx, ubottom = ux + uw / 2, uy + uh
 
-    ax, ay, aw, ah = klass(40, 330, 290, "Administrateur", ["{role = ADMIN}"],
-                           ["+ createUser()", "+ createTeam()", "+ createProject()"])
-    ex, ey, ew, eh = klass(480, 330, 300, "Employé", ["{role = MEMBER ou TEAM_LEAD}"],
-                           ["+ isTeamLead() : bool", "+ belongsToTeam(équipe) : bool", "+ managedTeamIds() : int[]"])
+    ax, ay, aw, ah = klass(40, 330, 300, "Administrateur", ["{rôle = administrateur}"], [])
+    ex, ey, ew, eh = klass(460, 330, 320, "Employé", ["{rôle = membre ou chef}"], [])
 
     tri_base = ubottom + 22
     d.polygon([(ucx, ubottom), (ucx - 13, tri_base), (ucx + 13, tri_base)], outline=BLACK, fill=WHITE, width=2)
@@ -664,16 +670,15 @@ def class_diag() -> None:
     path([(ucx, tri_base), (ucx, ey)])
     path([(ax + aw / 2, ay), (ax + aw / 2, bar_y), (ucx, bar_y)])
 
-    px, py, pw, ph = klass(1060, 330, 300, "Projet", ["- id : int", "- name : string", "- description : text"], [])
-    tx, ty, tw, th = klass(1040, 600, 320, "Tâche",
-                           ["- id : int", "- title : string", "- description : text", "- status : TaskStatus",
-                            "- progress_done : text", "- progress_next : text", "- blocker_note : text",
-                            "- completed_at : datetime"],
+    px, py, pw, ph = klass(1060, 330, 300, "Projet", ["- identifiant", "- nom", "- description"], [])
+    tx, ty, tw, th = klass(1040, 600, 340, "Tâche",
+                           ["- identifiant", "- titre", "- description", "- statut",
+                            "- réalisé", "- à venir", "- note de blocage", "- date de clôture"],
                            [])
-    qx, qy, qw, qh = klass(40, 640, 290, "Équipe", ["- id : int", "- name : string"], [])
-    vx, vy, vw, vh = klass(560, 650, 330, "Avancement",
-                           ["- id : int", "- status : TaskStatus", "- progress_done : text  (réalisé)",
-                            "- progress_next : text  (à venir)", "- blocker_note : text", "- created_at : datetime"],
+    qx, qy, qw, qh = klass(40, 640, 290, "Équipe", ["- identifiant", "- nom"], [])
+    vx, vy, vw, vh = klass(560, 650, 340, "Avancement",
+                           ["- identifiant", "- statut", "- réalisé", "- à venir",
+                            "- note de blocage", "- date"],
                            [])
 
     e_bottom = ey + eh
@@ -725,14 +730,13 @@ def class_diag() -> None:
 
 def flutter_chain() -> None:
     im, d = new(980, 220)
-    box(d, 30, 70, 200, 80, ["Flutter", "Riverpod, GoRouter"])
-    box(d, 280, 70, 200, 80, ["HTTP JSON", "Dio + Bearer"])
-    box(d, 530, 70, 200, 80, ["Laravel", "respond()"])
-    d.ellipse((780, 70, 950, 150), fill=GRAY, outline=BLACK, width=2)
-    center_text(d, 865, 110, "MySQL", fnt(16, True))
-    arrow(d, (230, 110), (280, 110))
-    arrow(d, (480, 110), (530, 110))
-    arrow(d, (730, 110), (780, 110))
+    box(d, 40, 70, 220, 80, ["Application mobile", "présentation"])
+    box(d, 370, 70, 240, 80, ["Serveur d'application", "mêmes opérations"])
+    d.ellipse((730, 65, 940, 155), fill=GRAY, outline=BLACK, width=2)
+    center_text(d, 835, 98, "Données", fnt(16, True))
+    center_text(d, 835, 122, "base relationnelle", fnt(12))
+    arrow(d, (260, 110), (370, 110))
+    arrow(d, (610, 110), (730, 110))
     save(im, "diag-flutter-chain.png")
 
 

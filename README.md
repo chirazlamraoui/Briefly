@@ -86,13 +86,20 @@ Les tests PHP tournent sur une base SQLite en mémoire (voir `phpunit.xml`) : il
 
 ### Mise à jour
 
+Sur alwaysdata, un push sur `main` déclenche cette mise à jour après les tests (voir plus bas). Le script `scripts/deploy-alwaysdata.sh` fait, sur le serveur :
+
 ```bash
-php artisan down
-git pull
-composer install --no-dev --optimize-autoloader
+php artisan down --retry=15
+php artisan optimize:clear
 php artisan migrate --force
 php artisan optimize
 php artisan up
+```
+
+Le fichier `.env` déjà présent sur le serveur est conservé. Pour lancer le même script depuis le Mac, la clé `~/.ssh/alwaysdata_lamraoui` doit être autorisée sur le compte :
+
+```bash
+bash scripts/deploy-alwaysdata.sh
 ```
 
 ## Application mobile
@@ -112,4 +119,6 @@ flutter build apk --release --dart-define=API_BASE_URL=https://adresse-du-serveu
 
 ## Intégration continue
 
-Le workflow `.github/workflows/ci.yml` se lance à chaque `push` et à chaque pull request. Il installe PHP et Composer, puis exécute `php artisan test`. Dans une seconde tâche, il installe Flutter et exécute `flutter analyze` et `flutter test`. Le résultat apparaît dans l'onglet Actions de GitHub et sur chaque pull request.
+Le workflow `.github/workflows/ci.yml` se lance à chaque push sur `main`, à chaque pull request, et à la demande depuis l'onglet Actions. Il installe PHP et Composer, puis exécute `php artisan test`. Dans une seconde tâche, il installe Flutter et exécute `flutter analyze` et `flutter test`. Le résultat apparaît dans l'onglet Actions de GitHub et sur chaque pull request.
+
+Si les deux suites passent et que l'événement est un push sur `main` (ou un lancement manuel de cette branche), une troisième tâche exécute `scripts/deploy-alwaysdata.sh`. Elle installe les dépendances de production, copie les fichiers vers `lamraoui@ssh-lamraoui.alwaysdata.net:www/briefly/` et vérifie que `GET /up` et `GET /login` répondent 200. La clé privée SSH est le secret de dépôt `ALWAYSDATA_SSH_KEY`. Les dossiers `mobile/` et `docs/` ne sont pas envoyés.

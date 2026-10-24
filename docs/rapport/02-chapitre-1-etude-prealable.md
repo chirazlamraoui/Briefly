@@ -146,15 +146,15 @@ Le référentiel du titre CDA (RNCP 37873) regroupe onze compétences en trois a
 | --- | --- | --- |
 | 1. Développer une application sécurisée | Installer et configurer son environnement de travail en fonction du projet | Poste macOS, XAMPP (MySQL), SDK Flutter et Xcode (§4.1) |
 | | Développer des interfaces utilisateur | Vues Blade et Bootstrap 5.3 pour le web, écrans Flutter pour le mobile, en français et en anglais (§4.2) |
-| | Développer des composants métier | Services `TaskService` et `AdminUserService`, politiques `TaskPolicy` et `ProjectPolicy` (§3.1.2, §4.1.2) |
+| | Développer des composants métier | Services métier et politiques d'accès (chapitre 4) |
 | | Contribuer à la gestion d’un projet informatique | Démarche Scrum en six sprints, backlog produit (§1.1.3, tableau 2.1) |
 | 2. Concevoir et développer une application sécurisée organisée en couches | Analyser les besoins et maquetter une application | Acteurs, besoins fonctionnels et non fonctionnels, cas d’utilisation, séquences d’analyse et maquettes fil de fer Figma (chapitre 2, §2.2.3) |
-| | Définir l’architecture logicielle d’une application | Architecture 3-tiers, communication unifiée HTML / JSON, découpage en couches (§3.1) |
-| | Concevoir et mettre en place une base de données relationnelle | Diagramme de classes, schéma relationnel MySQL créé par les migrations Laravel (§3.2.1) |
-| | Développer des composants d’accès aux données SQL | Modèles et relations Eloquent sur MySQL (§3.1.2) |
+| | Définir l’architecture logicielle d’une application | Architecture 3-tiers, communication unifiée et découpage en couches (§3.1). Pages web et réponses pour le mobile (chapitre 4) |
+| | Concevoir et mettre en place une base de données relationnelle | Diagramme de classes et schéma logique (§3.2.1). Tables physiques (tableau 4.11) |
+| | Développer des composants d’accès aux données SQL | Modèles et relations sur MySQL (chapitre 4) |
 | 3. Préparer le déploiement d’une application sécurisée | Préparer et exécuter les plans de tests d’une application | Tests par sprint (tableaux 4.4 à 4.8), consolidation au sprint 5 (§4.3, §4.4) |
 | | Préparer et documenter le déploiement d’une application | Migrations, mise en ligne alwaysdata, vérifications web et mobile (chapitre 5) |
-| | Contribuer à la mise en production dans une démarche DevOps | Workflow GitHub Actions (§4.4) ; déploiement manuel au chapitre 5 |
+| | Contribuer à la mise en production dans une démarche DevOps | Workflow GitHub Actions (§4.4) et publication sur alwaysdata après les tests (chapitre 5) |
 
 ## Conclusion
 

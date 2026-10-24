@@ -4,7 +4,7 @@ Ce mémoire a présenté la conception et la réalisation de Briefly, une applic
 
 Briefly répond à ce besoin pour des équipes déjà constituées, sans inscription publique. L’administrateur crée les comptes, les équipes et les projets. Le chef d’équipe crée et suit les tâches de ses équipes. Le membre rend compte de ses tâches en trois champs : ce qui a été réalisé, ce qui vient ensuite, et ce qui bloque. Une tâche bloquée exige une note. Les tableaux de bord de chaque rôle calculent ensuite un taux d’avancement par membre, par équipe et par projet.
 
-Le travail a suivi l’étude préalable, l’analyse des besoins, la conception, puis six sprints (tableau 2.1). La communication unifiée (§3.1.1) sert le web en HTML et le mobile en JSON depuis le même serveur Laravel ; PHPUnit et GitHub Actions en vérifient les règles avant chaque évolution du dépôt.
+Le travail a suivi l’étude préalable, l’analyse des besoins, la conception, puis six sprints (tableau 2.1). Un même serveur sert le web en HTML et le mobile en JSON. PHPUnit et GitHub Actions en vérifient les règles avant chaque évolution du dépôt.
 
 Ce projet nous a permis de pratiquer l’ensemble du cycle d’une application : analyse UML, architecture en couches, conception d’une base relationnelle, développement web avec Laravel, développement mobile avec Flutter, authentification par jeton avec Sanctum, tests automatisés, intégration continue et mise en ligne du serveur (chapitre 5).
 
@@ -17,7 +17,6 @@ Cette version n’inclut pas encore certaines fonctions. Plusieurs évolutions s
 - **Export PDF.** Générer un état d’avancement à partir des tableaux de bord, à joindre à un compte rendu de réunion.
 - **Calendrier partagé.** Afficher sur une même vue les échéances des tâches et des projets.
 - **Sécurité de l’authentification.** Limiter le nombre de tentatives sur `POST /login` et donner une durée de validité aux jetons Sanctum (§4.3.6).
-- **Déploiement automatisé.** Prolonger le workflow d’intégration continue par une mise en production de l’application après le succès des tests.
 - **Tests mobiles.** Étendre les tests Flutter, qui portent aujourd’hui sur l’accès authentifié et la validation de l’avancement, aux principaux écrans.
 
 Les règles métier restant sur le serveur Laravel, chacune de ces évolutions profiterait aux deux clients sans dupliquer la logique.
