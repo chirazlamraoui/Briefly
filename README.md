@@ -122,3 +122,10 @@ flutter build apk --release --dart-define=API_BASE_URL=https://adresse-du-serveu
 Le workflow `.github/workflows/ci.yml` se lance à chaque push sur `main`, à chaque pull request, et à la demande depuis l'onglet Actions. Il installe PHP et Composer, puis exécute `php artisan test`. Dans une seconde tâche, il installe Flutter et exécute `flutter analyze` et `flutter test`. Le résultat apparaît dans l'onglet Actions de GitHub et sur chaque pull request.
 
 Si les deux suites passent et que l'événement est un push sur `main` (ou un lancement manuel de cette branche), une troisième tâche exécute `scripts/deploy-alwaysdata.sh`. Elle installe les dépendances de production, copie les fichiers vers `lamraoui@ssh-lamraoui.alwaysdata.net:www/briefly/` et vérifie que `GET /up` et `GET /login` répondent 200. La clé privée SSH est le secret de dépôt `ALWAYSDATA_SSH_KEY`. Les dossiers `mobile/` et `docs/` ne sont pas envoyés.
+
+Configuration unique du secret (une fois par dépôt) :
+
+```bash
+bash scripts/setup-github-deploy-secret.sh
+gh workflow run ci.yml --ref main
+```
